@@ -1,0 +1,136 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="glass-card text-center h-100 d-flex flex-column justify-content-center">
+                <h3 class="text-primary display-5 fw-bold">@ViewBag.TotalUsers</h3>
+                <span class="text-uppercase text-white-50">Active Players</span>
+                <i class="fas fa-users fa-2x text-primary opacity-25 mt-2"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center h-100 d-flex flex-column justify-content-center">
+                <h3 class="text-warning display-5 fw-bold">@ViewBag.TotalItems</h3>
+                <span class="text-uppercase text-white-50">Unique Items</span>
+                <i class="fas fa-box-open fa-2x text-warning opacity-25 mt-2"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center h-100 d-flex flex-column justify-content-center">
+                <h3 class="text-info display-5 fw-bold">@ViewBag.TotalLogs</h3>
+                <span class="text-uppercase text-white-50">System Logs</span>
+                <i class="fas fa-history fa-2x text-info opacity-25 mt-2"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="glass-card text-center h-100 d-flex flex-column justify-content-center">
+                <h3 class="text-success display-5 fw-bold">@ViewBag.TotalRevenue</h3>
+                <span class="text-uppercase text-white-50">Gold Circulation</span>
+                <i class="fas fa-coins fa-2x text-success opacity-25 mt-2"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="glass-card h-100">
+                <h5 class="text-white mb-3 border-bottom border-secondary pb-2">
+                    <i class="fas fa-database me-2 text-danger"></i>Database Operations
+                </h5>
+                
+                <div class="d-grid gap-3">
+                    <form asp-action="SeedDataStrict" method="post">
+                        <button type="submit" class="btn btn-outline-warning w-100 py-3 fw-bold text-start" 
+                                onclick="return confirm('Hành động này sẽ tạo mới toàn bộ Item chuẩn theo tài liệu. Tiếp tục?')">
+                            <i class="fas fa-magic me-2"></i> INITIALIZE WORLD (Seed Data)
+                        </button>
+                    </form>
+                    <small class="text-white-50 fst-italic">
+                        *Tự động tạo Resources, Mobs, Weapons, Recipes chuẩn theo Instruct.docx.
+                    </small>
+
+                    <form asp-action="FactoryReset" method="post">
+                        <button type="submit" class="btn btn-outline-danger w-100 py-2 fw-bold text-start"
+                                onclick="return confirm('CẢNH BÁO: Hành động này sẽ XÓA SẠCH dữ liệu người chơi! Bạn có chắc không?')">
+                            <i class="fas fa-trash-restore me-2"></i> FACTORY RESET (Wipe All)
+                        </button>
+                    </form>
+                </div>
+
+                <div class="mt-4 pt-3 border-top border-secondary">
+                    <label class="text-info small fw-bold mb-2">SERVER MESSAGE (MOTD)</label>
+                    <form asp-action="UpdateMOTD" method="post">
+                        <div class="input-group">
+                            <input name="msg" class="form-control bg-dark text-white border-secondary" placeholder="Nhập thông báo..." />
+                            <button class="btn btn-info"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8 mb-4">
+            <div class="glass-card h-100">
+                <h5 class="text-white mb-3 border-bottom border-secondary pb-2">
+                    <i class="fas fa-chart-line me-2 text-success"></i>Transaction Trends (Last 7 Days)
+                </h5>
+                <div style="height: 300px;">
+                    <canvas id="transactionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Khởi tạo biểu đồ Chart.js
+    document.addEventListener("DOMContentLoaded", function() {
+        var ctx = document.getElementById('transactionChart').getContext('2d');
+        
+        // Dữ liệu giả lập nếu ViewBag rỗng (để tránh lỗi JS khi mới chạy)
+        var labels = '@Html.Raw(ViewBag.ChartLabels)' ? '@Html.Raw(ViewBag.ChartLabels)'.split(',') : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        var data = '@ViewBag.ChartData' ? '@ViewBag.ChartData'.split(',') : [0, 0, 0, 0, 0, 0, 0];
+
+        var myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Transactions Count',
+                    data: data,
+                    borderColor: '#00d2ff', // Màu Neon Blue
+                    backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#00d2ff',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.4 // Đường cong mềm mại
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#aaa' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#aaa' }
+                    }
+                }
+            }
+        });
+    });
+</script>

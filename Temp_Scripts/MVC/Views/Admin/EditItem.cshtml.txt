@@ -1,0 +1,134 @@
+@model MinecraftBackend.Models.ShopItem
+
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="glass-card border-warning">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+                    <h3 class="text-warning m-0"><i class="fas fa-edit me-2"></i>Edit Product: <span class="text-white">@Model.Name</span></h3>
+                    <span class="badge bg-dark border border-secondary font-monospace">ID: @Model.ProductID</span>
+                </div>
+
+                <form asp-action="EditItem" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="ProductID" />
+                    <input type="hidden" asp-for="ImageURL" />
+
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <div class="p-3 bg-black bg-opacity-25 rounded-3 border border-secondary mb-3">
+                                <label class="form-label text-info small fw-bold mb-2">CURRENT IMAGE</label>
+                                <div class="ratio ratio-1x1 mb-3">
+                                    <img src="@(Model.ImageURL ?? "/images/others/default.png")" 
+                                         class="rounded shadow-lg border border-secondary" 
+                                         style="object-fit: contain; background-color: rgba(0,0,0,0.5);"
+                                         onerror="this.src='/images/others/default.png'">
+                                </div>
+                                <div class="text-break small text-white-50 font-monospace mb-3">
+                                    @(Model.ImageURL ?? "No image")
+                                </div>
+                                
+                                <label class="btn btn-outline-info btn-sm w-100">
+                                    <i class="fas fa-upload me-2"></i> Upload New Image
+                                    <input type="file" name="imageFile" class="d-none" accept="image/*" onchange="previewImage(this)">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label text-white-50 small">Display Name</label>
+                                    <input asp-for="Name" class="form-control bg-dark text-white border-secondary" required />
+                                    <span asp-validation-for="Name" class="text-danger small"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50 small">Category</label>
+                                    <select asp-for="ItemType" class="form-select bg-dark text-white border-secondary">
+                                        <option value="Weapon">Weapon</option>
+                                        <option value="Armor">Armor</option>
+                                        <option value="Consumable">Consumable</option>
+                                        <option value="Resource">Resource</option>
+                                        <option value="Bundle">Bundle</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50 small">Rarity</label>
+                                    <select asp-for="Rarity" class="form-select bg-dark text-white border-secondary">
+                                        <option value="Common" class="text-secondary">Common (Gray)</option>
+                                        <option value="Rare" class="text-primary">Rare (Blue)</option>
+                                        <option value="Epic" class="text-info">Epic (Purple)</option>
+                                        <option value="Legendary" class="text-warning">Legendary (Orange)</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12"><hr class="border-secondary my-2"></div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50 small">Price Amount</label>
+                                    <input asp-for="PriceAmount" type="number" class="form-control bg-dark text-white border-secondary" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-white-50 small">Currency</label>
+                                    <select asp-for="PriceCurrency" class="form-select bg-dark text-white border-secondary">
+                                        <option value="RES_GOLD">Gold Coin</option>
+                                        <option value="RES_GEM">Gem</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check form-switch p-3 bg-black bg-opacity-25 rounded border border-secondary">
+                                        <input class="form-check-input" type="checkbox" asp-for="IsShow" style="cursor: pointer;">
+                                        <label class="form-check-label text-white fw-bold ms-2" asp-for="IsShow">
+                                            Active in Shop
+                                        </label>
+                                        <div class="text-white-50 small ms-2">Toggle to show/hide this item for players.</div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12"><hr class="border-secondary my-2"></div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-white-50 small">Target Inventory ID</label>
+                                    <input asp-for="TargetItemID" class="form-control bg-dark text-white border-secondary font-monospace" />
+                                    <small class="text-white-50">Map to item ID in player's inventory.</small>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-white-50 small">Description</label>
+                                    <textarea asp-for="Description" class="form-control bg-dark text-white border-secondary" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
+                        <a asp-action="Items" class="btn btn-outline-light px-4">
+                            <i class="fas fa-arrow-left me-2"></i> Back to List
+                        </a>
+                        <button type="submit" class="btn btn-warning px-5 fw-bold shadow-lg">
+                            <i class="fas fa-save me-2"></i> SAVE CHANGES
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.querySelector('.ratio img').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
