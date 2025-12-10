@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "API Health Check";
+}
+
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-white mb-0"><i class="fas fa-stethoscope text-danger me-2"></i>API Health Monitor</h2>
+            <p class="text-white-50 small mb-0">Quickly verify the status and response of core gameplay endpoints.</p>
+        </div>
+        <div class="badge bg-dark border border-success text-success p-2">
+            <i class="fas fa-signal me-1"></i> SYSTEM ONLINE
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="list-group bg-transparent" id="apiList">
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/resources')">
+                    <div><span class="badge bg-primary me-2">GET</span> <span>1. Get Resources (Sim)</span></div>
+                    <i class="fas fa-chevron-right text-muted small"></i>
+                </button>
+                
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/monsters')">
+                    <div><span class="badge bg-primary me-2">GET</span> <span>2. Get Monsters (Sim)</span></div>
+                    <i class="fas fa-chevron-right text-muted small"></i>
+                </button>
+
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/buildings')">
+                    <div><span class="badge bg-primary me-2">GET</span> <span>3. Get Buildings (Sim)</span></div>
+                    <i class="fas fa-chevron-right text-muted small"></i>
+                </button>
+
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/shop')">
+                    <div><span class="badge bg-warning text-dark me-2">GET</span> <span>4. Get Shop (Secure)</span></div>
+                    <i class="fas fa-lock text-warning small"></i>
+                </button>
+                
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/top-selling')">
+                    <div><span class="badge bg-success me-2">GET</span> <span>5. Top Selling (Stats)</span></div>
+                    <i class="fas fa-chevron-right text-muted small"></i>
+                </button>
+
+                <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary d-flex justify-content-between align-items-center" onclick="test('/api/game/cheap-diamond')">
+                    <div><span class="badge bg-success me-2">GET</span> <span>6. Cheap Diamond (Query)</span></div>
+                    <i class="fas fa-chevron-right text-muted small"></i>
+                </button>
+                
+                 <div class="p-2 text-white-50 small bg-black bg-opacity-25 mt-2 mb-1 border-top border-secondary">PARAMETERIZED TESTS</div>
+
+                 <div class="input-group input-group-sm mb-1">
+                     <span class="input-group-text bg-dark text-white border-secondary">Char ID</span>
+                     <input type="text" id="charIdInput" class="form-control bg-black text-white border-secondary" placeholder="Paste ID here...">
+                     <button class="btn btn-outline-info" onclick="testDynamic('affordable/', 'charIdInput')">Check Affordable</button>
+                 </div>
+            </div>
+            
+            <div class="mt-3">
+                <div class="alert alert-info bg-dark border-info text-info small">
+                    <i class="fas fa-info-circle me-2"></i> <strong>Note:</strong> API #4 "Get Shop" sẽ trả về 401 Unauthorized nếu gọi từ đây (vì không có Token). Điều này là bình thường để test bảo mật.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="glass-card bg-black h-100 p-0 d-flex flex-column" style="min-height: 500px;">
+                <div class="d-flex justify-content-between align-items-center p-2 border-bottom border-secondary bg-opacity-10 bg-white">
+                    <div class="small font-monospace text-warning ms-2"><i class="fas fa-code me-2"></i>JSON RESPONSE</div>
+                    <button class="btn btn-sm btn-outline-secondary border-0" onclick="document.getElementById('output').innerText='Waiting for request...'">Clear</button>
+                </div>
+                
+                <div class="position-relative flex-grow-1">
+                    <pre id="output" class="text-success m-0 p-3 font-monospace small" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: auto; white-space: pre-wrap;">Waiting for request...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function test(endpoint) {
+        setLoading(true);
+        try {
+            document.getElementById('output').innerText = `Requesting: ${endpoint}...\n\n`;
+            let res = await fetch(endpoint);
+            let status = res.status;
+            let statusText = res.statusText;
+            
+            let json;
+            try { json = await res.json(); } catch (e) { json = await res.text(); }
+
+            let output = `STATUS: ${status} ${statusText}\n`;
+            output += `TIME: ${new Date().toLocaleTimeString()}\n`;
+            output += `----------------------------------------\n`;
+            output += JSON.stringify(json, null, 2);
+
+            document.getElementById('output').innerText = output;
+        } catch (e) {
+            document.getElementById('output').innerText = `ERROR: Failed to connect to API.\n${e.message}`;
+        }
+        setLoading(false);
+    }
+
+    async function testDynamic(base, inputId) {
+        let val = document.getElementById(inputId).value;
+        if(!val) { alert("Please enter a value!"); return; }
+        test('/api/game/' + base + val);
+    }
+
+    function setLoading(isLoading) {
+        let out = document.getElementById('output');
+        out.style.opacity = isLoading ? 0.5 : 1;
+    }
+</script>
