@@ -1,0 +1,40 @@
+@{
+    ViewData["Title"] = "Create New Player";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="glass-card">
+            <h3 class="text-white mb-4 border-bottom border-secondary pb-2">
+                <i class="fas fa-user-plus text-success me-2"></i>Create New Player
+            </h3>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger text-white border-0 bg-danger bg-opacity-25 mb-3">
+                    @Html.ValidationSummary(false, "", new { @class = "mb-0" })
+                </div>
+            }
+
+            <form asp-action="CreateUser" method="post">
+                <div class="mb-3">
+                    <label class="form-label text-white-50">Username</label>
+                    <input name="username" class="form-control bg-dark text-white border-secondary" required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50">Email</label>
+                    <input name="email" type="email" class="form-control bg-dark text-white border-secondary" required />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white-50">Password</label>
+                    <input name="password" type="password" class="form-control bg-dark text-white border-secondary" required />
+                </div>
+
+                <div class="d-flex justify-content-between pt-3 border-top border-secondary">
+                    <a asp-action="Users" class="btn btn-outline-light">Cancel</a>
+                    <button type="submit" class="btn btn-success fw-bold px-4">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

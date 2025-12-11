@@ -146,6 +146,68 @@ namespace MinecraftBackend.Controllers
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
             return View(users);
         }
+		
+		// --- 1. Hiển thị form tạo User ---
+        [HttpGet]
+        public IActionResult CreateUser()
+        {
+            return View();
+        }
+
+        // --- 2. Xử lý tạo User & Profile mặc định ---
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(string username, string email, string password)
+        {
+            // Validate cơ bản
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                ModelState.AddModelError("", "Vui lòng nhập đủ thông tin!");
+                return View();
+            }
+
+            // Kiểm tra trùng lặp
+            if (await _context.Users.AnyAsync(u => u.Email == email || u.Username == username))
+            {
+                ModelState.AddModelError("", "Email hoặc Username đã tồn tại!");
+                return View();
+            }
+
+            // A. Tạo User
+            var newUser = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                Username = username,
+                Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), // Mã hóa pass
+                Role = "User",
+                Status = "Active",
+                CreatedAt = DateTime.Now
+            };
+            _context.Users.Add(newUser);
+
+            // B. Tạo Profile Game mặc định (Level 1, có tiền khởi nghiệp)
+            var newProfile = new PlayerProfile
+            {
+                CharacterID = Guid.NewGuid().ToString(),
+                UserId = newUser.Id,
+                DisplayName = username,
+                Level = 1,
+                Exp = 0,
+                Gold = 2000, // Admin tạo thì ưu đãi cho 2000 vàng
+                Gem = 50,
+                Health = 100,
+                MaxHealth = 100,
+                Hunger = 100,
+                AvatarUrl = "/images/avatars/steve.png",
+                GameMode = "Survival"
+            };
+            _context.PlayerProfiles.Add(newProfile);
+
+            // C. Lưu Database
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Users");
+        }
 
         public async Task<IActionResult> UserDetails(string id)
         {
