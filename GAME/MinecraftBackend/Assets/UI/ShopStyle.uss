@@ -1,214 +1,184 @@
-/* --- 1. GLOBAL & FONT --- */
+/* --- 1. VARIABLES & RESET --- */
+:root {
+    --primary: rgb(0, 210, 255);       /* Neon Blue */
+    --accent: rgb(255, 215, 0);        /* Gold */
+    --danger: rgb(220, 53, 69);        /* Red */
+    --success: rgb(40, 167, 69);       /* Green */
+    --bg-dark: rgba(20, 20, 25, 0.95);
+    --bg-glass: rgba(40, 40, 45, 0.8);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --font-main: resource('Fonts/Minecraft SDF');
+}
+
 * {
-    -unity-font-definition: resource('Fonts/Minecraft SDF'); /* Giữ font game */
-    color: rgb(230, 230, 230);
+    -unity-font-definition: var(--font-main);
+    color: white;
+    margin: 0;
+    padding: 0;
 }
 
 .hidden { display: none; }
-.content-hidden { display: none; }
 
 /* --- 2. LAYOUT CONTAINERS --- */
 .screen-container {
     width: 100%;
     height: 100%;
+    /* Flexbox căn giữa hoặc trải đều */
+    display: flex;
+    flex-direction: column; 
     background-color: rgb(30, 30, 30);
+}
+
+.overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
     align-items: center;
     justify-content: center;
+    transition: opacity 0.2s;
 }
 
-.form-card, .popup-box {
-    background-color: rgb(50, 50, 55);
-    border-radius: 20px;
+/* Panel kính mờ hiện đại, bo góc, co giãn */
+.panel-glass {
+    background-color: var(--bg-glass);
     border-width: 1px;
-    border-color: rgb(80, 80, 80);
-    padding: 30px;
-    align-items: stretch;
-    justify-content: center;
+    border-color: var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
 }
 
-/* --- 3. TYPOGRAPHY --- */
-.header-title, .popup-title {
-    font-size: 32px;
-    color: rgb(255, 215, 0); /* Gold */
-    -unity-font-style: bold;
-    margin-bottom: 20px;
-    -unity-text-align: middle-center;
-    border-bottom-width: 2px;
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-    padding-bottom: 10px;
+/* --- 3. RESPONSIVE GRID (SHOP & INVENTORY) --- */
+/* Item tự động xuống dòng và co giãn */
+.grid-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px; 
 }
 
-.section-title {
-    font-size: 18px;
-    color: rgb(200, 200, 200);
-    -unity-font-style: bold;
-    margin-bottom: 10px;
-    border-bottom-width: 1px;
-    border-bottom-color: rgb(80, 80, 80);
+.scroll-view {
+    flex-grow: 1; /* Chiếm hết không gian còn lại */
+    width: 100%;
 }
 
-/* --- 4. INPUT FIELDS --- */
-.input-field {
-    height: 50px;
-    margin-bottom: 15px;
-    font-size: 16px;
-}
-
-.input-field > .unity-base-field__label {
-    color: rgb(180, 180, 180);
-    min-width: 100px;
-    -unity-font-style: bold;
-}
-
-.input-field > .unity-base-field__input {
-    background-color: rgb(30, 30, 30);
-    color: white;
-    border-radius: 8px;
-    border-width: 1px;
-    border-color: rgb(70, 70, 70);
-    padding-left: 10px;
-}
-
-.input-field > .unity-base-field__input:focus {
-    border-color: rgb(0, 120, 215);
-}
-
-/* --- 5. BUTTONS --- */
-.btn-primary, .btn-confirm {
-    height: 50px;
-    border-radius: 12px;
-    font-size: 18px;
-    -unity-font-style: bold;
-    color: white;
-    background-color: rgb(0, 120, 215);
-    border-width: 0;
-    transition-duration: 0.2s;
-    margin-top: 10px;
-}
-
-.btn-primary:hover, .btn-confirm:hover {
-    scale: 1.05;
-    background-color: rgb(0, 140, 255);
-}
-
-.btn-secondary, .btn-cancel, .ctx-btn {
-    height: 40px;
-    background-color: transparent;
-    border-width: 1px;
-    border-color: rgb(100, 100, 100);
-    color: rgb(180, 180, 180);
-    border-radius: 8px;
-    margin-top: 5px;
-    font-size: 14px;
-}
-
-.btn-secondary:hover, .btn-cancel:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.btn-close {
-    width: 30px;
-    height: 30px;
-    background-color: rgb(220, 53, 69); /* Red */
-    color: white;
-    border-radius: 15px;
-    border-width: 0;
-}
-
-/* --- 6. ITEM CARDS --- */
-.item-card {
-    width: 150px;
-    height: 200px;
-    background-color: rgb(60, 60, 65);
-    margin: 5px;
-    border-radius: 15px;
-    border-width: 1px;
-    border-color: rgb(80, 80, 80);
-    padding: 10px;
+/* --- 4. COMPONENTS --- */
+.header-bar {
+    height: 80px;
+    width: 100%;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    transition-duration: 0.1s;
+    padding: 0 20px;
+    background-color: var(--bg-dark);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--border-color);
+}
+
+/* Thẻ Item: Responsive width */
+.item-card {
+    width: 140px;
+    height: 190px;
+    margin: 8px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border-width: 1px;
+    border-color: transparent;
+    transition: all 0.1s ease-in-out;
+    align-items: center;
+    padding: 10px;
 }
 
 .item-card:hover {
-    border-color: rgb(255, 215, 0);
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary);
     scale: 1.05;
 }
 
-.rarity-common { border-bottom-width: 4px; border-bottom-color: #a4b0be; }
-.rarity-rare { border-bottom-width: 4px; border-bottom-color: #00d2ff; }
-.rarity-epic { border-bottom-width: 4px; border-bottom-color: #a55eea; }
-.rarity-legendary { border-bottom-width: 4px; border-bottom-color: #ffa502; }
-
-/* --- 7. TABS --- */
-.tabs-row {
+/* --- 5. TABS --- */
+.tabs-container {
     flex-direction: row;
-    height: 50px;
     margin-bottom: 15px;
-    background-color: rgb(40, 40, 40);
+    background-color: rgba(0,0,0,0.3);
     border-radius: 10px;
-    padding: 5px;
+    padding: 4px;
+    height: 50px;
 }
 
 .tab-btn {
-    flex-grow: 1;
+    flex-grow: 1; /* Tự động chia đều chiều rộng */
     background-color: transparent;
     border-width: 0;
+    border-radius: 8px;
     color: rgb(150, 150, 150);
     font-size: 16px;
     -unity-font-style: bold;
-    border-radius: 8px;
+    transition: 0.2s;
     margin: 0 2px;
 }
 
-/* [FIX] Thêm hover để biết nút có nhận tương tác không */
-.tab-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-}
+.tab-btn:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
+.tab-btn.active-tab { background-color: rgba(255, 255, 255, 0.2); color: var(--accent); }
 
-.tab-btn.active-tab {
-    background-color: rgb(70, 70, 75);
-    color: rgb(255, 215, 0);
+/* --- 6. BUTTONS --- */
+.btn-primary {
+    background-color: var(--primary);
+    border-radius: 8px;
+    border-width: 0;
+    color: black;
+    -unity-font-style: bold;
+    padding: 10px 20px;
+    transition: 0.1s;
 }
+.btn-primary:hover { scale: 1.05; background-color: white; }
 
-/* --- 8. HOTBAR & HUD --- */
-.hotbar-row {
-    position: absolute; bottom: 20px;
-    flex-direction: row;
-    background-color: rgba(0, 0, 0, 0.5);
-    padding: 10px;
-    border-radius: 20px;
+.btn-secondary {
+    background-color: transparent;
     border-width: 1px;
-    border-color: rgb(80, 80, 80);
+    border-color: rgba(255,255,255,0.3);
+    border-radius: 8px;
+    color: rgb(200,200,200);
 }
+.btn-secondary:hover { border-color: white; color: white; }
 
-.hotbar-slot {
-    width: 60px; height: 60px;
-    margin: 0 5px;
-    background-color: rgb(50, 50, 55);
-    border-radius: 10px;
-    border-width: 2px;
-    border-color: rgb(80, 80, 80);
+.btn-icon {
+    width: 40px; height: 40px;
+    justify-content: center; align-items: center;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.05);
+    border-width: 0;
+    margin-left: 8px;
+}
+.btn-icon:hover { background-color: rgba(255,255,255,0.2); }
+
+/* --- 7. HOTBAR --- */
+.hotbar-container {
+    height: 80px;
+    width: 100%;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
+    padding-bottom: 20px;
+    /* Gradient mờ dần từ dưới lên */
+    background-image: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0)); 
 }
 
-.hotbar-slot.hotbar-active {
-    border-color: rgb(0, 120, 215);
-    scale: 1.1;
+.slot {
+    width: 60px; height: 60px;
+    margin: 0 6px;
+    background-color: rgba(0,0,0,0.6);
+    border-width: 2px;
+    border-color: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    transition: 0.1s;
+    justify-content: center; align-items: center;
 }
+.slot:hover { border-color: white; scale: 1.1; }
+.slot.active { border-color: var(--accent); }
 
-/* --- 9. UTILS --- */
-.red-dot {
-    width: 10px; height: 10px;
-    background-color: rgb(255, 69, 0);
-    border-radius: 5px;
-    position: absolute; top: 0; right: 0;
-}
-
-.unity-progress-bar__container { height: 10px; }
-.unity-progress-bar__background { background-color: rgb(30,30,30); border-radius: 5px; border-width: 0; }
-.unity-progress-bar__progress { border-radius: 5px; }
-.hp-bar .unity-progress-bar__progress { background-color: rgb(220, 53, 69); }
+/* --- 8. RARITY BORDERS --- */
+.rarity-common { border-bottom-color: gray; border-bottom-width: 3px; }
+.rarity-rare { border-bottom-color: var(--primary); border-bottom-width: 3px; }
+.rarity-epic { border-bottom-color: #a55eea; border-bottom-width: 3px; }
+.rarity-legendary { border-bottom-color: var(--accent); border-bottom-width: 3px; }
