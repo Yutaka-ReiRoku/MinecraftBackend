@@ -25,10 +25,26 @@ namespace MinecraftBackend.Controllers
             
             var totalGold = await _context.PlayerProfiles.SumAsync(p => p.Gold);
             ViewBag.TotalRevenue = totalGold.ToString("N0");
-            
-            // Dữ liệu biểu đồ giả lập (Last 7 Days)
-            ViewBag.ChartLabels = string.Join(",", DateTime.Now.AddDays(-6).ToString("ddd"), DateTime.Now.AddDays(-5).ToString("ddd"), DateTime.Now.ToString("ddd"));
-            ViewBag.ChartData = "10, 25, 40, 30, 50, 70, 90"; 
+
+            var last7Days = Enumerable.Range(0, 7)
+        .Select(i => DateTime.Today.AddDays(-6 + i))
+        .ToList();
+
+            // 2. Lấy dữ liệu từ DB: Nhóm theo ngày và đếm số giao dịch
+            var transactionCounts = new List<int>();
+
+            foreach (var date in last7Days)
+            {
+                // Đếm số transaction trong ngày đó
+                int count = await _context.Transactions
+                    .Where(t => t.CreatedAt.Date == date)
+                    .CountAsync();
+                transactionCounts.Add(count);
+            }
+
+            // 3. Ép kiểu dữ liệu để gửi sang View
+            ViewBag.ChartLabels = string.Join(",", last7Days.Select(d => d.ToString("dd/MM")));
+            ViewBag.ChartData = string.Join(",", transactionCounts);
 
             return View();
         }
