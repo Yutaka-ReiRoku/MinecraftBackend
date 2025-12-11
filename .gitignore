@@ -1,78 +1,56 @@
-# =========================
-# PHẦN 1: UNITY SPECIFIC
-# =========================
-# Các thư mục này Unity tự sinh ra mỗi lần chạy, KHÔNG được commit
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Uu]ser[Ss]ettings/
-
-# MemoryCaptures can get excessive
-/[Mm]emoryCaptures/
-
-# Asset meta data should only be ignored when the associated asset is also ignored
-!/[Aa]ssets/**/*.meta
-
-# Unity generated solution and project files (Unity tự tạo lại được)
-# Lưu ý: Nếu bạn muốn dùng chung 1 Solution cho cả MVC và Unity thì bỏ dòng *.sln đi
-UnityGenerated/
-/*.csproj
-/*.unityproj
-/*.sln
-/*.suo
-/*.tmp
-/*.user
-/*.userprefs
-/*.pidb
-/*.booproj
-/*.svd
-/*.pdb
-/*.opendb
-/*.VC.db
-
-# Unity3D stats
-.unityloc
-.unitypackage
-
-# =========================
-# PHẦN 2: C# ASP.NET MVC SPECIFIC
-# =========================
-# Build results (MVC)
-**/[Bb]in/
-**/[Oo]bj/
-
-# Cấu hình môi trường & Bảo mật (RẤT QUAN TRỌNG)
-# Chặn lộ connection string hoặc API keys
-appsettings.Development.json
-appsettings.local.json
-secrets.json
-web.config
-*.publishsettings
-
-# Các file sinh ra khi publish web
-**/Properties/PublishProfiles/*.user
-
-# Frontend assets (nếu MVC có dùng Nodejs/npm)
-**/node_modules/
-**/wwwroot/dist/
-npm-debug.log
-
-# =========================
-# PHẦN 3: IDE & OS (Visual Studio, VS Code, Mac, Win)
-# =========================
-# Visual Studio & VS Code cache
+# ====================================
+# 1. HỆ THỐNG & IDE (Áp dụng toàn bộ)
+# ====================================
+.DS_Store
+Thumbs.db
 .vs/
 .vscode/
 .idea/
-*.suo
 *.user
+*.suo
 *.userosscache
-*.sln.docstates
 
-# Windows & Mac system files
-.DS_Store
-Thumbs.db
-Desktop.ini
+# ====================================
+# 2. UNITY (Trong folder GAME)
+# ====================================
+# Sử dụng **/ để tìm kiếm folder bất kể độ sâu nào
+
+# Các folder rác của Unity
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Mm]emoryCaptures/
+
+# File sinh ra tự động, nhưng CHỈ áp dụng trong folder GAME
+# Để tránh xóa nhầm file .sln của bên WEB
+GAME/**/*.csproj
+GAME/**/*.unityproj
+GAME/**/*.sln
+GAME/**/*.tmp
+
+# ====================================
+# 3. ASP.NET MVC (Trong folder WEB)
+# ====================================
+# Chỉ ignore bin/obj sinh ra trong quá trình build code
+**/[Bb]in/
+**/[Oo]bj/
+
+# Các file cấu hình nhạy cảm (Tìm trong mọi ngóc ngách)
+**/appsettings.Development.json
+**/appsettings.local.json
+**/secrets.json
+**/web.config
+
+# Nếu bên WEB có dùng npm (node_modules)
+**/node_modules/
+
+# ====================================
+# 4. NGOẠI LỆ (QUAN TRỌNG)
+# ====================================
+# Đảm bảo Git KHÔNG bao giờ ignore file .sln của Visual Studio bên WEB
+# Dòng này sửa lỗi nếu lỡ có quy tắc nào bên trên chặn mất file .sln
+!WEB/**/*.sln
