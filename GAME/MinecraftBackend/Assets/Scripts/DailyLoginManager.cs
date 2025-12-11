@@ -2,12 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System; // Cần dùng DateTime
 
 public class DailyLoginManager : MonoBehaviour
 {
     private UIDocument _uiDoc;
     private VisualElement _root;
-    
     // UI Elements
     private VisualElement _popup;
     private VisualElement _daysContainer;
@@ -56,16 +56,27 @@ public class DailyLoginManager : MonoBehaviour
         // Gọi API lấy thông tin Profile
         yield return NetworkManager.Instance.SendRequest<CharacterDto>("game/profile/me", "GET", null,
             (profile) => {
-                // Demo logic: Giả sử chưa nhận để test UI
-                int streak = 2; // profile.LoginStreak
-                bool claimed = false; // profile.HasClaimedDaily
+                // [FIX] Check local storage để xem hôm nay đã nhận chưa thay vì hardcode
+                // Key: "LastDailyClaim" lưu chuỗi ngày "yyyy-MM-dd"
+                string lastClaimDate = PlayerPrefs.GetString("LastDailyClaim", "");
+                string today = DateTime.Now.ToString("yyyy-MM-dd");
 
-                if (!claimed)
+                // Nếu ngày lưu trong máy khác ngày hôm nay -> Chưa nhận -> Hiện popup
+                if (lastClaimDate != today)
                 {
-                    ShowPopup(streak);
+                    // Demo logic: Streak để mặc định là 1 hoặc lấy từ Server nếu có
+                    ShowPopup(1); 
+                }
+                else
+                {
+                    // Đã nhận rồi thì ẩn popup đi để không che nút bấm
+                    _popup.style.display = DisplayStyle.None;
                 }
             },
-            (err) => { /* Silent fail */ }
+            (err) => { 
+                // Nếu lỗi mạng, ẩn popup để người chơi vẫn chơi được game
+                _popup.style.display = DisplayStyle.None; 
+            }
         );
     }
 
@@ -80,8 +91,8 @@ public class DailyLoginManager : MonoBehaviour
             dayBox.style.height = 80;
             dayBox.style.marginRight = 5;
             dayBox.style.backgroundColor = new Color(0, 0, 0, 0.5f);
-            
-            // [FIX] Sửa lỗi borderWidth, borderColor, borderRadius bằng cách set từng cạnh
+
+            // [FIX] Sửa lỗi borderWidth, borderColor, borderRadius bằng cách set từng cạnh cho Unity bản cũ
             dayBox.style.borderTopWidth = 1;
             dayBox.style.borderBottomWidth = 1;
             dayBox.style.borderLeftWidth = 1;
@@ -156,6 +167,10 @@ public class DailyLoginManager : MonoBehaviour
                 ToastManager.Instance.Show(res.Message, true);
                 AudioManager.Instance.PlaySFX("coins");
                 GameEvents.TriggerCurrencyChanged();
+                
+                // [FIX] Lưu ngày đã nhận vào máy để lần sau vào không hiện nữa
+                PlayerPrefs.SetString("LastDailyClaim", DateTime.Now.ToString("yyyy-MM-dd"));
+                PlayerPrefs.Save();
                 
                 // Đóng popup sau 1s
                 _root.schedule.Execute(() => _popup.style.display = DisplayStyle.None).ExecuteLater(1000);

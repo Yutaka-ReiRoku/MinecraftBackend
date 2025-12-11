@@ -9,12 +9,8 @@ public class SettingsManager : MonoBehaviour
     private UIDocument _uiDoc;
     private VisualElement _root;
     private VisualElement _popup;
-
-    // Sliders
     private Slider _musicSlider;
     private Slider _sfxSlider;
-
-    // Password Change
     private VisualElement _passChangeArea;
     private TextField _oldPassField;
     private TextField _newPassField;
@@ -25,19 +21,21 @@ public class SettingsManager : MonoBehaviour
         _uiDoc = GetComponent<UIDocument>();
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
+        
+        // [FIX] Kiểm tra root null
+        if (_root == null) return;
 
         _popup = _root.Q<VisualElement>("SettingsPopup");
-        if (_popup == null) return;
+        if (_popup == null) return; // Nếu không tìm thấy popup thì dừng, tránh lỗi
 
         // 1. Setup Audio Sliders
         _musicSlider = _root.Q<Slider>("MusicSlider");
         _sfxSlider = _root.Q<Slider>("SfxSlider");
-
+        
         float savedMusic = PlayerPrefs.GetFloat("MusicVol", 0.5f);
         float savedSfx = PlayerPrefs.GetFloat("SfxVol", 1.0f);
 
-        if (_musicSlider != null)
-        {
+        if (_musicSlider != null) {
             _musicSlider.value = savedMusic;
             _musicSlider.RegisterValueChangedCallback(evt => {
                 if (AudioManager.Instance != null) AudioManager.Instance.SetMusicVolume(evt.newValue);
@@ -45,8 +43,7 @@ public class SettingsManager : MonoBehaviour
             });
         }
 
-        if (_sfxSlider != null)
-        {
+        if (_sfxSlider != null) {
             _sfxSlider.value = savedSfx;
             _sfxSlider.RegisterValueChangedCallback(evt => {
                 if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(evt.newValue);
@@ -58,18 +55,21 @@ public class SettingsManager : MonoBehaviour
         var btnOpen = _root.Q<Button>("BtnSettings");
         if (btnOpen != null) btnOpen.clicked += ToggleSettings; 
 
-        _root.Q<Button>("BtnCloseSettings").clicked += CloseSettings;
-        _root.Q<Button>("BtnLogout").clicked += Logout;
-        _root.Q<Button>("BtnExit").clicked += ExitGame;
+        var btnClose = _root.Q<Button>("BtnCloseSettings");
+        if(btnClose != null) btnClose.clicked += CloseSettings;
+        
+        var btnLogout = _root.Q<Button>("BtnLogout");
+        if(btnLogout != null) btnLogout.clicked += Logout;
 
         // Change Password UI
         _passChangeArea = _root.Q<VisualElement>("PassChangeArea");
         var btnTogglePass = _root.Q<Button>("BtnChangePass");
-        if (btnTogglePass != null)
-        {
+        if (btnTogglePass != null) {
             btnTogglePass.clicked += () => {
-                bool isHidden = _passChangeArea.style.display == DisplayStyle.None;
-                _passChangeArea.style.display = isHidden ? DisplayStyle.Flex : DisplayStyle.None;
+                if (_passChangeArea != null) {
+                    bool isHidden = _passChangeArea.style.display == DisplayStyle.None;
+                    _passChangeArea.style.display = isHidden ? DisplayStyle.Flex : DisplayStyle.None;
+                }
             };
         }
 
@@ -77,73 +77,47 @@ public class SettingsManager : MonoBehaviour
         _newPassField = _root.Q<TextField>("NewPass");
         _btnConfirmPass = _root.Q<Button>("BtnConfirmPass");
         
-        if (_btnConfirmPass != null)
-        {
+        if (_btnConfirmPass != null) {
             _btnConfirmPass.clicked += () => StartCoroutine(ChangePasswordProcess());
         }
-
-        _root.Q<Button>("BtnAbout").clicked += ShowAboutInfo;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            ToggleSettings();
-        }
+        if (Input.GetKeyDown(KeyCode.Escape)) ToggleSettings();
     }
 
     void ToggleSettings()
     {
         if (_popup == null) return;
         bool isVisible = _popup.style.display == DisplayStyle.Flex;
-        if (isVisible)
-        {
-            CloseSettings();
-        }
-        else
-        {
-            OpenSettings();
-        }
+        if (isVisible) CloseSettings(); else OpenSettings();
     }
 
-    void OpenSettings()
-    {
-        _popup.style.display = DisplayStyle.Flex;
-        // [FIXED] Xóa đoạn code Animation (StyleValues/Easing) gây lỗi
-        // Popup hiện ra ngay lập tức
-    }
-
-    void CloseSettings()
-    {
-        _popup.style.display = DisplayStyle.None;
-    }
+    void OpenSettings() { _popup.style.display = DisplayStyle.Flex; }
+    void CloseSettings() { _popup.style.display = DisplayStyle.None; }
 
     IEnumerator ChangePasswordProcess()
     {
         string oldPass = _oldPassField.value;
         string newPass = _newPassField.value;
 
-        if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass))
-        {
+        if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass)) {
             ToastManager.Instance.Show("Vui lòng nhập đầy đủ thông tin!", false);
             yield break;
         }
-
-        if (newPass.Length < 6)
-        {
+        if (newPass.Length < 6) {
             ToastManager.Instance.Show("Mật khẩu mới quá ngắn!", false);
             yield break;
         }
 
         var body = new { OldPassword = oldPass, NewPassword = newPass };
-        
         yield return NetworkManager.Instance.SendRequest<object>("auth/password", "PUT", body,
             (res) => {
                 ToastManager.Instance.Show("Đổi mật khẩu thành công!", true);
                 _oldPassField.value = "";
                 _newPassField.value = "";
-                _passChangeArea.style.display = DisplayStyle.None;
+                if(_passChangeArea != null) _passChangeArea.style.display = DisplayStyle.None;
             },
             (err) => ToastManager.Instance.Show("Lỗi: " + err, false)
         );
@@ -153,19 +127,5 @@ public class SettingsManager : MonoBehaviour
     {
         NetworkManager.Instance.ClearSession();
         SceneManager.LoadScene("SplashScene");
-    }
-
-    void ExitGame()
-    {
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
-    }
-
-    void ShowAboutInfo()
-    {
-        ToastManager.Instance.Show("Minecraft RPG Backend v1.0", true);
     }
 }

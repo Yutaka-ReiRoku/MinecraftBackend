@@ -5,7 +5,6 @@ using UnityEngine.UIElements;
 
 public class MailManager : MonoBehaviour
 {
-    // DTO nhận dữ liệu từ API
     [System.Serializable]
     public class MailDto
     {
@@ -22,8 +21,6 @@ public class MailManager : MonoBehaviour
 
     private UIDocument _uiDoc;
     private VisualElement _root;
-    
-    // UI Elements
     private VisualElement _mailPopup;
     private ScrollView _mailList;
     private VisualElement _mailRedDot;
@@ -35,13 +32,11 @@ public class MailManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Query UI
         _mailPopup = _root.Q<VisualElement>("MailPopup");
         _mailList = _root.Q<ScrollView>("MailList");
         _mailRedDot = _root.Q<VisualElement>("MailRedDot");
         _btnOpenMail = _root.Q<Button>("BtnMail");
 
-        // Gắn sự kiện
         if (_btnOpenMail != null)
         {
             _btnOpenMail.clicked += () => {
@@ -50,10 +45,7 @@ public class MailManager : MonoBehaviour
                     _mailPopup.style.display = DisplayStyle.Flex;
                     StartCoroutine(LoadMails());
                 }
-                else
-                {
-                    _mailPopup.style.display = DisplayStyle.None;
-                }
+                else _mailPopup.style.display = DisplayStyle.None;
             };
         }
 
@@ -67,15 +59,17 @@ public class MailManager : MonoBehaviour
     {
         while (true)
         {
-            yield return LoadMails(true); // Check mỗi 1 phút
+            yield return LoadMails(true);
             yield return new WaitForSeconds(60f);
         }
     }
 
     IEnumerator LoadMails(bool checkOnly = false)
     {
-        yield return NetworkManager.Instance.SendRequest<List<MailDto>>("mail", "GET", null,
+        // [FIX] Sửa đường dẫn API thành "game/mail" để khớp với GameApiController
+        yield return NetworkManager.Instance.SendRequest<List<MailDto>>("game/mail", "GET", null,
             (mails) => {
+                if (mails == null) return;
                 int unreadCount = 0;
                 foreach (var m in mails)
                 {
@@ -85,10 +79,7 @@ public class MailManager : MonoBehaviour
                 if (_mailRedDot != null)
                     _mailRedDot.style.display = unreadCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 
-                if (!checkOnly && _mailList != null)
-                {
-                    RenderMailList(mails);
-                }
+                if (!checkOnly && _mailList != null) RenderMailList(mails);
             },
             (err) => { }
         );
@@ -112,24 +103,16 @@ public class MailManager : MonoBehaviour
             row.style.paddingLeft = 10; row.style.paddingRight = 10;
             row.style.paddingTop = 5; row.style.paddingBottom = 5;
             
-            // [FIXED] Thay thế borderRadius, borderWidth, borderColor
-            row.style.borderTopLeftRadius = 5;
-            row.style.borderTopRightRadius = 5;
-            row.style.borderBottomLeftRadius = 5;
-            row.style.borderBottomRightRadius = 5;
-
-            row.style.borderTopWidth = 1;
-            row.style.borderBottomWidth = 1;
-            row.style.borderLeftWidth = 1;
-            row.style.borderRightWidth = 1;
+            // Border radius
+            row.style.borderTopLeftRadius = 5; row.style.borderTopRightRadius = 5;
+            row.style.borderBottomLeftRadius = 5; row.style.borderBottomRightRadius = 5;
+            row.style.borderTopWidth = 1; row.style.borderBottomWidth = 1;
+            row.style.borderLeftWidth = 1; row.style.borderRightWidth = 1;
 
             Color borderColor = mail.IsRead ? new Color(0.5f, 0.5f, 0.5f) : new Color(0, 1f, 1f);
-            row.style.borderTopColor = borderColor;
-            row.style.borderBottomColor = borderColor;
-            row.style.borderLeftColor = borderColor;
-            row.style.borderRightColor = borderColor;
+            row.style.borderTopColor = borderColor; row.style.borderBottomColor = borderColor;
+            row.style.borderLeftColor = borderColor; row.style.borderRightColor = borderColor;
 
-            // Header
             var header = new VisualElement();
             header.style.flexDirection = FlexDirection.Row;
             header.style.justifyContent = Justify.SpaceBetween;
@@ -146,14 +129,12 @@ public class MailManager : MonoBehaviour
             header.Add(dateLbl);
             row.Add(header);
 
-            // Content
             var contentLbl = new Label(mail.Content);
             contentLbl.style.whiteSpace = WhiteSpace.Normal;
             contentLbl.style.fontSize = 12;
             contentLbl.style.marginBottom = 5;
             row.Add(contentLbl);
 
-            // Attachment
             if (!string.IsNullOrEmpty(mail.AttachedItemId) && !mail.IsClaimed)
             {
                 var giftBox = new VisualElement();
@@ -161,12 +142,8 @@ public class MailManager : MonoBehaviour
                 giftBox.style.alignItems = Align.Center;
                 giftBox.style.backgroundColor = new Color(1f, 1f, 0, 0.1f);
                 giftBox.style.paddingLeft = 5;
-                
-                // [FIXED] Sửa borderRadius cho GiftBox
-                giftBox.style.borderTopLeftRadius = 4;
-                giftBox.style.borderTopRightRadius = 4;
-                giftBox.style.borderBottomLeftRadius = 4;
-                giftBox.style.borderBottomRightRadius = 4;
+                giftBox.style.borderTopLeftRadius = 4; giftBox.style.borderTopRightRadius = 4;
+                giftBox.style.borderBottomLeftRadius = 4; giftBox.style.borderBottomRightRadius = 4;
 
                 var giftLbl = new Label($"Quà: {mail.AttachedAmount}x {mail.AttachedItemName ?? "Item"}");
                 giftLbl.style.color = Color.yellow;
@@ -175,10 +152,7 @@ public class MailManager : MonoBehaviour
                 btnClaim.text = "NHẬN";
                 btnClaim.AddToClassList("btn-confirm");
                 btnClaim.style.height = 25;
-                
-                // [FIXED] Sửa lỗi 'auto' char literal bằng StyleKeyword.Auto
                 btnClaim.style.marginLeft = StyleKeyword.Auto;
-
                 btnClaim.clicked += () => StartCoroutine(ClaimMail(mail.Id));
                 giftBox.Add(giftLbl);
                 giftBox.Add(btnClaim);
@@ -192,14 +166,14 @@ public class MailManager : MonoBehaviour
                 claimedLbl.style.alignSelf = Align.FlexEnd;
                 row.Add(claimedLbl);
             }
-
             _mailList.Add(row);
         }
     }
 
     IEnumerator ClaimMail(int mailId)
     {
-        yield return NetworkManager.Instance.SendRequest<object>($"mail/claim/{mailId}", "POST", null,
+        // [FIX] Sửa API endpoint cho Claim
+        yield return NetworkManager.Instance.SendRequest<object>($"game/mail/claim/{mailId}", "POST", null,
             (res) => {
                 ToastManager.Instance.Show("Đã nhận quà thành công!", true);
                 AudioManager.Instance.PlaySFX("success");
