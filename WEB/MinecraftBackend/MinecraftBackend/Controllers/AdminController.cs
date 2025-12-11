@@ -86,7 +86,12 @@ namespace MinecraftBackend.Controllers
             else item.ImageURL = "/images/others/default.png";
 
             if (string.IsNullOrEmpty(item.TargetItemID)) item.TargetItemID = item.ProductID;
-
+			
+			
+			ModelState.Remove("ImageURL");
+            ModelState.Remove("TargetItemID");
+			
+			
             if (ModelState.IsValid)
             {
                 if (await _context.ShopItems.AnyAsync(i => i.ProductID == item.ProductID))
@@ -111,22 +116,53 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> EditItem(ShopItem item, IFormFile? imageFile)
         {
-            // Security: Chặn giá âm khi sửa
+            // 1. Xóa các lỗi Validation không cần thiết để tránh việc Form bị chặn lại
+            // (Vì ImageURL có thể null lúc submit, ta sẽ xử lý gán lại ở dưới)
+            ModelState.Remove("ImageURL");
+            ModelState.Remove("TargetItemID");
+
+            // 2. Validate nghiệp vụ: Chặn giá tiền âm
             if (item.PriceAmount < 0)
             {
                 ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
                 return View(item);
             }
 
-            var existing = await _context.ShopItems.AsNoTracking().FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
+            // 3. Tìm sản phẩm cũ trong DB để lấy thông tin ảnh cũ
+            // Dùng AsNoTracking() để tránh lỗi conflict khi Update entity
+            var existing = await _context.ShopItems.AsNoTracking()
+                                         .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
+            
             if (existing == null) return NotFound();
 
-            if (imageFile != null) item.ImageURL = await SaveImage(imageFile, item.ItemType);
-            else item.ImageURL = existing.ImageURL;
+            // 4. Xử lý ảnh: 
+            // - Nếu có file mới -> Lưu file mới
+            // - Nếu không có file -> Giữ nguyên URL ảnh cũ
+            if (imageFile != null) 
+            {
+                item.ImageURL = await SaveImage(imageFile, item.ItemType);
+            }
+            else 
+            {
+                item.ImageURL = existing.ImageURL;
+            }
 
-            _context.ShopItems.Update(item);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Items");
+            // 5. Xử lý TargetItemID (Nếu bỏ trống thì lấy luôn ProductID)
+            if (string.IsNullOrEmpty(item.TargetItemID)) 
+            {
+                item.TargetItemID = item.ProductID;
+            }
+
+            // 6. Lưu vào Database
+            if (ModelState.IsValid)
+            {
+                _context.ShopItems.Update(item);
+                await _context.SaveChangesAsync();
+                return RedirectToAction("Items");
+            }
+
+            // Nếu vẫn còn lỗi khác thì trả về View để sửa
+            return View(item);
         }
 
         public async Task<IActionResult> DeleteItem(string id)
