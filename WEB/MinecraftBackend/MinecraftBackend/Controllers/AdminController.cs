@@ -44,9 +44,14 @@ namespace MinecraftBackend.Controllers
 
             // 1. Tìm kiếm
             if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(i => i.Name.Contains(search) || i.ProductID.Contains(search));
-            }
+{
+    // Chuyển từ khóa về chữ thường
+    string term = search.ToLower(); 
+    
+    // So sánh: Tên (chữ thường) có chứa Từ khóa (chữ thường) không?
+    query = query.Where(i => i.Name.ToLower().Contains(term) || 
+                             i.ProductID.ToLower().Contains(term));
+}
 
             // 2. Tính toán phân trang
             int totalItems = await query.CountAsync();
