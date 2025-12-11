@@ -16,7 +16,7 @@ public class ProfileManager : MonoBehaviour
     private Label _statsAtk;
     private Label _statsDef;
     private VisualElement _avatarContainer;
-    
+
     // UI Elements - Edit Mode
     private VisualElement _infoContainer;
     private VisualElement _updateForm;
@@ -105,8 +105,9 @@ public class ProfileManager : MonoBehaviour
         {
             _popup.style.display = DisplayStyle.Flex;
             StartCoroutine(LoadProfileData());
-            _popup.style.scale = new Scale(Vector3.zero);
-            _popup.experimental.animation.Start(new StyleValues { scale = new Scale(Vector3.one) }, 200).Ease(Easing.OutBack);
+            
+            // [FIXED] Xóa đoạn code Animation (StyleValues/Easing) gây lỗi
+            // Popup sẽ hiện ra ngay lập tức
         }
         else
         {
@@ -123,7 +124,6 @@ public class ProfileManager : MonoBehaviour
 
     IEnumerator LoadProfileData()
     {
-        // [CHECK] API này là GET, đúng
         yield return NetworkManager.Instance.SendRequest<CharacterDto>("game/profile/me", "GET", null,
             (data) => {
                 if (_nameLabel != null) _nameLabel.text = data.CharacterName;
@@ -156,7 +156,7 @@ public class ProfileManager : MonoBehaviour
 
         var body = new { CharacterName = newName, AvatarUrl = newAvt };
         
-        // [FIX QUAN TRỌNG] Đổi "POST" thành "PUT" để khớp với GameApiController
+        // [CHECK] Đảm bảo dùng PUT để khớp với API
         yield return NetworkManager.Instance.SendRequest<object>("game/profile/update", "PUT", body, 
             (res) => {
                 ToastManager.Instance.Show("Cập nhật thành công!", true);

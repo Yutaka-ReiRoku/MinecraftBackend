@@ -53,7 +53,7 @@ public class NotificationManager : MonoBehaviour
             x -= TickerSpeed * Time.deltaTime;
 
             // Lấy chiều rộng
-            float textWidth = _newsTicker.measureText.width;
+            float textWidth = _newsTicker.MeasureTextSize(_newsTicker.text, 0, VisualElement.MeasureMode.Undefined, 0, VisualElement.MeasureMode.Undefined).x;
             float parentWidth = _root.resolvedStyle.width;
 
             // Nếu chạy hết chữ ra khỏi màn hình bên trái -> Reset về bên phải

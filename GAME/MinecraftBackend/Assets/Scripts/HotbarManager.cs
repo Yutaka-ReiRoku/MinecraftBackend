@@ -32,7 +32,6 @@ public class HotbarManager : MonoBehaviour
             var btn = _root.Q<Button>($"Hotbar{index + 1}");
             if (btn != null)
             {
-                // Xóa text mặc định nếu đã có icon (logic load save nếu cần)
                 btn.clicked += () => UseSlot(index);
             }
         }
@@ -69,7 +68,7 @@ public class HotbarManager : MonoBehaviour
             btn.style.backgroundImage = icon;
             
             // Ẩn số thứ tự hoặc text cũ đi để hiện icon rõ hơn
-            var label = btn.Q<Label>(); 
+            var label = btn.Q<Label>();
             if (label != null) label.style.display = DisplayStyle.None;
 
             // Hiệu ứng nảy nhẹ báo hiệu gán thành công
@@ -102,13 +101,12 @@ public class HotbarManager : MonoBehaviour
         if (string.IsNullOrEmpty(itemId)) return;
 
         // Tìm ShopManager để thực hiện hành động (vì ShopManager nắm giữ logic API)
-        // Lưu ý: Hotbar lưu ItemID (Template), ta cần tìm InventoryID thực tế trong kho để dùng
-        var shopManager = FindObjectOfType<ShopManager>();
+        // [FIX] Thay FindObjectOfType bằng FindFirstObjectByType để sửa Warning CS0618
+        var shopManager = Object.FindFirstObjectByType<ShopManager>();
+        
         if (shopManager != null)
         {
-            // Gọi hàm UseItemByTemplateID bên ShopManager (Cần thêm hàm này vào ShopManager)
-            // Hoặc đơn giản là gửi Event toàn cục
-            // Ở đây ta giả định ShopManager có hàm hỗ trợ:
+            // Gọi hàm UseItemFromHotbar bên ShopManager
             shopManager.UseItemFromHotbar(itemId);
         }
     }

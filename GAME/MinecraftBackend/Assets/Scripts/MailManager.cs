@@ -12,8 +12,8 @@ public class MailManager : MonoBehaviour
         public int Id;
         public string Title;
         public string Content;
-        public string AttachedItemId; // ID vật phẩm đính kèm
-        public string AttachedItemName; // Tên vật phẩm (Backend cần join để lấy)
+        public string AttachedItemId;
+        public string AttachedItemName;
         public int AttachedAmount;
         public bool IsRead;
         public bool IsClaimed;
@@ -36,10 +36,10 @@ public class MailManager : MonoBehaviour
         _root = _uiDoc.rootVisualElement;
 
         // Query UI
-        _mailPopup = _root.Q<VisualElement>("MailPopup"); // Popup hiển thị danh sách thư
-        _mailList = _root.Q<ScrollView>("MailList"); // List view chứa các thư
-        _mailRedDot = _root.Q<VisualElement>("MailRedDot"); // Chấm đỏ báo thư mới
-        _btnOpenMail = _root.Q<Button>("BtnMail"); // Nút mở hòm thư trên HUD
+        _mailPopup = _root.Q<VisualElement>("MailPopup");
+        _mailList = _root.Q<ScrollView>("MailList");
+        _mailRedDot = _root.Q<VisualElement>("MailRedDot");
+        _btnOpenMail = _root.Q<Button>("BtnMail");
 
         // Gắn sự kiện
         if (_btnOpenMail != null)
@@ -48,7 +48,7 @@ public class MailManager : MonoBehaviour
                 if (_mailPopup.style.display == DisplayStyle.None)
                 {
                     _mailPopup.style.display = DisplayStyle.Flex;
-                    StartCoroutine(LoadMails()); // Tải lại danh sách khi mở
+                    StartCoroutine(LoadMails());
                 }
                 else
                 {
@@ -59,8 +59,7 @@ public class MailManager : MonoBehaviour
 
         var btnClose = _root.Q<Button>("BtnCloseMail");
         if (btnClose != null) btnClose.clicked += () => _mailPopup.style.display = DisplayStyle.None;
-
-        // Kiểm tra thư mới định kỳ (Polling)
+        
         StartCoroutine(CheckNewMailRoutine());
     }
 
@@ -68,14 +67,13 @@ public class MailManager : MonoBehaviour
     {
         while (true)
         {
-            yield return LoadMails(true); // Chỉ tải để check số lượng chưa đọc
-            yield return new WaitForSeconds(60f); // Check mỗi 1 phút
+            yield return LoadMails(true); // Check mỗi 1 phút
+            yield return new WaitForSeconds(60f);
         }
     }
 
     IEnumerator LoadMails(bool checkOnly = false)
     {
-        // Gọi API lấy danh sách thư
         yield return NetworkManager.Instance.SendRequest<List<MailDto>>("mail", "GET", null,
             (mails) => {
                 int unreadCount = 0;
@@ -84,26 +82,21 @@ public class MailManager : MonoBehaviour
                     if (!m.IsRead && !m.IsClaimed) unreadCount++;
                 }
 
-                // Cập nhật chấm đỏ
                 if (_mailRedDot != null)
                     _mailRedDot.style.display = unreadCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
 
-                // Nếu không phải chỉ check nền -> Render danh sách ra UI
                 if (!checkOnly && _mailList != null)
                 {
                     RenderMailList(mails);
                 }
             },
-            (err) => {
-                // Debug.LogWarning("Không tải được thư: " + err);
-            }
+            (err) => { }
         );
     }
 
     void RenderMailList(List<MailDto> mails)
     {
         _mailList.Clear();
-        
         if (mails.Count == 0)
         {
             _mailList.Add(new Label("Hòm thư trống.") { style = { color = Color.gray, alignSelf = Align.Center, marginTop = 20 } });
@@ -118,11 +111,25 @@ public class MailManager : MonoBehaviour
             row.style.marginBottom = 5;
             row.style.paddingLeft = 10; row.style.paddingRight = 10;
             row.style.paddingTop = 5; row.style.paddingBottom = 5;
-            row.style.borderRadius = 5;
-            row.style.borderWidth = 1;
-            row.style.borderColor = mail.IsRead ? new Color(0.5f, 0.5f, 0.5f) : new Color(0, 1f, 1f); // Xanh cyan nếu chưa đọc
+            
+            // [FIXED] Thay thế borderRadius, borderWidth, borderColor
+            row.style.borderTopLeftRadius = 5;
+            row.style.borderTopRightRadius = 5;
+            row.style.borderBottomLeftRadius = 5;
+            row.style.borderBottomRightRadius = 5;
 
-            // Header: Tiêu đề + Ngày
+            row.style.borderTopWidth = 1;
+            row.style.borderBottomWidth = 1;
+            row.style.borderLeftWidth = 1;
+            row.style.borderRightWidth = 1;
+
+            Color borderColor = mail.IsRead ? new Color(0.5f, 0.5f, 0.5f) : new Color(0, 1f, 1f);
+            row.style.borderTopColor = borderColor;
+            row.style.borderBottomColor = borderColor;
+            row.style.borderLeftColor = borderColor;
+            row.style.borderRightColor = borderColor;
+
+            // Header
             var header = new VisualElement();
             header.style.flexDirection = FlexDirection.Row;
             header.style.justifyContent = Justify.SpaceBetween;
@@ -139,14 +146,14 @@ public class MailManager : MonoBehaviour
             header.Add(dateLbl);
             row.Add(header);
 
-            // Content: Nội dung
+            // Content
             var contentLbl = new Label(mail.Content);
             contentLbl.style.whiteSpace = WhiteSpace.Normal;
             contentLbl.style.fontSize = 12;
             contentLbl.style.marginBottom = 5;
             row.Add(contentLbl);
 
-            // Attachment: Quà đính kèm (nếu có và chưa nhận)
+            // Attachment
             if (!string.IsNullOrEmpty(mail.AttachedItemId) && !mail.IsClaimed)
             {
                 var giftBox = new VisualElement();
@@ -154,19 +161,25 @@ public class MailManager : MonoBehaviour
                 giftBox.style.alignItems = Align.Center;
                 giftBox.style.backgroundColor = new Color(1f, 1f, 0, 0.1f);
                 giftBox.style.paddingLeft = 5;
-                giftBox.style.borderRadius = 4;
-
-                var giftLbl = new Label($"Quà: {mail.AttachedAmount}x {mail.AttachedItemName ?? "Item"}"); // Backend cần trả về tên item
-                giftLbl.style.color = Color.yellow;
                 
+                // [FIXED] Sửa borderRadius cho GiftBox
+                giftBox.style.borderTopLeftRadius = 4;
+                giftBox.style.borderTopRightRadius = 4;
+                giftBox.style.borderBottomLeftRadius = 4;
+                giftBox.style.borderBottomRightRadius = 4;
+
+                var giftLbl = new Label($"Quà: {mail.AttachedAmount}x {mail.AttachedItemName ?? "Item"}");
+                giftLbl.style.color = Color.yellow;
+
                 var btnClaim = new Button();
                 btnClaim.text = "NHẬN";
                 btnClaim.AddToClassList("btn-confirm");
                 btnClaim.style.height = 25;
-                btnClaim.style.marginLeft = 'auto'; // Đẩy sang phải cùng
+                
+                // [FIXED] Sửa lỗi 'auto' char literal bằng StyleKeyword.Auto
+                btnClaim.style.marginLeft = StyleKeyword.Auto;
 
                 btnClaim.clicked += () => StartCoroutine(ClaimMail(mail.Id));
-
                 giftBox.Add(giftLbl);
                 giftBox.Add(btnClaim);
                 row.Add(giftBox);
@@ -190,11 +203,7 @@ public class MailManager : MonoBehaviour
             (res) => {
                 ToastManager.Instance.Show("Đã nhận quà thành công!", true);
                 AudioManager.Instance.PlaySFX("success");
-                
-                // Reload lại danh sách thư để cập nhật trạng thái "Đã nhận"
                 StartCoroutine(LoadMails());
-                
-                // Reload kho đồ và tiền
                 GameEvents.TriggerRefreshAll();
             },
             (err) => ToastManager.Instance.Show("Lỗi nhận quà: " + err, false)

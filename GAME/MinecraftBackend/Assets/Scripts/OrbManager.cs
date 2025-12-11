@@ -11,7 +11,7 @@ public class OrbManager : MonoBehaviour
 
     [Header("Settings")]
     public float FlySpeed = 1.5f; // Tốc độ bay
-    public string OrbImageUrl = "/images/others/exp.png"; [cite_start]// Đường dẫn ảnh chuẩn [cite: 1301]
+    public string OrbImageUrl = "/images/others/exp.png";
 
     void Awake()
     {

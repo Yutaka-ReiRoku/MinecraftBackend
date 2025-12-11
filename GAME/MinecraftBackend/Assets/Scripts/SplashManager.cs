@@ -79,7 +79,7 @@ public class SplashManager : MonoBehaviour
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(www);
                 // Set điểm hotpot (mũi nhọn) là góc trên trái (0,0)
-                Cursor.SetCursor(texture, Vector2.zero, CursorMode.Auto);
+                UnityEngine.Cursor.SetCursor(texture, Vector2.zero, CursorMode.Auto);
             }
             else
             {

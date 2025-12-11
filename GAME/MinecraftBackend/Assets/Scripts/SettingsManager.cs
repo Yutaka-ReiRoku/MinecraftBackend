@@ -9,7 +9,7 @@ public class SettingsManager : MonoBehaviour
     private UIDocument _uiDoc;
     private VisualElement _root;
     private VisualElement _popup;
-    
+
     // Sliders
     private Slider _musicSlider;
     private Slider _sfxSlider;
@@ -35,7 +35,7 @@ public class SettingsManager : MonoBehaviour
 
         float savedMusic = PlayerPrefs.GetFloat("MusicVol", 0.5f);
         float savedSfx = PlayerPrefs.GetFloat("SfxVol", 1.0f);
-        
+
         if (_musicSlider != null)
         {
             _musicSlider.value = savedMusic;
@@ -56,7 +56,7 @@ public class SettingsManager : MonoBehaviour
 
         // 2. Setup Buttons
         var btnOpen = _root.Q<Button>("BtnSettings");
-        if (btnOpen != null) btnOpen.clicked += ToggleSettings; // Đổi thành Toggle
+        if (btnOpen != null) btnOpen.clicked += ToggleSettings; 
 
         _root.Q<Button>("BtnCloseSettings").clicked += CloseSettings;
         _root.Q<Button>("BtnLogout").clicked += Logout;
@@ -85,7 +85,6 @@ public class SettingsManager : MonoBehaviour
         _root.Q<Button>("BtnAbout").clicked += ShowAboutInfo;
     }
 
-    // [CẬP NHẬT] Thêm Update loop để bắt sự kiện phím ESC
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -97,7 +96,6 @@ public class SettingsManager : MonoBehaviour
     void ToggleSettings()
     {
         if (_popup == null) return;
-        
         bool isVisible = _popup.style.display == DisplayStyle.Flex;
         if (isVisible)
         {
@@ -112,9 +110,8 @@ public class SettingsManager : MonoBehaviour
     void OpenSettings()
     {
         _popup.style.display = DisplayStyle.Flex;
-        // Animation pop-in
-        _popup.style.scale = new Scale(Vector3.zero);
-        _popup.experimental.animation.Start(new StyleValues { scale = new Scale(Vector3.one) }, 200).Ease(Easing.OutBack);
+        // [FIXED] Xóa đoạn code Animation (StyleValues/Easing) gây lỗi
+        // Popup hiện ra ngay lập tức
     }
 
     void CloseSettings()
@@ -141,7 +138,6 @@ public class SettingsManager : MonoBehaviour
 
         var body = new { OldPassword = oldPass, NewPassword = newPass };
         
-        // Gọi API Put Password (đã có trong AuthController)
         yield return NetworkManager.Instance.SendRequest<object>("auth/password", "PUT", body,
             (res) => {
                 ToastManager.Instance.Show("Đổi mật khẩu thành công!", true);
@@ -156,7 +152,7 @@ public class SettingsManager : MonoBehaviour
     void Logout()
     {
         NetworkManager.Instance.ClearSession();
-        SceneManager.LoadScene("SplashScene"); // Về lại Splash
+        SceneManager.LoadScene("SplashScene");
     }
 
     void ExitGame()
