@@ -18,16 +18,16 @@ public class TokenResponse
 [Serializable]
 public class RegisterRequest 
 { 
-    public string Username; 
-    public string Email; 
-    public string Password; 
+    [JsonProperty("username")] public string Username; 
+    [JsonProperty("email")] public string Email; 
+    [JsonProperty("password")] public string Password;
 }
 
 [Serializable]
 public class LoginRequest 
 { 
-    public string Email; 
-    public string Password; 
+    [JsonProperty("email")] public string Email; 
+    [JsonProperty("password")] public string Password;
 }
 
 // --- 2. CHARACTER & PROFILE ---
@@ -48,7 +48,8 @@ public class CharacterDto
 }
 
 [Serializable]
-public class CreateCharacterDto { public string CharacterName; public string GameMode; }
+public class CreateCharacterDto { public string CharacterName; public string GameMode;
+}
 
 // --- 3. SHOP & ITEMS ---
 [Serializable]
@@ -66,7 +67,8 @@ public class ShopItemDto
 }
 
 [Serializable]
-public class BuyRequest { public string ProductId; public int Quantity; }
+public class BuyRequest { public string ProductId; public int Quantity;
+}
 
 // --- 4. INVENTORY ---
 [Serializable]
@@ -90,11 +92,11 @@ public class InventoryDto
 public class MonsterDto 
 { 
     [JsonProperty("id")] public string Id; 
-    [JsonProperty("name")] public string Name; 
+    [JsonProperty("name")] public string Name;
     [JsonProperty("hp")] public int HP; 
     [JsonProperty("maxHp")] public int MaxHp; 
     [JsonProperty("level")] public int Level; 
-    [JsonProperty("imageUrl")] public string ImageUrl; 
+    [JsonProperty("imageUrl")] public string ImageUrl;
 }
 
 [Serializable]
@@ -102,7 +104,7 @@ public class HuntResponse
 { 
     [JsonProperty("goldEarned")] public int GoldEarned; 
     [JsonProperty("expEarned")] public int ExpEarned; 
-    [JsonProperty("levelUp")] public bool LevelUp; 
+    [JsonProperty("levelUp")] public bool LevelUp;
     [JsonProperty("lootItemName")] public string LootItemName; 
 }
 
@@ -110,7 +112,7 @@ public class HuntResponse
 public class RecipeDto 
 { 
     [JsonProperty("recipeId")] public string RecipeId; 
-    [JsonProperty("resultItemName")] public string ResultItemName; 
+    [JsonProperty("resultItemName")] public string ResultItemName;
     [JsonProperty("resultItemImage")] public string ResultItemImage; 
     [JsonProperty("craftingTime")] public float CraftingTime; 
 }
@@ -119,7 +121,7 @@ public class RecipeDto
 [Serializable]
 public class ChatMessageDto 
 { 
-    [JsonProperty("sender")] public string Sender; 
+    [JsonProperty("sender")] public string Sender;
     [JsonProperty("content")] public string Content; 
     [JsonProperty("time")] public string Time; 
 }
@@ -143,7 +145,7 @@ public class LeaderboardEntryDto
 { 
     [JsonProperty("displayName")] public string DisplayName; 
     [JsonProperty("level")] public int Level; 
-    [JsonProperty("avatarUrl")] public string AvatarUrl; 
+    [JsonProperty("avatarUrl")] public string AvatarUrl;
     [JsonProperty("gold")] public int Gold; 
 }
 
@@ -151,7 +153,7 @@ public class LeaderboardEntryDto
 public class DailyCheckinResponse 
 { 
     [JsonProperty("message")] public string Message; 
-    [JsonProperty("gold")] public int Gold; 
+    [JsonProperty("gold")] public int Gold;
     [JsonProperty("streak")] public int Streak; 
 }
 
@@ -159,10 +161,10 @@ public class DailyCheckinResponse
 public class WikiEntryDto 
 { 
     [JsonProperty("id")] public string Id; 
-    [JsonProperty("name")] public string Name; 
+    [JsonProperty("name")] public string Name;
     [JsonProperty("productImage")] public string ProductImage; 
     [JsonProperty("type")] public string Type; 
-    [JsonProperty("isUnlocked")] public bool IsUnlocked; 
+    [JsonProperty("isUnlocked")] public bool IsUnlocked;
 }
 
 [Serializable]
@@ -170,12 +172,12 @@ public class QuestProgressDto
 { 
     [JsonProperty("questId")] public string QuestId; 
     [JsonProperty("name")] public string Name; 
-    [JsonProperty("description")] public string Description; 
+    [JsonProperty("description")] public string Description;
     [JsonProperty("current")] public int Current; 
     [JsonProperty("target")] public int Target; 
     [JsonProperty("status")] public string Status; 
     [JsonProperty("rewardName")] public string RewardName; 
-    [JsonProperty("iconUrl")] public string IconUrl; 
+    [JsonProperty("iconUrl")] public string IconUrl;
 }
 
 // --- 7. TRANSACTION HISTORY ---
@@ -187,7 +189,6 @@ public class TransactionDto
     [JsonProperty("amount")] public int Amount;
     
     // [QUAN TRỌNG] Đảm bảo map đúng field currency từ backend
-    [JsonProperty("currency")] public string Currency; 
-    
+    [JsonProperty("currency")] public string Currency;
     [JsonProperty("date")] public string Date;
 }
