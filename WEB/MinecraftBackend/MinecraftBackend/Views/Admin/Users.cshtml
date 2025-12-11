@@ -10,11 +10,25 @@
             <h2 class="text-white mb-0"><i class="fas fa-users text-primary me-2"></i>Player Base</h2>
             <p class="text-white-50 small mb-0">Manage accounts, status, and inventory.</p>
         </div>
-        @* Nút này chỉ demo, thực tế user đăng ký qua App *@
+        
+        @* [ĐÃ SỬA] Nút tạo người chơi mới hoạt động thật *@
         <a asp-action="CreateUser" class="btn btn-success text-white rounded-pill px-4 shadow-lg fw-bold">
-    <i class="fas fa-user-plus me-2"></i> New Player
-</a>
+            <i class="fas fa-user-plus me-2"></i> New Player
+        </a>
     </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success bg-success bg-opacity-25 text-white border-0 mb-4">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Message"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger bg-danger bg-opacity-25 text-white border-0 mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+        </div>
+    }
 
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 text-white">
@@ -35,11 +49,16 @@
                         <tr>
                             <td class="ps-4">
                                 <div class="position-relative" style="width: 50px;">
-                                    <img src="@(p.AvatarUrl ?? "/images/avatars/default.png")" 
-                                         class="rounded-circle border border-2 border-primary bg-dark shadow-sm" 
+                                    <img src="@(p.AvatarUrl ?? "/images/avatars/default.png")"
+                                         class="rounded-circle border border-2 border-primary bg-dark shadow-sm"
                                          width="50" height="50" style="object-fit:cover;"
                                          onerror="this.src='/images/avatars/default.png'">
-                                    <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-dark rounded-circle"></span>
+                                    
+                                    @if(p.User.Status == "Active") {
+                                        <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-dark rounded-circle"></span>
+                                    } else {
+                                        <span class="position-absolute bottom-0 end-0 p-1 bg-danger border border-dark rounded-circle"></span>
+                                    }
                                 </div>
                             </td>
                             <td>
@@ -74,26 +93,25 @@
                                     <a asp-action="UserDetails" asp-route-id="@p.UserId" class="btn btn-sm btn-outline-info" title="Inspect">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    
-                                    @* [MỚI] Nút Edit Profile *@
+
                                     <a asp-action="EditUser" asp-route-id="@p.UserId" class="btn btn-sm btn-outline-primary" title="Edit Profile">
                                         <i class="fas fa-user-edit"></i>
                                     </a>
 
-                                    <button type="button" class="btn btn-sm btn-outline-warning" 
+                                    <button type="button" class="btn btn-sm btn-outline-warning"
                                             onclick="openGiftModal('@p.UserId', '@p.DisplayName')" title="Send Gift">
                                         <i class="fas fa-gift"></i>
                                     </button>
-                                    
-                                    <button type="button" class="btn btn-sm btn-outline-light" 
+
+                                    <button type="button" class="btn btn-sm btn-outline-light"
                                             onclick="openPassModal('@p.User.Id', '@p.DisplayName')" title="Reset Password">
                                         <i class="fas fa-key"></i>
                                     </button>
-                                    
-                                    <a asp-action="ToggleUserStatus" asp-route-id="@p.User.Id" 
-                                       class="btn btn-sm @(p.User.Status == "Active" ? "btn-outline-danger" : "btn-outline-success")" 
+
+                                    <a asp-action="ToggleUserStatus" asp-route-id="@p.User.Id"
+                                       class="btn btn-sm @(p.User.Status == "Active" ? "btn-outline-danger" : "btn-outline-success")"
                                        title="@(p.User.Status == "Active" ? "Ban User" : "Unban User")"
-                                       onclick="return confirm('Change status for this user?')">
+                                       onclick="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái người chơi này không?')">
                                         <i class="fas @(p.User.Status == "Active" ? "fa-ban" : "fa-unlock")"></i>
                                     </a>
                                 </div>
@@ -110,7 +128,7 @@
     </div>
 </div>
 
-@* --- MODALS (Giữ nguyên phần Script Gift/Reset Pass cũ ở dưới...) --- *@
+@* --- MODAL: RESET PASSWORD (ĐÃ SỬA ĐỂ HOẠT ĐỘNG THẬT) --- *@
 <div class="modal fade" id="passModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-white border-secondary">
@@ -118,14 +136,29 @@
                 <h5 class="modal-title text-warning"><i class="fas fa-key me-2"></i>Reset Password</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <p>Use the "Change Password" API or simply update it directly in Database for now.</p>
-                <p class="text-muted small">Target: <strong id="passUserName" class="text-info"></strong></p>
-            </div>
+            
+            <form asp-action="ResetUserPassword" method="post">
+                <div class="modal-body">
+                    <p>Đặt lại mật khẩu cho: <strong id="passUserName" class="text-info"></strong></p>
+                    
+                    <input type="hidden" name="userId" id="passUserId" />
+
+                    <div class="mb-3">
+                        <label class="form-label text-white-50">Mật khẩu mới</label>
+                        <input type="text" name="newPassword" class="form-control bg-black text-white border-secondary" placeholder="Nhập mật khẩu mới..." required minlength="6">
+                        <small class="text-white-50 fst-italic">*Admin có quyền đặt lại mật khẩu mà không cần mật khẩu cũ.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Xác nhận đổi</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+@* --- MODAL: GIVING GIFTS (ĐÃ TÍCH HỢP) --- *@
 <div class="modal fade" id="giftModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content bg-dark text-white border-warning">
@@ -135,30 +168,31 @@
             </div>
             <form asp-action="GiveGift" method="post">
                 <div class="modal-body">
-                    <p>Sending gift to: <strong id="giftUserName" class="text-white"></strong></p>
+                    <p>Gửi quà tặng tới: <strong id="giftUserName" class="text-white"></strong></p>
                     <input type="hidden" name="userId" id="giftUserId">
-                    
+
                     <div class="mb-3">
-                        <label class="form-label small text-white-50">Type</label>
+                        <label class="form-label small text-white-50">Loại quà tặng</label>
                         <select name="type" class="form-select bg-black text-white border-secondary" onchange="toggleGiftInput(this.value)">
-                            <option value="Gold">Gold Currency</option>
-                            <option value="Gem">Gem Currency</option>
-                            <option value="Item">Specific Item</option>
+                            <option value="Gold">Gold Currency (Vàng)</option>
+                            <option value="Gem">Gem Currency (Đá quý)</option>
+                            <option value="Item">Specific Item (Vật phẩm)</option>
                         </select>
                     </div>
 
                     <div class="mb-3" id="itemInputGroup" style="display:none;">
-                        <label class="form-label small text-white-50">Item ID</label>
-                        <input name="itemId" class="form-control bg-black text-white border-secondary" placeholder="e.g. WEP_DIAMOND_SWORD">
+                        <label class="form-label small text-white-50">Item ID (Mã vật phẩm)</label>
+                        <input name="itemId" class="form-control bg-black text-white border-secondary" placeholder="Ví dụ: WEP_DIAMOND_SWORD">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small text-white-50">Amount</label>
-                        <input type="number" name="amount" class="form-control bg-black text-white border-secondary" value="100">
+                        <label class="form-label small text-white-50">Số lượng</label>
+                        <input type="number" name="amount" class="form-control bg-black text-white border-secondary" value="100" min="1">
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="submit" class="btn btn-warning w-100 fw-bold">Send Gift</button>
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Gửi quà ngay</button>
                 </div>
             </form>
         </div>
@@ -166,17 +200,26 @@
 </div>
 
 <script>
+    // Xử lý Modal Đổi Mật Khẩu
     function openPassModal(id, name) {
         document.getElementById('passUserName').innerText = name;
+        document.getElementById('passUserId').value = id;
+        
+        // Reset ô input mỗi lần mở lên
+        let passInput = document.getElementsByName('newPassword')[0];
+        if(passInput) passInput.value = '';
+        
         new bootstrap.Modal(document.getElementById('passModal')).show();
     }
 
+    // Xử lý Modal Tặng Quà
     function openGiftModal(id, name) {
         document.getElementById('giftUserId').value = id;
         document.getElementById('giftUserName').innerText = name;
         new bootstrap.Modal(document.getElementById('giftModal')).show();
     }
 
+    // Ẩn hiện ô nhập ItemID dựa vào loại quà
     function toggleGiftInput(val) {
         document.getElementById('itemInputGroup').style.display = (val === 'Item') ? 'block' : 'none';
     }

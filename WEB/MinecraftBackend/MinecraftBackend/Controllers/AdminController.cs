@@ -261,6 +261,31 @@ namespace MinecraftBackend.Controllers
             }
             return RedirectToAction("Users");
         }
+		
+		[HttpPost]
+        public async Task<IActionResult> ResetUserPassword(string userId, string newPassword)
+        {
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
+            {
+                TempData["Error"] = "Mật khẩu mới phải dài hơn 6 ký tự!";
+                return RedirectToAction("Users");
+            }
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                // Mã hóa mật khẩu mới và lưu đè lên mật khẩu cũ
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = $"Đã đổi mật khẩu cho user: {user.Username}";
+            }
+            else
+            {
+                TempData["Error"] = "Không tìm thấy người chơi!";
+            }
+
+            return RedirectToAction("Users");
+        }
 
         [HttpPost]
         public async Task<IActionResult> GiveGift(string userId, string type, int amount, string? itemId)
