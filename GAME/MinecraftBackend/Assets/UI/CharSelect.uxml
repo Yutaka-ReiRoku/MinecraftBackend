@@ -1,42 +1,37 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-image: url('/images/modes/spectator.png');">
+    <ui:VisualElement name="ScreenContainer" class="screen-container" style="background-image: url('/images/modes/spectator.png');">
         
-        <ui:Label text="SELECT CHARACTER" style="font-size: 40px; -unity-font-style: bold; color: white; margin-bottom: 20px; text-shadow: 2px 2px 0px black;" />
+        <ui:Label text="SELECT HERO" class="header-title" style="font-size: 40px; margin-bottom: 40px; text-shadow: 2px 2px 0 black;" />
 
-        <ui:VisualElement class="popup-box" style="width: 500px; height: 400px; padding: 20px; background-color: rgba(0,0,0,0.8);">
-            
+        <ui:VisualElement class="form-card" style="width: 600px; height: 500px; padding: 20px;">
             <ui:ScrollView name="CharList" style="flex-grow: 1; margin-bottom: 20px;">
-                <ui:Label text="Loading characters..." style="color: gray; align-self: center; margin-top: 50px;" />
+                <ui:Label text="Loading data..." style="align-self: center; color: gray;" />
             </ui:ScrollView>
 
-            <ui:Button name="BtnCreateNew" text="+ CREATE NEW CHARACTER" class="btn-confirm" style="height: 50px; background-color: #2ecc71;" />
-            
+            <ui:Button name="BtnCreateNew" text="+ NEW CHARACTER" class="btn-confirm" style="background-color: rgb(40, 167, 69);" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="CreatePopup" class="overlay hidden">
-            <ui:VisualElement class="popup-box" style="width: 450px; padding: 20px;">
-                <ui:Label text="CREATE HERO" class="popup-title" style="align-self: center;" />
-
-                <ui:Label text="Character Name" style="color: #aaa; margin-top: 10px;" />
-                <ui:TextField name="InputCharName" placeholder-text="Enter name..." style="margin-bottom: 20px;" />
-
-                <ui:Label text="Select Game Mode" style="color: #aaa; margin-bottom: 10px;" />
+        <ui:VisualElement name="CreatePopup" class="screen-container" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
+            <ui:VisualElement class="form-card" style="width: 400px;">
+                <ui:Label text="CREATE HERO" class="header-title" />
                 
-                <ui:VisualElement name="ModeSelectionContainer" style="flex-direction: row; justify-content: center; margin-bottom: 20px; height: 100px;">
+                <ui:TextField name="InputCharName" label="Name" class="input-field" />
+                
+                <ui:Label text="Game Mode" class="section-title" style="margin-top: 10px;" />
+                <ui:VisualElement name="ModeSelectionContainer" style="flex-direction: row; justify-content: space-between; margin-bottom: 20px;">
                     </ui:VisualElement>
 
-                <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-top: 10px;">
-                    <ui:Button name="BtnCancelCreate" text="CANCEL" class="btn-cancel" style="width: 48%;" />
-                    <ui:Button name="BtnConfirmCreate" text="CREATE" class="btn-confirm" style="width: 48%;" />
+                <ui:VisualElement style="flex-direction: row; gap: 10px;">
+                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn-secondary" style="flex-grow: 1;" />
+                    <ui:Button name="BtnConfirmCreate" text="Create" class="btn-confirm" style="flex-grow: 1;" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="LoadingOverlay" class="overlay hidden">
-            <ui:VisualElement class="spinner" />
-            <ui:Label text="LOADING WORLD..." style="color: white; margin-top: 20px;" />
+        <ui:VisualElement name="LoadingOverlay" class="screen-container" style="position: absolute; display: none;">
+            <ui:Label text="ENTERING WORLD..." style="font-size: 24px;" />
         </ui:VisualElement>
 
     </ui:VisualElement>

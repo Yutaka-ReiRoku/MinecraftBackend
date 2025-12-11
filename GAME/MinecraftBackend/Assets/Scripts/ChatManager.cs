@@ -5,7 +5,6 @@ using UnityEngine.UIElements;
 
 public class ChatManager : MonoBehaviour
 {
-    // DTO tin nhắn
     [System.Serializable]
     public class ChatMessageDto
     {
@@ -16,13 +15,11 @@ public class ChatManager : MonoBehaviour
 
     private UIDocument _uiDoc;
     private VisualElement _root;
-    
-    // UI Elements
     private ScrollView _chatHistory;
     private TextField _chatInput;
 
     [Header("Settings")]
-    public float RefreshRate = 3.0f; // Tải tin mới mỗi 3 giây
+    public float RefreshRate = 3.0f; 
 
     void Start()
     {
@@ -33,19 +30,18 @@ public class ChatManager : MonoBehaviour
         _chatHistory = _root.Q<ScrollView>("ChatHistory");
         _chatInput = _root.Q<TextField>("ChatInput");
 
-        // Đăng ký sự kiện nhập liệu
+        // --- [FIX] ÁP DỤNG VÁ LỖI NHẬP LIỆU ---
         if (_chatInput != null)
         {
+            _chatInput.FixTextFieldInput(); // Fix lỗi crash khi nhập
+            
             _chatInput.RegisterCallback<KeyDownEvent>(evt => 
             {
-                if (evt.keyCode == KeyCode.Return) // Nhấn Enter để gửi
-                {
-                    SendChat();
-                }
+                if (evt.keyCode == KeyCode.Return) SendChat();
             });
         }
+        // ---------------------------------------
 
-        // Bắt đầu vòng lặp tải tin nhắn
         StartCoroutine(ChatLoop());
     }
 
@@ -60,33 +56,22 @@ public class ChatManager : MonoBehaviour
 
     IEnumerator LoadChatMessages()
     {
-        // Gọi API lấy tin nhắn (Cần backend hỗ trợ GET /api/game/chat)
-        // Nếu backend chưa có, script này sẽ báo lỗi 404 nhẹ nhàng và không làm crash game
         yield return NetworkManager.Instance.SendRequest<List<ChatMessageDto>>("game/chat", "GET", null,
             (messages) => {
                 if (_chatHistory == null) return;
-                
                 _chatHistory.Clear();
                 foreach (var msg in messages)
                 {
                     var lbl = new Label($"<b>[{msg.Time}] {msg.Sender}:</b> {msg.Content}");
                     lbl.style.fontSize = 12;
                     lbl.style.color = Color.white;
-                    lbl.style.whiteSpace = WhiteSpace.Normal; // Cho phép xuống dòng
+                    lbl.style.whiteSpace = WhiteSpace.Normal; 
                     lbl.style.marginBottom = 2;
-                    
-                    // Style tên người gửi khác màu
-                    lbl.enableRichText = true; // Cần bật Rich Text trong UI Builder hoặc code
-
+                    lbl.enableRichText = true; 
                     _chatHistory.Add(lbl);
                 }
-                
-                // Tự động cuộn xuống dưới cùng (nếu cần)
-                // _chatHistory.ScrollTo(_chatHistory.contentContainer.layout.height);
             },
-            (err) => {
-                // Silent fail: Không spam lỗi nếu server chưa có chat
-            }
+            (err) => { }
         );
     }
 
@@ -95,16 +80,11 @@ public class ChatManager : MonoBehaviour
         string content = _chatInput.value;
         if (string.IsNullOrWhiteSpace(content)) return;
 
-        // Reset input ngay lập tức cho mượt
         _chatInput.value = "";
-
-        // Gửi lên Server
-        // Body: { msg = "Hello" } - Tùy backend định nghĩa
         var body = new { msg = content };
-
+        
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("game/chat", "POST", body,
             (res) => {
-                // Gửi thành công -> Reload ngay lập tức để hiện tin mình vừa chat
                 StartCoroutine(LoadChatMessages());
             },
             (err) => {

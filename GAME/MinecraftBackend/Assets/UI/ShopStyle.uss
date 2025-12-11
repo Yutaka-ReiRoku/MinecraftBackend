@@ -1,179 +1,210 @@
-/* --- 1. GLOBAL SETTINGS & FONT --- */
+/* --- 1. GLOBAL & FONT --- */
 * {
-    -unity-font-definition: resource('Fonts/Minecraft SDF'); 
-    color: white;
+    -unity-font-definition: resource('Fonts/Minecraft SDF'); /* Giữ font game */
+    color: rgb(230, 230, 230);
 }
 
 .hidden { display: none; }
 .content-hidden { display: none; }
 
-/* --- 2. MAIN CONTAINER --- */
+/* --- 2. LAYOUT CONTAINERS --- */
 .screen-container {
-    flex-grow: 1;
-    background-color: rgb(30, 30, 35);
-    -unity-background-scale-mode: scale-and-crop;
-    padding: 10px;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(30, 30, 30); /* Màu nền Reference [cite: 5, 27] */
+    align-items: center;
+    justify-content: center;
 }
 
-/* --- 3. HEADER SECTION --- */
-.header-row {
-    flex-direction: row;
-    height: 60px;
-    margin-bottom: 5px;
-    justify-content: space-between;
-    background-color: rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-    padding: 5px 10px;
+/* Card Style - Dùng cho Popup, Login Form, Shop Panel */
+/* Học tập từ .form-card [cite: 28] */
+.form-card, .popup-box {
+    background-color: rgb(50, 50, 55);
+    border-radius: 20px;
+    border-width: 1px;
+    border-color: rgb(80, 80, 80);
+    padding: 30px;
+    align-items: stretch;
+    justify-content: center;
+}
+
+/* --- 3. TYPOGRAPHY --- */
+/* Học tập từ .header [cite: 6] và .header-title [cite: 29] */
+.header-title, .popup-title {
+    font-size: 32px;
+    color: rgb(255, 215, 0); /* Gold */
+    -unity-font-style: bold;
+    margin-bottom: 20px;
+    -unity-text-align: middle-center;
     border-bottom-width: 2px;
     border-bottom-color: rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
 }
 
-.stats-panel { width: 250px; justify-content: center; }
-.level-label { font-size: 14px; color: #ffd700; -unity-font-style: bold; margin-right: 5px; }
-
-/* Progress Bars */
-.unity-progress-bar__container { max-height: 12px; min-height: 12px; }
-.unity-progress-bar__background { background-color: rgba(0,0,0,0.5); border-radius: 4px; border-width: 0; }
-.unity-progress-bar__progress { border-radius: 4px; margin: 0; }
-
-.hp-bar .unity-progress-bar__progress { background-color: #ff4757; }
-.stamina-bar .unity-progress-bar__progress { background-color: #ffa502; }
-.exp-bar-small .unity-progress-bar__progress { background-color: #2ed573; }
-.monster-hp .unity-progress-bar__progress { background-color: #ff0000; }
-.craft-progress .unity-progress-bar__progress { background-color: #00d2ff; }
-
-/* Currency */
-.currency-panel { flex-direction: row; align-items: center; gap: 15px; }
-.currency-box { flex-direction: row; align-items: center; background-color: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 15px; border-width: 1px; border-color: rgba(255,255,255,0.1); }
-.icon-small { width: 24px; height: 24px; margin-right: 5px; }
-.icon-tiny { width: 16px; height: 16px; margin-right: 5px; }
-.currency-text { font-size: 16px; -unity-font-style: bold; }
-.gold-text { color: #ffd700; }
-.gem-text { color: #00d2ff; }
-
-/* System Buttons */
-.system-panel { flex-direction: row; align-items: center; }
-.icon-btn {
-    width: 40px; height: 40px; margin-left: 5px;
-    background-color: rgba(255,255,255,0.1);
-    border-radius: 8px; border-width: 0; transition: 0.1s;
-    -unity-background-scale-mode: scale-to-fit;
-}
-.icon-btn:hover { background-color: rgba(255,255,255,0.3); scale: 1.1; }
-.icon-btn:active { scale: 0.95; }
-
-.red-dot {
-    width: 12px; height: 12px; background-color: red; border-radius: 6px;
-    position: absolute; top: 0; right: 0; border-width: 1px; border-color: white;
+.section-title {
+    font-size: 18px;
+    color: rgb(200, 200, 200);
+    -unity-font-style: bold;
+    margin-bottom: 10px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(80, 80, 80);
 }
 
-/* --- 4. TABS --- */
-.tabs-row { height: 50px; margin-bottom: 10px; }
-.tab-btn {
-    height: 40px; padding: 0 20px; margin-right: 5px;
-    background-color: rgba(0,0,0,0.5); color: #aaa; border-width: 0;
-    border-bottom-width: 4px; border-bottom-color: transparent;
-    font-size: 16px; transition: 0.2s;
+/* --- 4. INPUT FIELDS (Style theo Reference .input-field [cite: 30]) --- */
+.input-field {
+    height: 50px;
+    margin-bottom: 15px;
+    font-size: 16px;
 }
-.tab-btn:hover { color: white; background-color: rgba(255,255,255,0.1); }
-.active-tab { color: white; background-color: rgba(0, 120, 215, 0.3); border-bottom-color: #00d2ff; -unity-font-style: bold; }
 
-/* --- 5. CONTENT --- */
-.content-area { flex-grow: 1; background-color: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 10px; }
-.tab-content { flex-grow: 1; transition-property: opacity; transition-duration: 0.3s; }
+.input-field > .unity-base-field__label {
+    color: rgb(180, 180, 180);
+    min-width: 100px;
+    -unity-font-style: bold;
+}
 
-.grid-scroll { flex-grow: 1; flex-direction: row; flex-wrap: wrap; padding-bottom: 60px; }
-.section-title { font-size: 18px; color: #fab1a0; -unity-font-style: bold; margin-bottom: 5px; border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.1); }
+.input-field > .unity-base-field__input {
+    background-color: rgb(30, 30, 30);
+    color: white;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(70, 70, 70);
+    padding-left: 10px;
+}
 
-/* Search & Filter */
-.search-bar-row { flex-direction: row; margin-bottom: 10px; height: 40px; }
-.search-input { flex-grow: 1; margin-right: 5px; }
-.search-input > .unity-base-field__input { background-color: rgba(0,0,0,0.5); border-radius: 5px; border-color: #555; color: white; }
-.btn-action-small { width: 80px; background-color: #00d2ff; color: black; -unity-font-style: bold; border-radius: 5px; }
+.input-field > .unity-base-field__input:focus {
+    border-color: rgb(0, 120, 215); /* Blue focus */
+}
 
-.filter-chip-row { flex-direction: row; margin-bottom: 10px; }
-.filter-chip { background-color: rgba(255,255,255,0.1); border-radius: 15px; padding: 5px 15px; margin-right: 5px; font-size: 12px; border-width: 1px; border-color: gray; }
-.active-chip { background-color: #00d2ff; color: black; border-color: #00d2ff; -unity-font-style: bold; }
+/* --- 5. BUTTONS (Style theo Reference .btn-primary [cite: 33]) --- */
+.btn-primary, .btn-confirm {
+    height: 50px;
+    border-radius: 12px;
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: white;
+    background-color: rgb(0, 120, 215); /* Blue Login [cite: 34] */
+    border-width: 0;
+    transition-duration: 0.2s;
+    margin-top: 10px;
+}
 
-/* --- 6. ITEM CARD --- */
+.btn-primary:hover, .btn-confirm:hover {
+    scale: 1.05;
+    background-color: rgb(0, 140, 255);
+}
+
+/* Style theo .btn-secondary [cite: 36] */
+.btn-secondary, .btn-cancel, .ctx-btn {
+    height: 40px;
+    background-color: transparent;
+    border-width: 1px;
+    border-color: rgb(100, 100, 100);
+    color: rgb(180, 180, 180);
+    border-radius: 8px;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.btn-secondary:hover, .btn-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.btn-close {
+    width: 30px; height: 30px;
+    background-color: rgb(220, 53, 69); /* Red [cite: 12] */
+    color: white;
+    border-radius: 15px;
+    border-width: 0;
+}
+
+/* --- 6. ITEM CARDS (Shop & Inventory) - Adapt từ .level-item  --- */
 .item-card {
-    width: 160px; height: 220px; margin: 8px; padding: 8px;
-    background-color: rgba(40, 40, 45, 0.95);
-    border-width: 3px; border-radius: 12px; border-color: #555;
-    align-items: center; justify-content: space-between; transition: 0.1s;
+    width: 150px; height: 200px;
+    background-color: rgb(60, 60, 65); /*  */
+    margin: 5px;
+    border-radius: 15px; /*  */
+    border-width: 1px;
+    border-color: rgb(80, 80, 80);
+    padding: 10px;
+    align-items: center;
+    justify-content: space-between;
+    transition-duration: 0.1s;
 }
-.item-card:hover { scale: 1.05; border-color: white; }
 
-.rarity-common { border-color: #a4b0be; }
-.rarity-rare { border-color: #1e90ff; background-color: rgba(30, 144, 255, 0.1); }
-.rarity-epic { border-color: #a55eea; background-color: rgba(165, 94, 234, 0.1); }
-.rarity-legendary { border-color: #ffa502; background-color: rgba(255, 165, 2, 0.15); }
-
-/* --- 7. POPUPS --- */
-.overlay {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0,0,0,0.8);
-    align-items: center; justify-content: center; display: flex;
+.item-card:hover {
+    border-color: rgb(255, 215, 0);
+    scale: 1.05;
 }
-.popup-box {
-    background-color: #1e1e1e; border-radius: 15px; border-width: 2px; border-color: #00d2ff;
-    padding: 20px; transition-duration: 0.3s; transition-timing-function: ease-out-back;
+
+.rarity-common { border-bottom-width: 4px; border-bottom-color: #a4b0be; }
+.rarity-rare { border-bottom-width: 4px; border-bottom-color: #00d2ff; }
+.rarity-epic { border-bottom-width: 4px; border-bottom-color: #a55eea; }
+.rarity-legendary { border-bottom-width: 4px; border-bottom-color: #ffa502; }
+
+/* --- 7. TABS --- */
+.tabs-row {
+    flex-direction: row;
+    height: 50px;
+    margin-bottom: 15px;
+    background-color: rgb(40, 40, 40);
+    border-radius: 10px;
+    padding: 5px;
 }
-.popup-title { font-size: 24px; color: #00d2ff; -unity-font-style: bold; margin-bottom: 10px; border-bottom-width: 1px; border-bottom-color: gray; }
-.popup-img { width: 120px; height: 120px; align-self: center; margin: 10px; }
 
-.btn-confirm { background-color: #2ecc71; color: white; height: 40px; border-radius: 5px; -unity-font-style: bold; border-width: 0; margin-top: 5px; }
-.btn-confirm:hover { background-color: #27ae60; scale: 1.05; }
-.btn-cancel { background-color: #7f8c8d; color: white; height: 30px; margin-top: 5px; border-radius: 5px; border-width: 0; }
-.btn-close { background-color: #e74c3c; color: white; border-radius: 5px; border-width: 0; }
+.tab-btn {
+    flex-grow: 1;
+    background-color: transparent;
+    border-width: 0;
+    color: rgb(150, 150, 150);
+    font-size: 16px;
+    -unity-font-style: bold;
+    border-radius: 8px;
+    margin: 0 2px;
+}
 
-.qty-row { flex-direction: row; align-items: center; justify-content: center; margin: 10px 0; }
-.qty-btn { width: 30px; height: 30px; background-color: #333; color: white; font-size: 18px; border-radius: 5px; }
-.qty-val { width: 50px; -unity-text-align: middle-center; font-size: 20px; -unity-font-style: bold; }
+.tab-btn.active-tab {
+    background-color: rgb(70, 70, 75);
+    color: rgb(255, 215, 0);
+}
 
 /* --- 8. HOTBAR & HUD --- */
 .hotbar-row {
-    position: absolute; bottom: 10px; width: 100%;
-    flex-direction: row; justify-content: center; align-items: flex-end;
+    position: absolute; bottom: 20px;
+    flex-direction: row;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 20px;
+    border-width: 1px;
+    border-color: rgb(80, 80, 80);
 }
+
 .hotbar-slot {
-    width: 50px; height: 50px; margin: 2px;
-    background-color: rgba(0,0,0,0.7);
-    border-width: 2px; border-color: #555; transition: 0.1s;
-}
-.hotbar-slot:hover { border-color: white; scale: 1.1; }
-.hotkey-lbl { position: absolute; top: 0; left: 2px; font-size: 10px; color: #aaa; }
-
-/* --- FIX: Class hiệu ứng khi bấm phím 1-9 --- */
-.hotbar-active {
-    border-color: yellow;
-    background-color: rgba(255, 255, 0, 0.3);
-    scale: 1.15;
+    width: 60px; height: 60px;
+    margin: 0 5px;
+    background-color: rgb(50, 50, 55);
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(80, 80, 80);
+    justify-content: center;
+    align-items: center;
 }
 
-/* Slot Highlight khi kéo đồ */
-.slot-highlight {
-    border-color: #00d2ff;
-    background-color: rgba(0, 210, 255, 0.2);
+.hotbar-slot.hotbar-active {
+    border-color: rgb(0, 120, 215);
+    scale: 1.1;
 }
 
-/* Chat & Quest */
-.chat-box {
-    position: absolute; bottom: 80px; left: 10px; width: 300px; height: 150px;
-    background-color: rgba(0,0,0,0.5); border-radius: 5px; padding: 5px;
+/* --- 9. UTILS --- */
+.red-dot {
+    width: 10px; height: 10px;
+    background-color: rgb(255, 69, 0);
+    border-radius: 5px;
+    position: absolute; top: 0; right: 0;
 }
-.chat-input > .unity-base-field__input { background-color: rgba(0,0,0,0.5); color: white; border-width: 0; }
 
-.quest-tracker {
-    position: absolute; top: 80px; right: 10px; width: 200px;
-    background-color: rgba(0,0,0,0.4); padding: 10px; border-radius: 5px;
-}
-.quest-title { color: gold; -unity-font-style: bold; }
-
-/* Context Menu */
-.context-menu {
-    position: absolute; width: 120px; background-color: #222;
-    border-width: 1px; border-color: #555; border-radius: 5px;
-}
-.ctx-btn { background-color: transparent; color: white; border-width: 0; -unity-text-align: middle-left; padding-left: 10px; height: 25px; }
-.ctx-btn:hover { background-color: #00d2ff; color: black; }
+.unity-progress-bar__container { height: 10px; }
+.unity-progress-bar__background { background-color: rgb(30,30,30); border-radius: 5px; border-width: 0; }
+.unity-progress-bar__progress { border-radius: 5px; }
+.hp-bar .unity-progress-bar__progress { background-color: rgb(220, 53, 69); }
