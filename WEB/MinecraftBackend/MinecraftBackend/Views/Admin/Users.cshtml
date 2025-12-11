@@ -200,6 +200,15 @@
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+        // Tìm tất cả các Modal trong trang này
+        var modals = document.querySelectorAll('.modal');
+        // Chuyển chúng ra ngoài thẻ body để không bị các div khác đè lên
+        modals.forEach(function(modal) {
+            document.body.appendChild(modal);
+        });
+    });
+
     // Xử lý Modal Đổi Mật Khẩu
     function openPassModal(id, name) {
         document.getElementById('passUserName').innerText = name;
