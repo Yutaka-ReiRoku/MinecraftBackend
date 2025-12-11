@@ -115,7 +115,6 @@ public class AuthManager : MonoBehaviour
 
         ToggleLoading(true);
         var body = new LoginRequest { Email = email, Password = pass };
-        
         StartCoroutine(NetworkManager.Instance.SendRequest<TokenResponse>("auth/login", "POST", body,
             (res) => {
                 Debug.Log("Login Success! Token: " + res.Token);
@@ -140,7 +139,14 @@ public class AuthManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass))
         {
-            SetStatus("Không được để trống.", true);
+            SetStatus("Không được để trống thông tin.", true);
+            return;
+        }
+
+        // [MỚI] Validate định dạng Email
+        if (!email.Contains("@") || !email.Contains("."))
+        {
+            SetStatus("Email không hợp lệ (cần có @ và .).", true);
             return;
         }
 
@@ -159,6 +165,7 @@ public class AuthManager : MonoBehaviour
         ToggleLoading(true);
         var body = new RegisterRequest { Username = user, Email = email, Password = pass };
         
+        // Gửi request đăng ký
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("auth/register", "POST", body,
             (res) => {
                 ToggleLoading(false);
@@ -167,6 +174,7 @@ public class AuthManager : MonoBehaviour
             },
             (err) => {
                 ToggleLoading(false);
+                // Hiển thị lỗi từ server trả về (vd: "Email already exists!")
                 SetStatus(err, true);
             }
         ));
@@ -177,5 +185,8 @@ public class AuthManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         SwitchMode(true);
         _loginEmail.value = _regEmail.value;
+        // Xóa pass cũ để bảo mật
+        _regPass.value = "";
+        _regConfirmPass.value = "";
     }
 }

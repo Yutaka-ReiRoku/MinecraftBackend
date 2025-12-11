@@ -80,23 +80,29 @@ namespace MinecraftBackend.Controllers
                 CharacterID = Guid.NewGuid().ToString(),
                 UserId = user.Id,
                 DisplayName = request.Username,
-                Level = 1, Exp = 0, Gold = 1000, Gem = 10,
+                Level = 1,
+                Exp = 0,
+                Gold = 1000,
+                Gem = 10,
                 AvatarUrl = "/images/avatars/steve.png",
                 GameMode = "Survival",
-                Health = 100, MaxHealth = 100, Hunger = 100
+                Health = 100,
+                MaxHealth = 100,
+                Hunger = 100
             };
             _context.PlayerProfiles.Add(defaultProfile);
 
             // Ghi Log
-            _context.Transactions.Add(new Transaction 
-            { 
-                UserId = user.Id, 
-                ActionType = "REGISTER", 
-                Details = "Account Created", 
+            _context.Transactions.Add(new Transaction
+            {
+                UserId = user.Id,
+                ActionType = "REGISTER",
+                Details = "Account Created",
                 CreatedAt = DateTime.Now,
-                Amount = 0 
+                Amount = 0,
+                CurrencyType = "NONE" // [FIX] Thêm trường này để tránh lỗi 500
             });
-            
+
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Registration successful! Please login." });
         }
@@ -105,7 +111,7 @@ namespace MinecraftBackend.Controllers
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            
+
             // Kiểm tra user tồn tại và khớp mật khẩu
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
@@ -113,17 +119,20 @@ namespace MinecraftBackend.Controllers
             }
 
             if (user.Status != "Active") return BadRequest(new { Message = "Account is banned." });
-            
+
             string token = CreateToken(user);
-            
+
             // Ghi log đăng nhập
-            _context.Transactions.Add(new Transaction 
-            { 
-                UserId = user.Id, 
-                ActionType = "LOGIN", 
-                Details = "User Login", 
-                CreatedAt = DateTime.Now 
+            _context.Transactions.Add(new Transaction
+            {
+                UserId = user.Id,
+                ActionType = "LOGIN",
+                Details = "User Login",
+                CreatedAt = DateTime.Now,
+                Amount = 0,
+                CurrencyType = "NONE" // [FIX] Thêm trường này để tránh lỗi 500
             });
+
             await _context.SaveChangesAsync();
 
             return Ok(new { Token = token, UserId = user.Id, Username = user.Username });
@@ -138,13 +147,13 @@ namespace MinecraftBackend.Controllers
             if (user == null) return Unauthorized();
 
             // Kiểm tra mật khẩu cũ
-            if (!BCrypt.Net.BCrypt.Verify(req.OldPassword, user.PasswordHash)) 
+            if (!BCrypt.Net.BCrypt.Verify(req.OldPassword, user.PasswordHash))
             {
                 return BadRequest(new { Message = "Incorrect old password." });
             }
 
             // Kiểm tra độ dài mật khẩu mới
-            if (req.NewPassword.Length < 6) 
+            if (req.NewPassword.Length < 6)
             {
                 return BadRequest(new { Message = "New password too short." });
             }
@@ -163,14 +172,14 @@ namespace MinecraftBackend.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var chars = await _context.PlayerProfiles.Where(p => p.UserId == userId)
-                .Select(p => new CharacterDto 
-                { 
-                    CharacterID = p.CharacterID, 
-                    CharacterName = p.DisplayName, 
-                    Level = p.Level, 
-                    GameMode = p.GameMode, 
-                    AvatarUrl = p.AvatarUrl, 
-                    Gold = p.Gold 
+                .Select(p => new CharacterDto
+                {
+                    CharacterID = p.CharacterID,
+                    CharacterName = p.DisplayName,
+                    Level = p.Level,
+                    GameMode = p.GameMode,
+                    AvatarUrl = p.AvatarUrl,
+                    Gold = p.Gold
                 })
                 .ToListAsync();
             return Ok(chars);
@@ -181,19 +190,23 @@ namespace MinecraftBackend.Controllers
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterDto req)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
             // Giới hạn tối đa 3 nhân vật
             int count = await _context.PlayerProfiles.CountAsync(p => p.UserId == userId);
             if (count >= 3) return BadRequest(new { Message = "Max 3 characters allowed." });
-            
+
             var newProfile = new PlayerProfile
             {
-                CharacterID = Guid.NewGuid().ToString(), 
-                UserId = userId, 
+                CharacterID = Guid.NewGuid().ToString(),
+                UserId = userId,
                 DisplayName = req.CharacterName,
-                GameMode = req.GameMode ?? "Survival", 
-                Level = 1, Exp = 0, Gold = 100, Gem = 0,
-                Health = 100, MaxHealth = 100, Hunger = 100,
+                GameMode = req.GameMode ?? "Survival",
+                Level = 1,
+                Exp = 0,
+                Gold = 100,
+                Gem = 0,
+                Health = 100,
+                MaxHealth = 100,
+                Hunger = 100,
                 AvatarUrl = "/images/avatars/steve.png" // Đảm bảo luôn có ảnh mặc định
             };
             _context.PlayerProfiles.Add(newProfile);
@@ -205,49 +218,50 @@ namespace MinecraftBackend.Controllers
 
         private string CreateToken(User user)
         {
-            List<Claim> claims = new List<Claim> 
-            { 
-                new Claim(ClaimTypes.Name, user.Username), 
-                new Claim(ClaimTypes.Email, user.Email), 
-                new Claim(ClaimTypes.Role, user.Role), 
-                new Claim(ClaimTypes.NameIdentifier, user.Id) 
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-            
+
             var token = new JwtSecurityToken(
-                claims: claims, 
-                expires: DateTime.Now.AddDays(7), 
+                claims: claims,
+                expires: DateTime.Now.AddDays(7),
                 signingCredentials: creds
             );
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 
     // --- DTOs Riêng cho Auth ---
-    public class RegisterDto 
-    { 
-        public string Username { get; set; } 
-        public string Email { get; set; } 
-        public string Password { get; set; } 
+    public class RegisterDto
+    {
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
-    
-    public class LoginDto 
-    { 
-        public string Email { get; set; } 
-        public string Password { get; set; } 
+
+    public class LoginDto
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
     }
-    
-    public class CreateCharacterDto 
-    { 
-        public string CharacterName { get; set; } 
-        public string GameMode { get; set; } 
+
+    public class CreateCharacterDto
+    {
+        public string CharacterName { get; set; }
+        public string GameMode { get; set; }
     }
-    
-    public class ChangePasswordDto 
-    { 
-        public string OldPassword { get; set; } 
-        public string NewPassword { get; set; } 
+
+    public class ChangePasswordDto
+    {
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }
