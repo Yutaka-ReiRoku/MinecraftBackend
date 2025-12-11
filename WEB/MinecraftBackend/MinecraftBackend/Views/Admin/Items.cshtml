@@ -25,10 +25,30 @@
         <table class="table table-hover align-middle mb-0 text-white">
             <thead class="bg-white bg-opacity-10 text-uppercase text-info small border-bottom border-info">
                 <tr>
-                    <th class="ps-4" style="width: 30%;">Item Detail</th>
-                    <th>ID & Type</th>
-                    <th>Price</th>
-                    <th>Status</th>
+                    <th class="ps-4" style="width: 30%;">
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.NameSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
+                            Item Detail <i class="fas fa-sort ms-1"></i>
+                        </a>
+                    </th>
+                    
+                    <th>
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.TypeSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
+                            Type <i class="fas fa-sort ms-1"></i>
+                        </a>
+                    </th>
+                    
+                    <th>
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.PriceSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
+                            Price <i class="fas fa-sort ms-1"></i>
+                        </a>
+                    </th>
+                    
+                    <th>
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.StatusSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
+                            Status <i class="fas fa-sort ms-1"></i>
+                        </a>
+                    </th>
+                    
                     <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
@@ -132,18 +152,19 @@
                 <a asp-action="Items" 
                    asp-route-page="@(ViewBag.CurrentPage - 1)" 
                    asp-route-search="@ViewBag.CurrentSearch"
+                   asp-route-sortOrder="@ViewBag.CurrentSort"
                    class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
                     <i class="fas fa-chevron-left me-1"></i> Prev
                 </a>
 
                 @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
-                    // Chỉ hiện số trang nếu tổng ít, hoặc hiện các trang xung quanh trang hiện tại (để tránh tràn UI nếu có 100 trang)
                     if (ViewBag.TotalPages <= 10 || (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2) || i == 1 || i == ViewBag.TotalPages)
                     {
                         <a asp-action="Items" 
                            asp-route-page="@i" 
                            asp-route-search="@ViewBag.CurrentSearch"
+                           asp-route-sortOrder="@ViewBag.CurrentSort" @* <-- THÊM DÒNG NÀY *@
                            class="btn btn-sm @(i == ViewBag.CurrentPage ? "btn-info fw-bold" : "btn-outline-secondary text-white-50")">
                            @i
                         </a>
@@ -157,6 +178,7 @@
                 <a asp-action="Items" 
                    asp-route-page="@(ViewBag.CurrentPage + 1)" 
                    asp-route-search="@ViewBag.CurrentSearch"
+                   asp-route-sortOrder="@ViewBag.CurrentSort" @* <-- THÊM DÒNG NÀY *@
                    class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
                     Next <i class="fas fa-chevron-right ms-1"></i>
                 </a>
