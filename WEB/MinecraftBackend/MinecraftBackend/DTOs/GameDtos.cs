@@ -123,4 +123,35 @@ namespace MinecraftBackend.DTOs
         public bool LevelUp { get; set; }
         public string LootItemName { get; set; }
     }
+// --- BỔ SUNG CÁC DTO CÒN THIẾU ---
+
+    public class CharacterDto
+    {
+        public string CharacterID { get; set; }
+        public string CharacterName { get; set; }
+        public string AvatarUrl { get; set; }
+        public string GameMode { get; set; }
+        public int Level { get; set; }
+        public int Gold { get; set; }
+        public int Gem { get; set; }
+        public int Health { get; set; }
+        public int MaxHealth { get; set; }
+        public int Hunger { get; set; }
+        public int MaxHunger { get; set; }
+        public int Exp { get; set; }
+    }
+
+    public class RecipeDto
+    {
+        public string RecipeId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public int CraftingTime { get; set; } 
+        
+        // Kết quả
+        public string ResultItemId { get; set; }
+        public string ResultItemName { get; set; }
+        public string ResultItemImage { get; set; }
+        public int ResultCount { get; set; }
+    }
 }
