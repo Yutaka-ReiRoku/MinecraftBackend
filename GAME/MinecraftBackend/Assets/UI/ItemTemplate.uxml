@@ -2,21 +2,19 @@
     <Style src="ShopStyle.uss" />
 
     <ui:VisualElement name="ItemContainer" class="item-card rarity-common">
-        
-        <ui:VisualElement style="width: 100%; height: 100px; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.2); border-radius: 10px; margin-bottom: 5px;">
-            <ui:Image name="ItemImage" style="width: 64px; height: 64px; -unity-background-scale-mode: scale-to-fit;" picking-mode="Ignore" />
+        <ui:VisualElement style="width: 100%; flex-grow: 1; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 8px;">
+            <ui:Image name="ItemImage" style="width: 80%; height: 80%; -unity-background-scale-mode: scale-to-fit;" picking-mode="Ignore" />
         </ui:VisualElement>
 
-        <ui:Label name="ItemName" text="Item Name" style="font-size: 14px; -unity-font-style: bold; color: white; -unity-text-align: middle-center; white-space: normal;" picking-mode="Ignore" />
+        <ui:Label name="ItemName" text="Item Name" style="font-size: 14px; -unity-font-style: bold; color: white; -unity-text-align: middle-center; white-space: normal; height: 35px;" picking-mode="Ignore" />
 
-        <ui:VisualElement name="price-row" style="flex-direction: row; justify-content: center; width: 100%; margin-top: 5px;">
-            <ui:Button name="BtnBuyGold" class="btn-secondary" style="height: 25px; padding: 0 10px; border-color: gold; color: gold;">
+        <ui:VisualElement name="price-row" style="flex-direction: row; justify-content: center; width: 100%; margin-top: auto;">
+            <ui:Button name="BtnBuyGold" class="btn-secondary" style="height: 28px; padding: 0 12px; border-color: var(--accent); color: var(--accent); border-radius: 14px;">
                 <ui:Label name="PriceGoldLabel" text="100" picking-mode="Ignore" />
             </ui:Button>
-            <ui:Button name="BtnBuyGem" class="btn-secondary" style="height: 25px; padding: 0 10px; border-color: cyan; color: cyan; display: none;">
+            <ui:Button name="BtnBuyGem" class="btn-secondary" style="height: 28px; padding: 0 12px; border-color: var(--primary); color: var(--primary); border-radius: 14px; display: none;">
                 <ui:Label name="PriceGemLabel" text="10" picking-mode="Ignore" />
             </ui:Button>
         </ui:VisualElement>
-
     </ui:VisualElement>
 </ui:UXML>
