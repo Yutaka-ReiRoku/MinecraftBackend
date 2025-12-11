@@ -60,13 +60,12 @@ public class CharSelectManager : MonoBehaviour
         ToggleLoading(true);
         _charList.Clear();
 
-        // Gọi đúng API lấy danh sách nhân vật từ AuthController
+        // Gọi API lấy danh sách nhân vật
         yield return NetworkManager.Instance.SendRequest<List<CharacterDto>>("auth/characters", "GET", null,
             (chars) =>
             {
                 if (chars.Count == 0)
                 {
-                    // Chưa có nhân vật -> Mở popup tạo mới ngay
                     ShowCreatePopup();
                 }
                 else
@@ -76,8 +75,7 @@ public class CharSelectManager : MonoBehaviour
                         CreateCharButton(c);
                     }
                 }
-                
-                // Giới hạn tối đa 3 nhân vật: Ẩn nút tạo nếu đã đủ
+               
                 if (chars.Count >= 3) _btnCreateNew.style.display = DisplayStyle.None;
                 else _btnCreateNew.style.display = DisplayStyle.Flex;
 
@@ -86,7 +84,6 @@ public class CharSelectManager : MonoBehaviour
             (err) =>
             {
                 Debug.LogError("Lỗi tải nhân vật: " + err);
-                // Nếu lỗi mạng hoặc 404, hiện nút tạo để retry
                 _btnCreateNew.style.display = DisplayStyle.Flex;
                 ToggleLoading(false);
             }
@@ -101,8 +98,17 @@ public class CharSelectManager : MonoBehaviour
         btn.style.flexDirection = FlexDirection.Row;
         btn.style.alignItems = Align.Center;
         btn.style.backgroundColor = new Color(0, 0, 0, 0.5f);
-        btn.style.borderWidth = 1;
-        btn.style.borderColor = new Color(0.5f, 0.5f, 0.5f);
+        
+        // [FIX] Sửa lỗi borderWidth/borderColor cho Button
+        btn.style.borderTopWidth = 1;
+        btn.style.borderBottomWidth = 1;
+        btn.style.borderLeftWidth = 1;
+        btn.style.borderRightWidth = 1;
+
+        btn.style.borderTopColor = new Color(0.5f, 0.5f, 0.5f);
+        btn.style.borderBottomColor = new Color(0.5f, 0.5f, 0.5f);
+        btn.style.borderLeftColor = new Color(0.5f, 0.5f, 0.5f);
+        btn.style.borderRightColor = new Color(0.5f, 0.5f, 0.5f);
 
         // Avatar
         var avatar = new Image();
@@ -132,17 +138,13 @@ public class CharSelectManager : MonoBehaviour
 
         // Click Select
         btn.clicked += () => SelectCharacter(data.CharacterID);
-
         _charList.Add(btn);
     }
 
     void SelectCharacter(string charId)
     {
-        // Lưu ID nhân vật để dùng cho các API Gameplay
         PlayerPrefs.SetString("CurrentCharID", charId);
         PlayerPrefs.Save();
-        
-        // Vào Game
         SceneManager.LoadScene("GameScene");
     }
 
@@ -153,8 +155,9 @@ public class CharSelectManager : MonoBehaviour
         if (_createPopup != null)
         {
             _createPopup.style.display = DisplayStyle.Flex;
-            _createPopup.style.opacity = 0;
-            _createPopup.experimental.animation.Start(new StyleValues { opacity = 0 }, new StyleValues { opacity = 1 }, 200);
+            // [FIXED] Đã xóa đoạn code Animation (StyleValues/Easing) gây lỗi CS0246
+            // Popup sẽ hiện ngay lập tức
+            _createPopup.style.opacity = 1;
         }
     }
 
@@ -175,11 +178,12 @@ public class CharSelectManager : MonoBehaviour
             btn.style.flexGrow = 1;
             btn.style.height = 40;
             btn.style.marginRight = 5;
-            btn.style.backgroundColor = (_selectedMode == mode) ? new Color(0, 0.8f, 0.2f) : new Color(0.2f, 0.2f, 0.2f);
+            btn.style.backgroundColor = (_selectedMode == mode) ?
+                new Color(0, 0.8f, 0.2f) : new Color(0.2f, 0.2f, 0.2f);
             
             btn.clicked += () => {
                 _selectedMode = mode;
-                SetupModeSelection(); // Re-render để update màu
+                SetupModeSelection(); // Re-render
             };
 
             _modeContainer.Add(btn);
@@ -193,16 +197,13 @@ public class CharSelectManager : MonoBehaviour
 
         ToggleLoading(true);
 
-        // Body phải khớp với CreateCharacterDto ở Backend
         var body = new { CharacterName = name, GameMode = _selectedMode };
-
-        // FIX: Đã sửa endpoint từ "game/player" thành "auth/character"
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("auth/character", "POST", body,
             (res) =>
             {
                 Debug.Log("Tạo nhân vật thành công!");
                 HideCreatePopup();
-                StartCoroutine(LoadCharacters()); // Reload list
+                StartCoroutine(LoadCharacters());
             },
             (err) =>
             {

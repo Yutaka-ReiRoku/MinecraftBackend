@@ -73,17 +73,16 @@ public class AuthManager : MonoBehaviour
 
     void SwitchMode(bool isLogin)
     {
+        // [FIXED] Đã xóa đoạn code animation gây lỗi StyleValues
+        // Chỉ dùng DisplayStyle để ẩn/hiện tab
         if (_loginContainer != null) 
         {
             _loginContainer.style.display = isLogin ? DisplayStyle.Flex : DisplayStyle.None;
-            // Animation fade in
-            if(isLogin) _loginContainer.experimental.animation.Start(new StyleValues { opacity = 0f }, new StyleValues { opacity = 1f }, 300);
         }
 
         if (_registerContainer != null) 
         {
             _registerContainer.style.display = !isLogin ? DisplayStyle.Flex : DisplayStyle.None;
-            if(!isLogin) _registerContainer.experimental.animation.Start(new StyleValues { opacity = 0f }, new StyleValues { opacity = 1f }, 300);
         }
         
         if (_statusLabel != null) _statusLabel.text = "";
@@ -116,9 +115,8 @@ public class AuthManager : MonoBehaviour
         }
 
         ToggleLoading(true);
-
         var body = new LoginRequest { Email = email, Password = pass };
-
+        
         StartCoroutine(NetworkManager.Instance.SendRequest<TokenResponse>("auth/login", "POST", body,
             (res) => {
                 Debug.Log("Login Success! Token: " + res.Token);
@@ -167,9 +165,8 @@ public class AuthManager : MonoBehaviour
         }
 
         ToggleLoading(true);
-
         var body = new RegisterRequest { Username = user, Email = email, Password = pass };
-
+        
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("auth/register", "POST", body,
             (res) => {
                 ToggleLoading(false);

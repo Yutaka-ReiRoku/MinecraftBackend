@@ -4,7 +4,6 @@ using UnityEngine.UIElements;
 public class TooltipManager : MonoBehaviour
 {
     public static TooltipManager Instance;
-
     private UIDocument _uiDoc;
     private VisualElement _root;
     private VisualElement _tooltipContainer;
@@ -16,7 +15,6 @@ public class TooltipManager : MonoBehaviour
     private Label _lblDesc;
 
     // Biến cho logic di chuyển mượt (Lerp)
-    private Vector2 _targetPos;
     private bool _isVisible = false;
 
     // Biến lưu chỉ số nhân vật để so sánh (nếu cần mở rộng sau này)
@@ -37,7 +35,6 @@ public class TooltipManager : MonoBehaviour
 
         // Query các phần tử trong UXML (MainLayout.uxml)
         _tooltipContainer = _root.Q<VisualElement>("TooltipContainer");
-        
         if (_tooltipContainer != null)
         {
             _lblName = _tooltipContainer.Q<Label>("TtName");
@@ -55,10 +52,10 @@ public class TooltipManager : MonoBehaviour
     void Update()
     {
         if (_tooltipContainer == null || !_isVisible) return;
-
+        
         // 1. Lấy vị trí chuột (Toạ độ màn hình: Bottom-Left là 0,0)
         Vector2 mousePos = Input.mousePosition;
-
+        
         // 2. Chuyển đổi sang toạ độ UI Toolkit (Top-Left là 0,0)
         // Lưu ý: Panel có thể scale khác màn hình thật, nhưng thường root.layout trùng screen
         float uiX = mousePos.x + 15; // Cách chuột 15px sang phải
@@ -69,16 +66,16 @@ public class TooltipManager : MonoBehaviour
         float screenH = _root.resolvedStyle.height;
         float tipW = _tooltipContainer.resolvedStyle.width;
         float tipH = _tooltipContainer.resolvedStyle.height;
-
+        
         // Nếu tràn bên phải -> Đẩy sang trái chuột
         if (uiX + tipW > screenW) 
             uiX = mousePos.x - tipW - 15;
-
+        
         // Nếu tràn xuống dưới -> Đẩy lên trên chuột
         // (Do trục Y đảo ngược: giá trị càng lớn là càng xuống dưới)
         if (uiY + tipH > screenH) 
             uiY = Screen.height - mousePos.y - tipH - 15;
-
+        
         // 4. Di chuyển mượt (Lerp)
         // Lấy vị trí hiện tại
         float curX = _tooltipContainer.resolvedStyle.left;
@@ -102,7 +99,7 @@ public class TooltipManager : MonoBehaviour
     public void Show(string name, string desc, string stats, string rarity)
     {
         if (_tooltipContainer == null) return;
-
+        
         // Cập nhật nội dung
         if (_lblName != null) _lblName.text = name;
         if (_lblDesc != null) _lblDesc.text = desc;
@@ -117,25 +114,27 @@ public class TooltipManager : MonoBehaviour
         if (_lblRarity != null)
         {
             _lblRarity.text = rarity;
-            
             Color rarityColor = Color.white;
-            switch (rarity.ToLower())
+            
+            if (!string.IsNullOrEmpty(rarity))
             {
-                case "common": rarityColor = new Color(0.7f, 0.7f, 0.7f); break; // Xám
-                case "rare": rarityColor = new Color(0f, 0.7f, 1f); break; // Xanh dương
-                case "epic": rarityColor = new Color(0.7f, 0f, 1f); break; // Tím
-                case "legendary": rarityColor = new Color(1f, 0.8f, 0f); break; // Vàng Cam
+                switch (rarity.ToLower())
+                {
+                    case "common": rarityColor = new Color(0.7f, 0.7f, 0.7f); break; // Xám
+                    case "rare": rarityColor = new Color(0f, 0.7f, 1f); break; // Xanh dương
+                    case "epic": rarityColor = new Color(0.7f, 0f, 1f); break; // Tím
+                    case "legendary": rarityColor = new Color(1f, 0.8f, 0f); break; // Vàng Cam
+                }
             }
+            
             _lblRarity.style.color = rarityColor;
-            _lblName.style.color = rarityColor; // Đổi màu tên luôn cho đẹp
+            if (_lblName != null) _lblName.style.color = rarityColor; // Đổi màu tên luôn cho đẹp
         }
 
-        // Hiện lên
+        // [FIXED] Xóa bỏ đoạn mã animation gây lỗi (StyleValues)
+        // Thay vào đó chỉ cần hiển thị container và đảm bảo opacity là 1
         _tooltipContainer.style.display = DisplayStyle.Flex;
-        
-        // Reset opacity để fade in (nếu có animation css)
-        _tooltipContainer.style.opacity = 0;
-        _tooltipContainer.experimental.animation.Start(new StyleValues { opacity = 0 }, new StyleValues { opacity = 1 }, 200);
+        _tooltipContainer.style.opacity = 1;
         
         _isVisible = true;
     }
@@ -146,7 +145,6 @@ public class TooltipManager : MonoBehaviour
     public void Hide()
     {
         if (_tooltipContainer == null) return;
-        
         _isVisible = false;
         _tooltipContainer.style.display = DisplayStyle.None;
     }

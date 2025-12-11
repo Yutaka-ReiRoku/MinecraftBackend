@@ -72,48 +72,43 @@ public class ToastManager : MonoBehaviour
         // 1. TẠO TOAST VISUAL ELEMENT
         var toast = new Label(message);
         
-        // Style trực tiếp (hoặc dùng class .toast-msg trong USS)
+        // Style trực tiếp
         toast.style.position = Position.Absolute;
         toast.style.bottom = 100; // Cách đáy 100px
-        toast.style.right = -400; // Bắt đầu từ ngoài màn hình bên phải
+        
+        // [FIXED] Đặt vị trí cố định bên phải, bỏ animation bay từ ngoài vào để tránh lỗi transition
+        toast.style.right = 20; 
+        
         toast.style.backgroundColor = new Color(0.1f, 0.1f, 0.12f, 0.95f); // Nền tối
         toast.style.color = isSuccess ? new Color(0.2f, 1f, 0.4f) : new Color(1f, 0.3f, 0.3f); // Xanh hoặc Đỏ
         
-        toast.style.paddingTop = 12; 
+        toast.style.paddingTop = 12;
         toast.style.paddingBottom = 12;
         toast.style.paddingLeft = 20; 
         toast.style.paddingRight = 20;
         
         toast.style.borderLeftWidth = 5;
         toast.style.borderLeftColor = isSuccess ? Color.green : Color.red;
+        
+        // Set style bo góc từng cạnh để tránh lỗi phiên bản Unity cũ
         toast.style.borderTopRightRadius = 5;
         toast.style.borderBottomRightRadius = 5;
+        toast.style.borderTopLeftRadius = 5;
+        toast.style.borderBottomLeftRadius = 5;
         
         toast.style.fontSize = 16;
         toast.style.unityFontStyleAndWeight = FontStyle.Bold;
-        
-        // Thiết lập Animation Transition
-        toast.style.transitionProperty = new List<StylePropertyName> { 
-            new StylePropertyName("right"), 
-            new StylePropertyName("opacity") 
-        };
-        toast.style.transitionDuration = new List<TimeValue> { new TimeValue(0.4f) };
-        toast.style.transitionTimingFunction = new List<EasingFunction> { EasingFunction.OutBack };
+
+        // [FIXED] Xóa đoạn code Transition/Easing gây lỗi CS0117
+        // Việc này làm Toast hiện ra ngay lập tức thay vì bay từ từ, đảm bảo không lỗi compile.
 
         _root.Add(toast);
 
-        // 2. CHẠY ANIMATION
-        // Frame sau: Bay vào màn hình
-        _root.schedule.Execute(() => toast.style.right = 20); 
-
-        // Sau 3s: Bay ra và mờ dần
+        // 2. LOGIC TỰ ĐỘNG TẮT
+        // Sau 3s: Xóa khỏi màn hình
         _root.schedule.Execute(() => {
-            toast.style.opacity = 0;
-            toast.style.right = -400;
+            if(_root.Contains(toast)) _root.Remove(toast);
         }).ExecuteLater(3000);
-
-        // Sau 3.5s: Xóa khỏi cây UI
-        _root.schedule.Execute(() => _root.Remove(toast)).ExecuteLater(3500);
 
         // 3. LƯU VÀO NHẬT KÝ (LOG)
         AddToLog(message);
@@ -139,7 +134,6 @@ public class ToastManager : MonoBehaviour
             label.style.borderBottomColor = new Color(1, 1, 1, 0.1f);
             label.style.paddingBottom = 5;
             label.style.marginBottom = 5;
-            
             // Thêm vào đầu danh sách
             _logList.Insert(0, label);
         }

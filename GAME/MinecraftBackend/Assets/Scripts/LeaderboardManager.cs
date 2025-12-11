@@ -12,7 +12,7 @@ public class LeaderboardManager : MonoBehaviour
         public string DisplayName;
         public int Level;
         public string AvatarUrl;
-        // Có thể thêm Gold/Exp nếu backend trả về
+        public int Gold;
     }
 
     private UIDocument _uiDoc;
@@ -21,7 +21,7 @@ public class LeaderboardManager : MonoBehaviour
     private VisualElement _popup;
     private ScrollView _listContainer;
     private Button _btnClose;
-    private Button _btnOpen; // Nút cúp vàng trên HUD
+    private Button _btnOpen;
 
     void Start()
     {
@@ -30,24 +30,15 @@ public class LeaderboardManager : MonoBehaviour
         _root = _uiDoc.rootVisualElement;
 
         // Query Elements
-        _popup = _root.Q<VisualElement>("LeaderboardPopup"); // Cần thêm popup này vào UXML nếu chưa có (dùng chung cấu trúc Popup)
-        // Nếu dùng chung ShopScreen.uxml, bạn có thể đã đặt tên khác hoặc cần tạo mới.
-        // Giả sử ta dùng một container có tên "LeaderboardPopup"
+        _popup = _root.Q<VisualElement>("LeaderboardPopup");
         
-        // Nếu chưa có trong UXML, ta sẽ tìm theo cấu trúc giả định hoặc báo lỗi nhẹ
-        if (_popup == null) 
-        {
-            // Debug.LogWarning("LeaderboardPopup not found in UXML.");
-            return;
-        }
+        if (_popup == null) return;
 
         _listContainer = _popup.Q<ScrollView>("LeaderboardList");
         _btnClose = _popup.Q<Button>("BtnCloseLeaderboard");
+        _btnOpen = _root.Q<Button>("BtnLeaderboard");
         
-        // Nút mở trên HUD (Ví dụ nút hình cái cúp)
-        _btnOpen = _root.Q<Button>("BtnLeaderboard"); 
         if (_btnOpen != null) _btnOpen.clicked += OpenLeaderboard;
-
         if (_btnClose != null) _btnClose.clicked += () => _popup.style.display = DisplayStyle.None;
     }
 
@@ -56,17 +47,16 @@ public class LeaderboardManager : MonoBehaviour
         _popup.style.display = DisplayStyle.Flex;
         StartCoroutine(LoadLeaderboardData());
         
-        // Animation
-        _popup.style.scale = new Scale(Vector3.zero);
-        _popup.experimental.animation.Start(new StyleValues { scale = new Scale(Vector3.one) }, 200).Ease(Easing.OutBack);
+        // [FIXED] Xóa animation cũ gây lỗi StyleValues/Easing
+        // Chỉ cần scale về 1 để hiển thị
+        _popup.style.scale = new Scale(Vector3.one);
     }
 
     IEnumerator LoadLeaderboardData()
     {
         _listContainer.Clear();
         _listContainer.Add(new Label("Đang tải dữ liệu...") { style = { color = Color.gray, alignSelf = Align.Center } });
-
-        // Gọi API Backend
+        
         yield return NetworkManager.Instance.SendRequest<List<LeaderboardEntryDto>>("game/leaderboard", "GET", null,
             (entries) => {
                 RenderList(entries);
@@ -81,7 +71,6 @@ public class LeaderboardManager : MonoBehaviour
     void RenderList(List<LeaderboardEntryDto> entries)
     {
         _listContainer.Clear();
-
         if (entries == null || entries.Count == 0)
         {
             _listContainer.Add(new Label("Chưa có dữ liệu xếp hạng.") { style = { color = Color.white, alignSelf = Align.Center } });
@@ -102,7 +91,12 @@ public class LeaderboardManager : MonoBehaviour
             row.style.paddingLeft = 10;
             row.style.paddingRight = 10;
             row.style.backgroundColor = new Color(0, 0, 0, 0.3f);
-            row.style.borderRadius = 5;
+            
+            // [FIXED] Sửa lỗi borderRadius (Set 4 góc)
+            row.style.borderTopLeftRadius = 5;
+            row.style.borderTopRightRadius = 5;
+            row.style.borderBottomLeftRadius = 5;
+            row.style.borderBottomRightRadius = 5;
 
             // Màu sắc Top 3
             if (rank == 1) row.style.borderLeftColor = Color.yellow;
@@ -123,7 +117,13 @@ public class LeaderboardManager : MonoBehaviour
             var avatar = new Image();
             avatar.style.width = 40; avatar.style.height = 40;
             avatar.style.marginRight = 10;
-            avatar.style.borderRadius = 20; // Tròn
+            
+            // [FIXED] Sửa lỗi borderRadius cho Avatar (Tròn)
+            avatar.style.borderTopLeftRadius = 20;
+            avatar.style.borderTopRightRadius = 20;
+            avatar.style.borderBottomLeftRadius = 20;
+            avatar.style.borderBottomRightRadius = 20;
+
             StartCoroutine(avatar.LoadImage(entry.AvatarUrl));
             row.Add(avatar);
 

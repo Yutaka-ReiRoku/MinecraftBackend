@@ -58,7 +58,6 @@ public class QuestManager : MonoBehaviour
         if (_trackerPanel != null)
         {
             _trackerList = _trackerPanel.Q<ScrollView>("TrackerList");
-            [cite_start]// Tải icon Quest chuẩn cho HUD [cite: 3026]
             var iconTitle = _trackerPanel.Q<Image>("IconQuestTitle");
             if (iconTitle != null) StartCoroutine(iconTitle.LoadImage("/images/others/quest.png"));
         }
