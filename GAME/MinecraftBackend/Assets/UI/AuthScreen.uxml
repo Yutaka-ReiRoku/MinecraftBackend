@@ -1,0 +1,61 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="ShopStyle.uss" />
+
+    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-image: url('/images/modes/survival.png');">
+        
+        <ui:Label text="MINECRAFT RPG" style="font-size: 50px; -unity-font-style: bold; color: white; margin-bottom: 30px; -unity-text-outline-width: 2px; -unity-text-outline-color: black; text-shadow: 2px 2px 0px #000;" />
+
+        <ui:VisualElement name="LoginContainer" class="popup-box" style="width: 400px; align-items: stretch; padding: 30px;">
+            <ui:Label text="LOGIN" class="popup-title" style="align-self: center; margin-bottom: 20px;" />
+
+            <ui:Label text="Email" style="margin-bottom: 5px; color: #aaa;" />
+            <ui:TextField name="LoginEmail" placeholder-text="Enter your email" style="margin-bottom: 15px;" />
+
+            <ui:Label text="Password" style="margin-bottom: 5px; color: #aaa;" />
+            <ui:TextField name="LoginPass" password="true" placeholder-text="Enter password" style="margin-bottom: 20px;" />
+
+            <ui:Button name="BtnLoginSubmit" text="ENTER WORLD" class="btn-confirm" style="height: 50px; font-size: 18px; margin-bottom: 10px;" />
+            
+            <ui:VisualElement style="flex-direction: row; justify-content: center; margin-top: 10px;">
+                <ui:Label text="New here?" style="margin-right: 5px; color: #888;" />
+                <ui:Button name="BtnSwitchToReg" text="Create Account" class="ctx-btn" style="color: cyan; background-color: transparent; border-width: 0;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="RegisterContainer" class="popup-box" style="width: 400px; align-items: stretch; padding: 30px; display: none;">
+            <ui:Label text="REGISTER" class="popup-title" style="align-self: center; margin-bottom: 20px;" />
+
+            <ui:Label text="Username" style="margin-bottom: 5px; color: #aaa;" />
+            <ui:TextField name="RegUsername" placeholder-text="Display Name" style="margin-bottom: 10px;" />
+
+            <ui:Label text="Email" style="margin-bottom: 5px; color: #aaa;" />
+            <ui:TextField name="RegEmail" placeholder-text="email@example.com" style="margin-bottom: 10px;" />
+
+            <ui:VisualElement style="flex-direction: row; justify-content: space-between;">
+                <ui:VisualElement style="width: 48%;">
+                    <ui:Label text="Password" style="margin-bottom: 5px; color: #aaa;" />
+                    <ui:TextField name="RegPass" password="true" />
+                </ui:VisualElement>
+                <ui:VisualElement style="width: 48%;">
+                    <ui:Label text="Confirm" style="margin-bottom: 5px; color: #aaa;" />
+                    <ui:TextField name="RegConfirmPass" password="true" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:Button name="BtnRegisterSubmit" text="SIGN UP" class="btn-confirm" style="height: 50px; font-size: 18px; margin-top: 20px; margin-bottom: 10px;" />
+
+            <ui:VisualElement style="flex-direction: row; justify-content: center; margin-top: 10px;">
+                <ui:Label text="Already have an account?" style="margin-right: 5px; color: #888;" />
+                <ui:Button name="BtnSwitchToLogin" text="Login now" class="ctx-btn" style="color: cyan; background-color: transparent; border-width: 0;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Label name="StatusLabel" text="" style="margin-top: 20px; font-size: 14px; color: red; -unity-font-style: bold;" />
+
+        <ui:VisualElement name="LoadingOverlay" class="overlay hidden" style="background-color: rgba(0,0,0,0.8);">
+            <ui:VisualElement class="spinner" />
+            <ui:Label text="CONNECTING SERVER..." style="margin-top: 20px; color: white;" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

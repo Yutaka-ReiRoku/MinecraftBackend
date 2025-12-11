@@ -1,0 +1,18 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="../ShopStyle.uss" />
+
+    <ui:VisualElement name="ContextMenu" class="context-menu">
+        
+        <ui:Button name="BtnCtxUse" text="Use Item" class="ctx-btn" />
+        
+        <ui:Button name="BtnCtxSell" text="Sell (1)" class="ctx-btn" />
+        
+        <ui:Button name="BtnCtxSellAll" text="Sell Stack" class="ctx-btn" />
+        
+        <ui:VisualElement style="height: 1px; background-color: #555; margin-top: 2px; margin-bottom: 2px;" />
+        
+        <ui:Button name="BtnCtxCancel" text="Cancel" class="ctx-btn ctx-cancel" />
+        
+    </ui:VisualElement>
+
+</ui:UXML>

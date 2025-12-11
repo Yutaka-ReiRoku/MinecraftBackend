@@ -1,0 +1,179 @@
+/* --- 1. GLOBAL SETTINGS & FONT --- */
+* {
+    -unity-font-definition: resource('Fonts/Minecraft SDF'); 
+    color: white;
+}
+
+.hidden { display: none; }
+.content-hidden { display: none; }
+
+/* --- 2. MAIN CONTAINER --- */
+.screen-container {
+    flex-grow: 1;
+    background-color: rgb(30, 30, 35);
+    -unity-background-scale-mode: scale-and-crop;
+    padding: 10px;
+}
+
+/* --- 3. HEADER SECTION --- */
+.header-row {
+    flex-direction: row;
+    height: 60px;
+    margin-bottom: 5px;
+    justify-content: space-between;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+    padding: 5px 10px;
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.stats-panel { width: 250px; justify-content: center; }
+.level-label { font-size: 14px; color: #ffd700; -unity-font-style: bold; margin-right: 5px; }
+
+/* Progress Bars */
+.unity-progress-bar__container { max-height: 12px; min-height: 12px; }
+.unity-progress-bar__background { background-color: rgba(0,0,0,0.5); border-radius: 4px; border-width: 0; }
+.unity-progress-bar__progress { border-radius: 4px; margin: 0; }
+
+.hp-bar .unity-progress-bar__progress { background-color: #ff4757; }
+.stamina-bar .unity-progress-bar__progress { background-color: #ffa502; }
+.exp-bar-small .unity-progress-bar__progress { background-color: #2ed573; }
+.monster-hp .unity-progress-bar__progress { background-color: #ff0000; }
+.craft-progress .unity-progress-bar__progress { background-color: #00d2ff; }
+
+/* Currency */
+.currency-panel { flex-direction: row; align-items: center; gap: 15px; }
+.currency-box { flex-direction: row; align-items: center; background-color: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 15px; border-width: 1px; border-color: rgba(255,255,255,0.1); }
+.icon-small { width: 24px; height: 24px; margin-right: 5px; }
+.icon-tiny { width: 16px; height: 16px; margin-right: 5px; }
+.currency-text { font-size: 16px; -unity-font-style: bold; }
+.gold-text { color: #ffd700; }
+.gem-text { color: #00d2ff; }
+
+/* System Buttons */
+.system-panel { flex-direction: row; align-items: center; }
+.icon-btn {
+    width: 40px; height: 40px; margin-left: 5px;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 8px; border-width: 0; transition: 0.1s;
+    -unity-background-scale-mode: scale-to-fit;
+}
+.icon-btn:hover { background-color: rgba(255,255,255,0.3); scale: 1.1; }
+.icon-btn:active { scale: 0.95; }
+
+.red-dot {
+    width: 12px; height: 12px; background-color: red; border-radius: 6px;
+    position: absolute; top: 0; right: 0; border-width: 1px; border-color: white;
+}
+
+/* --- 4. TABS --- */
+.tabs-row { height: 50px; margin-bottom: 10px; }
+.tab-btn {
+    height: 40px; padding: 0 20px; margin-right: 5px;
+    background-color: rgba(0,0,0,0.5); color: #aaa; border-width: 0;
+    border-bottom-width: 4px; border-bottom-color: transparent;
+    font-size: 16px; transition: 0.2s;
+}
+.tab-btn:hover { color: white; background-color: rgba(255,255,255,0.1); }
+.active-tab { color: white; background-color: rgba(0, 120, 215, 0.3); border-bottom-color: #00d2ff; -unity-font-style: bold; }
+
+/* --- 5. CONTENT --- */
+.content-area { flex-grow: 1; background-color: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 10px; }
+.tab-content { flex-grow: 1; transition-property: opacity; transition-duration: 0.3s; }
+
+.grid-scroll { flex-grow: 1; flex-direction: row; flex-wrap: wrap; padding-bottom: 60px; }
+.section-title { font-size: 18px; color: #fab1a0; -unity-font-style: bold; margin-bottom: 5px; border-bottom-width: 1px; border-bottom-color: rgba(255,255,255,0.1); }
+
+/* Search & Filter */
+.search-bar-row { flex-direction: row; margin-bottom: 10px; height: 40px; }
+.search-input { flex-grow: 1; margin-right: 5px; }
+.search-input > .unity-base-field__input { background-color: rgba(0,0,0,0.5); border-radius: 5px; border-color: #555; color: white; }
+.btn-action-small { width: 80px; background-color: #00d2ff; color: black; -unity-font-style: bold; border-radius: 5px; }
+
+.filter-chip-row { flex-direction: row; margin-bottom: 10px; }
+.filter-chip { background-color: rgba(255,255,255,0.1); border-radius: 15px; padding: 5px 15px; margin-right: 5px; font-size: 12px; border-width: 1px; border-color: gray; }
+.active-chip { background-color: #00d2ff; color: black; border-color: #00d2ff; -unity-font-style: bold; }
+
+/* --- 6. ITEM CARD --- */
+.item-card {
+    width: 160px; height: 220px; margin: 8px; padding: 8px;
+    background-color: rgba(40, 40, 45, 0.95);
+    border-width: 3px; border-radius: 12px; border-color: #555;
+    align-items: center; justify-content: space-between; transition: 0.1s;
+}
+.item-card:hover { scale: 1.05; border-color: white; }
+
+.rarity-common { border-color: #a4b0be; }
+.rarity-rare { border-color: #1e90ff; background-color: rgba(30, 144, 255, 0.1); }
+.rarity-epic { border-color: #a55eea; background-color: rgba(165, 94, 234, 0.1); }
+.rarity-legendary { border-color: #ffa502; background-color: rgba(255, 165, 2, 0.15); }
+
+/* --- 7. POPUPS --- */
+.overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.8);
+    align-items: center; justify-content: center; display: flex;
+}
+.popup-box {
+    background-color: #1e1e1e; border-radius: 15px; border-width: 2px; border-color: #00d2ff;
+    padding: 20px; transition-duration: 0.3s; transition-timing-function: ease-out-back;
+}
+.popup-title { font-size: 24px; color: #00d2ff; -unity-font-style: bold; margin-bottom: 10px; border-bottom-width: 1px; border-bottom-color: gray; }
+.popup-img { width: 120px; height: 120px; align-self: center; margin: 10px; }
+
+.btn-confirm { background-color: #2ecc71; color: white; height: 40px; border-radius: 5px; -unity-font-style: bold; border-width: 0; margin-top: 5px; }
+.btn-confirm:hover { background-color: #27ae60; scale: 1.05; }
+.btn-cancel { background-color: #7f8c8d; color: white; height: 30px; margin-top: 5px; border-radius: 5px; border-width: 0; }
+.btn-close { background-color: #e74c3c; color: white; border-radius: 5px; border-width: 0; }
+
+.qty-row { flex-direction: row; align-items: center; justify-content: center; margin: 10px 0; }
+.qty-btn { width: 30px; height: 30px; background-color: #333; color: white; font-size: 18px; border-radius: 5px; }
+.qty-val { width: 50px; -unity-text-align: middle-center; font-size: 20px; -unity-font-style: bold; }
+
+/* --- 8. HOTBAR & HUD --- */
+.hotbar-row {
+    position: absolute; bottom: 10px; width: 100%;
+    flex-direction: row; justify-content: center; align-items: flex-end;
+}
+.hotbar-slot {
+    width: 50px; height: 50px; margin: 2px;
+    background-color: rgba(0,0,0,0.7);
+    border-width: 2px; border-color: #555; transition: 0.1s;
+}
+.hotbar-slot:hover { border-color: white; scale: 1.1; }
+.hotkey-lbl { position: absolute; top: 0; left: 2px; font-size: 10px; color: #aaa; }
+
+/* --- FIX: Class hiệu ứng khi bấm phím 1-9 --- */
+.hotbar-active {
+    border-color: yellow;
+    background-color: rgba(255, 255, 0, 0.3);
+    scale: 1.15;
+}
+
+/* Slot Highlight khi kéo đồ */
+.slot-highlight {
+    border-color: #00d2ff;
+    background-color: rgba(0, 210, 255, 0.2);
+}
+
+/* Chat & Quest */
+.chat-box {
+    position: absolute; bottom: 80px; left: 10px; width: 300px; height: 150px;
+    background-color: rgba(0,0,0,0.5); border-radius: 5px; padding: 5px;
+}
+.chat-input > .unity-base-field__input { background-color: rgba(0,0,0,0.5); color: white; border-width: 0; }
+
+.quest-tracker {
+    position: absolute; top: 80px; right: 10px; width: 200px;
+    background-color: rgba(0,0,0,0.4); padding: 10px; border-radius: 5px;
+}
+.quest-title { color: gold; -unity-font-style: bold; }
+
+/* Context Menu */
+.context-menu {
+    position: absolute; width: 120px; background-color: #222;
+    border-width: 1px; border-color: #555; border-radius: 5px;
+}
+.ctx-btn { background-color: transparent; color: white; border-width: 0; -unity-text-align: middle-left; padding-left: 10px; height: 25px; }
+.ctx-btn:hover { background-color: #00d2ff; color: black; }

@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="ShopStyle.uss" />
+
+    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-color: #1e1e1e;">
+        
+        <ui:Label text="MINECRAFT RPG" style="font-size: 60px; -unity-font-style: bold; color: white; margin-bottom: 10px; text-shadow: 4px 4px 0px rgba(0,0,0,0.5); letter-spacing: 5px;" />
+        <ui:Label text="ONLINE" style="font-size: 30px; color: yellow; margin-bottom: 50px; -unity-font-style: italic;" />
+
+        <ui:VisualElement class="spinner" style="width: 50px; height: 50px; border-width: 5px; margin-bottom: 20px;" />
+
+        <ui:Label text="LOADING RESOURCES..." style="color: #aaa; font-size: 14px; margin-bottom: 50px;" />
+
+        <ui:VisualElement style="position: absolute; bottom: 50px; width: 80%; align-items: center; background-color: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px;">
+            <ui:Label name="LoadingTipLabel" text="Tip: Did you know you can craft items?" style="color: white; font-size: 16px; -unity-text-align: middle-center; white-space: normal;" />
+        </ui:VisualElement>
+
+        <ui:Label text="v1.0.0" style="position: absolute; bottom: 10px; right: 10px; color: #555; font-size: 10px;" />
+
+    </ui:VisualElement>
+</ui:UXML>
