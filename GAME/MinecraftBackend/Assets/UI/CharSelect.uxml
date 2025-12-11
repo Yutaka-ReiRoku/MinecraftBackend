@@ -1,0 +1,43 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="ShopStyle.uss" />
+
+    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-image: url('/images/modes/spectator.png');">
+        
+        <ui:Label text="SELECT CHARACTER" style="font-size: 40px; -unity-font-style: bold; color: white; margin-bottom: 20px; text-shadow: 2px 2px 0px black;" />
+
+        <ui:VisualElement class="popup-box" style="width: 500px; height: 400px; padding: 20px; background-color: rgba(0,0,0,0.8);">
+            
+            <ui:ScrollView name="CharList" style="flex-grow: 1; margin-bottom: 20px;">
+                <ui:Label text="Loading characters..." style="color: gray; align-self: center; margin-top: 50px;" />
+            </ui:ScrollView>
+
+            <ui:Button name="BtnCreateNew" text="+ CREATE NEW CHARACTER" class="btn-confirm" style="height: 50px; background-color: #2ecc71;" />
+            
+        </ui:VisualElement>
+
+        <ui:VisualElement name="CreatePopup" class="overlay hidden">
+            <ui:VisualElement class="popup-box" style="width: 450px; padding: 20px;">
+                <ui:Label text="CREATE HERO" class="popup-title" style="align-self: center;" />
+
+                <ui:Label text="Character Name" style="color: #aaa; margin-top: 10px;" />
+                <ui:TextField name="InputCharName" placeholder-text="Enter name..." style="margin-bottom: 20px;" />
+
+                <ui:Label text="Select Game Mode" style="color: #aaa; margin-bottom: 10px;" />
+                
+                <ui:VisualElement name="ModeSelectionContainer" style="flex-direction: row; justify-content: center; margin-bottom: 20px; height: 100px;">
+                    </ui:VisualElement>
+
+                <ui:VisualElement style="flex-direction: row; justify-content: space-between; margin-top: 10px;">
+                    <ui:Button name="BtnCancelCreate" text="CANCEL" class="btn-cancel" style="width: 48%;" />
+                    <ui:Button name="BtnConfirmCreate" text="CREATE" class="btn-confirm" style="width: 48%;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="LoadingOverlay" class="overlay hidden">
+            <ui:VisualElement class="spinner" />
+            <ui:Label text="LOADING WORLD..." style="color: white; margin-top: 20px;" />
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

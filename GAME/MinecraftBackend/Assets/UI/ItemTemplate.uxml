@@ -1,0 +1,27 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="../ShopStyle.uss" />
+
+    <ui:VisualElement name="ItemContainer" class="item-card rarity-common">
+        
+        <ui:VisualElement style="flex-grow: 1; justify-content: center; align-items: center; width: 100%;">
+            <ui:Image name="ItemImage" style="width: 64px; height: 64px; -unity-background-scale-mode: scale-to-fit;" />
+        </ui:VisualElement>
+
+        <ui:Label name="ItemName" text="Unknown Item" style="font-size: 14px; -unity-font-style: bold; margin-bottom: 5px; color: #ecf0f1; white-space: normal; -unity-text-align: middle-center;" />
+
+        <ui:VisualElement name="price-row" style="flex-direction: row; justify-content: center; width: 100%; gap: 5px;">
+            
+            <ui:Button name="BtnBuyGold" class="btn-buy" style="background-color: rgba(255, 215, 0, 0.2); border-color: gold; flex-direction: row; align-items: center; padding: 2px 8px;">
+                <ui:Image style="width: 12px; height: 12px; margin-right: 4px; background-image: url('/images/resources/gold_ingot.png');" />
+                <ui:Label name="PriceGoldLabel" text="100" style="font-size: 12px; color: gold;" />
+            </ui:Button>
+
+            <ui:Button name="BtnBuyGem" class="btn-buy" style="background-color: rgba(0, 191, 255, 0.2); border-color: cyan; flex-direction: row; align-items: center; padding: 2px 8px; display: none;">
+                <ui:Image style="width: 12px; height: 12px; margin-right: 4px; background-image: url('/images/resources/diamond.png');" />
+                <ui:Label name="PriceGemLabel" text="10" style="font-size: 12px; color: cyan;" />
+            </ui:Button>
+
+        </ui:VisualElement>
+
+        </ui:VisualElement>
+</ui:UXML>
