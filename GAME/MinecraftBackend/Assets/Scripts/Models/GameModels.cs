@@ -1,33 +1,33 @@
 using System;
 using System.Collections.Generic;
-using Newtonsoft.Json; // Cần có dòng này
+using Newtonsoft.Json; 
 
-// Không bọc trong namespace UnityEngine để tránh nhầm lẫn, dùng Global namespace
-// Đảm bảo mapping chính xác 100% với JSON từ Backend (bất kể chữ hoa/thường)
+// [FIX] Chuyển toàn bộ JsonProperty sang PascalCase (Viết Hoa Chữ Đầu)
+// Để khớp 100% với DTO trên Server ASP.NET Core
 
 // --- 1. AUTHENTICATION ---
 [Serializable]
 public class TokenResponse
 {
-    [JsonProperty("token")] public string Token;
-    [JsonProperty("userId")] public string UserId;
-    [JsonProperty("username")] public string Username;
-    [JsonProperty("message")] public string Message;
+    [JsonProperty("Token")] public string Token;
+    [JsonProperty("UserId")] public string UserId;
+    [JsonProperty("Username")] public string Username;
+    [JsonProperty("Message")] public string Message;
 }
 
 [Serializable]
 public class RegisterRequest 
 { 
-    [JsonProperty("username")] public string Username; 
-    [JsonProperty("email")] public string Email; 
-    [JsonProperty("password")] public string Password;
+    [JsonProperty("Username")] public string Username; 
+    [JsonProperty("Email")] public string Email; 
+    [JsonProperty("Password")] public string Password;
 }
 
 [Serializable]
 public class LoginRequest 
 { 
-    [JsonProperty("email")] public string Email; 
-    [JsonProperty("password")] public string Password;
+    [JsonProperty("Email")] public string Email; 
+    [JsonProperty("Password")] public string Password;
 }
 
 // --- 2. CHARACTER & PROFILE ---
@@ -48,7 +48,10 @@ public class CharacterDto
 }
 
 [Serializable]
-public class CreateCharacterDto { public string CharacterName; public string GameMode;
+public class CreateCharacterDto 
+{ 
+    [JsonProperty("CharacterName")] public string CharacterName; 
+    [JsonProperty("GameMode")] public string GameMode;
 }
 
 // --- 3. SHOP & ITEMS ---
@@ -66,8 +69,12 @@ public class ShopItemDto
     [JsonProperty("targetItemID")] public string TargetItemID;
 }
 
+// [FIX QUAN TRỌNG] Sửa lại thành PascalCase để Server đọc được Quantity > 0
 [Serializable]
-public class BuyRequest { public string ProductId; public int Quantity;
+public class BuyRequest 
+{ 
+    [JsonProperty("ProductId")] public string ProductId; 
+    [JsonProperty("Quantity")] public int Quantity;
 }
 
 // --- 4. INVENTORY ---
@@ -187,8 +194,6 @@ public class TransactionDto
     [JsonProperty("id")] public int Id;
     [JsonProperty("action")] public string Action;
     [JsonProperty("amount")] public int Amount;
-    
-    // [QUAN TRỌNG] Đảm bảo map đúng field currency từ backend
     [JsonProperty("currency")] public string Currency;
     [JsonProperty("date")] public string Date;
 }

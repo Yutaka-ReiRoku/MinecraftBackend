@@ -4,71 +4,49 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
-using Newtonsoft.Json; // Cần cài package: com.unity.nuget.newtonsoft-json
+using Newtonsoft.Json;
 
 public class NetworkManager : MonoBehaviour
 {
     public static NetworkManager Instance;
-
     private string _token;
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Giữ sống qua các Scene
-            
-            // Tự động load token đã lưu (nếu có)
-            _token = PlayerPrefs.GetString("JWT", null);
+        if (Instance == null) 
+        { 
+            Instance = this; 
+            DontDestroyOnLoad(gameObject); 
+            _token = PlayerPrefs.GetString("JWT", null); 
         }
-        else
-        {
-            Destroy(gameObject);
+        else 
+        { 
+            Destroy(gameObject); 
         }
     }
 
-    /// <summary>
-    /// Lưu Token sau khi đăng nhập thành công
-    /// </summary>
-    public void SetToken(string token)
-    {
-        _token = token;
-        PlayerPrefs.SetString("JWT", token);
-        PlayerPrefs.Save();
+    public void SetToken(string token) 
+    { 
+        _token = token; 
+        PlayerPrefs.SetString("JWT", token); 
+        PlayerPrefs.Save(); 
+    }
+    
+    public void ClearSession() 
+    { 
+        _token = null; 
+        PlayerPrefs.DeleteKey("JWT"); 
+        PlayerPrefs.DeleteKey("CurrentCharID"); 
+        PlayerPrefs.Save(); 
+        ImageLoader.ClearCache(); 
     }
 
-    /// <summary>
-    /// Xóa Token khi đăng xuất
-    /// </summary>
-    public void ClearSession()
-    {
-        _token = null;
-        PlayerPrefs.DeleteKey("JWT");
-        PlayerPrefs.DeleteKey("CurrentCharID");
-        PlayerPrefs.Save();
-        
-        // Xóa Cache ảnh để giải phóng RAM
-        ImageLoader.ClearCache();
-    }
-
-    /// <summary>
-    /// Hàm gọi API tổng quát (Generic)
-    /// </summary>
-    /// <typeparam name="T">Kiểu dữ liệu mong muốn trả về (VD: List<ShopItemDto>)</typeparam>
-    /// <param name="endpoint">Đường dẫn API (vd: "game/shop")</param>
-    /// <param name="method">GET, POST, PUT, DELETE</param>
-    /// <param name="body">Dữ liệu gửi đi (object) hoặc null</param>
-    /// <param name="onSuccess">Callback khi thành công</param>
-    /// <param name="onError">Callback khi lỗi</param>
     public IEnumerator SendRequest<T>(string endpoint, string method, object body, Action<T> onSuccess, Action<string> onError)
     {
         string url = GameConfig.GetApiEndpoint(endpoint);
-        
-        // Tạo Request
         using (UnityWebRequest www = new UnityWebRequest(url, method))
         {
-            // 1. Setup Body (nếu có)
+            // 1. Setup Body
             if (body != null)
             {
                 string jsonBody = JsonConvert.SerializeObject(body);
@@ -77,38 +55,26 @@ public class NetworkManager : MonoBehaviour
                 www.SetRequestHeader("Content-Type", "application/json");
             }
 
-            // 2. Setup Download Handler
+            // 2. Setup Headers
             www.downloadHandler = new DownloadHandlerBuffer();
-
-            // 3. Setup Headers (Auth & Character Context)
-            if (!string.IsNullOrEmpty(_token))
-            {
+            if (!string.IsNullOrEmpty(_token)) 
                 www.SetRequestHeader("Authorization", "Bearer " + _token);
-            }
-
-            // Gửi ID nhân vật đang chơi để Backend biết đang thao tác với ai (Inventory, Quest...)
+            
             string charId = PlayerPrefs.GetString("CurrentCharID", "");
-            if (!string.IsNullOrEmpty(charId))
-            {
+            if (!string.IsNullOrEmpty(charId)) 
                 www.SetRequestHeader("X-Character-ID", charId);
-            }
 
-            // 4. Gửi Request
+            // 3. Send
             yield return www.SendWebRequest();
 
-            // 5. Xử lý Kết quả
+            // 4. Handle Response
             if (www.result == UnityWebRequest.Result.Success)
             {
                 string jsonResponse = www.downloadHandler.text;
-
-                // Debug log để kiểm tra (tắt khi release)
-                // Debug.Log($"[API] {method} {endpoint}: {jsonResponse}");
-
                 try
                 {
-                    // Dùng Newtonsoft để parse JSON (kể cả List/Array)
-                    // Nếu T là object (không quan tâm kết quả trả về), trả về default
-                    if (typeof(T) == typeof(object) && string.IsNullOrEmpty(jsonResponse))
+                    // Nếu T là object (không quan tâm kết quả trả về), gọi success luôn
+                    if (typeof(T) == typeof(object))
                     {
                         onSuccess?.Invoke(default);
                     }
@@ -121,44 +87,49 @@ public class NetworkManager : MonoBehaviour
                 catch (Exception ex)
                 {
                     Debug.LogError($"[JSON Error] {ex.Message} \n Raw: {jsonResponse}");
-                    onError?.Invoke("Lỗi xử lý dữ liệu từ máy chủ.");
+                    // Vẫn gọi success nếu request thành công nhưng không parse được (để tránh treo game)
+                    if (typeof(T) == typeof(object)) onSuccess?.Invoke(default); 
+                    else onError?.Invoke("Lỗi xử lý dữ liệu từ máy chủ.");
                 }
             }
             else
             {
-                // Xử lý lỗi HTTP
-                string errorMsg = www.error;
+                // [FIX QUAN TRỌNG] Ưu tiên lấy thông báo lỗi chi tiết từ Server (vd: "Not enough Gold!")
+                string errorMsg = www.downloadHandler.text; 
                 
-                // Cố gắng đọc message lỗi chi tiết từ Backend (nếu có)
-                if (!string.IsNullOrEmpty(www.downloadHandler.text))
+                // Nếu text thô rỗng, mới dùng lỗi mặc định của HTTP (vd: "400 Bad Request")
+                if (string.IsNullOrEmpty(errorMsg)) errorMsg = www.error;
+
+                // Cố gắng parse JSON nếu server trả về object lỗi (VD: { "message": "..." })
+                try 
                 {
-                    try 
+                    // Backend .NET đôi khi trả về object lỗi chuẩn
+                    var errorObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(errorMsg);
+                    if (errorObj != null)
                     {
-                        // Giả sử Backend trả về { "Message": "Lỗi chi tiết..." }
-                        var errorObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(www.downloadHandler.text);
-                        if (errorObj != null && errorObj.ContainsKey("Message"))
-                        {
-                            errorMsg = errorObj["Message"];
-                        }
-                        else if (errorObj != null && errorObj.ContainsKey("message")) // chữ thường
-                        {
-                            errorMsg = errorObj["message"];
-                        }
+                        if (errorObj.ContainsKey("message")) errorMsg = errorObj["message"];
+                        else if (errorObj.ContainsKey("Message")) errorMsg = errorObj["Message"];
+                        else if (errorObj.ContainsKey("title")) errorMsg = errorObj["title"]; // Validate error
                     }
-                    catch { /* Không parse được thì dùng lỗi mặc định */ }
+                }
+                catch 
+                { 
+                    // Nếu không phải JSON (VD: server trả về text trơn "Not enough Gold!"), 
+                    // thì giữ nguyên text đó để hiển thị.
                 }
 
                 // Xử lý hết hạn phiên đăng nhập (401)
                 if (www.responseCode == 401)
                 {
-                    Debug.LogWarning("Token expired or invalid.");
-                    GameEvents.TriggerSessionExpired(); // Bắn sự kiện để UI tự logout
+                    Debug.LogWarning("Token expired.");
+                    GameEvents.TriggerSessionExpired();
                     onError?.Invoke("Phiên đăng nhập hết hạn.");
                 }
                 else
                 {
                     Debug.LogError($"[API Error] {url}: {errorMsg}");
-                    onError?.Invoke(errorMsg);
+                    // Trả về errorMsg đã được xử lý để ToastManager hiển thị cho người chơi
+                    onError?.Invoke(errorMsg); 
                 }
             }
         }

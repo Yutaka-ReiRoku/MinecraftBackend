@@ -9,7 +9,7 @@ public class EffectsManager : MonoBehaviour
 
     private VisualElement _root;
     private UIDocument _uiDoc;
-
+    
     [Header("Particle Prefabs (Optional)")]
     public GameObject ConfettiPrefab; 
 
@@ -21,17 +21,19 @@ public class EffectsManager : MonoBehaviour
 
     void Start()
     {
-        _uiDoc = GetComponent<UIDocument>();
+        // [FIX] Tự tìm UIDocument trong scene nếu chưa gán
+        if (_uiDoc == null) _uiDoc = FindFirstObjectByType<UIDocument>();
         if (_uiDoc != null) _root = _uiDoc.rootVisualElement;
     }
 
     public void SpawnFloatingText(Vector2 position, string text, Color color, int fontSize = 30)
     {
+        // [FIX] Thử tìm lại Root lần nữa nếu null (phòng trường hợp load scene)
         if (_root == null)
         {
-            _uiDoc = GetComponent<UIDocument>();
+            _uiDoc = FindFirstObjectByType<UIDocument>();
             if (_uiDoc != null) _root = _uiDoc.rootVisualElement;
-            else return;
+            else return; // Vẫn không thấy thì chịu, return để không crash game
         }
 
         // 1. Tạo Label
@@ -45,35 +47,26 @@ public class EffectsManager : MonoBehaviour
         label.style.fontSize = fontSize;
         label.style.color = color;
         label.style.unityFontStyleAndWeight = FontStyle.Bold;
-        
-        // Text Shadow giả lập
         label.style.textShadow = new TextShadow { offset = new Vector2(2, 2), blurRadius = 0, color = new Color(0,0,0, 0.5f) };
         
-        // Thiết lập Animation Transition (CSS Transition chuẩn)
+        // Animation CSS Transition
         label.style.transitionProperty = new List<StylePropertyName> { 
             new StylePropertyName("top"), 
             new StylePropertyName("opacity"),
             new StylePropertyName("scale")
         };
         label.style.transitionDuration = new List<TimeValue> { new TimeValue(1.0f) }; 
-        
-        // [FIXED] Xóa dòng EasingFunction.OutExpo gây lỗi CS0117
-        // Unity sẽ dùng easing mặc định (EaseInOut)
-        // label.style.transitionTimingFunction = ...; // Đã xóa
 
         label.pickingMode = PickingMode.Ignore;
 
         _root.Add(label);
 
-        // 3. Chạy Animation (Sau 1 frame để CSS áp dụng)
+        // 3. Chạy Animation
         _root.schedule.Execute(() => {
-            // Bay lên 100px
-            label.style.top = position.y - 100;
-            // Mờ dần
-            label.style.opacity = 0;
-            // Phóng to nhẹ
-            label.style.scale = new Scale(new Vector3(1.5f, 1.5f, 1));
-        });
+            label.style.top = position.y - 100; // Bay lên
+            label.style.opacity = 0;            // Mờ dần
+            label.style.scale = new Scale(new Vector3(1.5f, 1.5f, 1)); // Phóng to
+        }); // Execute ngay frame sau để CSS ăn transition
 
         // 4. Dọn dẹp
         _root.schedule.Execute(() => {
@@ -92,7 +85,6 @@ public class EffectsManager : MonoBehaviour
             text += " CRIT!";
             color = new Color(1f, 0.2f, 0.2f); // Đỏ
             size = 45;
-            
             if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 5f);
         }
 

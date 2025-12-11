@@ -75,8 +75,8 @@
             </ui:VisualElement>
 
             <ui:VisualElement style="width: 250px;">
-                
                 <ui:VisualElement name="QuestTracker" class="form-card" style="padding: 15px; margin-bottom: 20px; height: 200px;">
+                    <ui:Image name="IconQuestTitle" style="width: 20px; height: 20px; margin-bottom: 5px; display: none;" />
                     <ui:Label text="QUESTS" class="section-title" style="color: gold;" />
                     <ui:ScrollView name="TrackerList" />
                 </ui:VisualElement>
@@ -86,7 +86,6 @@
                     <ui:ScrollView name="ChatHistory" style="flex-grow: 1; margin-bottom: 10px;" />
                     <ui:TextField name="ChatInput" class="input-field" style="height: 40px; margin-bottom: 0;" placeholder-text="..." />
                 </ui:VisualElement>
-
             </ui:VisualElement>
         </ui:VisualElement>
 
@@ -108,7 +107,6 @@
                         <ui:Label name="ProfileID" text="ID: 123" style="color: gray; margin-bottom: 20px;" />
                         <ui:Button name="BtnEditProfile" text="EDIT" class="btn-secondary" />
                     </ui:VisualElement>
-                    
                     <ui:VisualElement name="UpdateForm" style="display: none;">
                         <ui:TextField name="EditName" label="Name" class="input-field" />
                         <ui:TextField name="EditAvatar" label="URL" class="input-field" />
@@ -116,13 +114,12 @@
                         <ui:Button name="BtnSaveProfile" text="SAVE" class="btn-confirm" />
                         <ui:Button name="BtnCancelEdit" text="CANCEL" class="btn-secondary" />
                     </ui:VisualElement>
-
                     <ui:Button name="BtnCloseProfile" text="CLOSE" class="btn-close" style="position: absolute; top: 10px; right: 10px;" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="SettingsPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+        <ui:VisualElement name="SettingsPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
              <ui:VisualElement class="form-card" style="width: 400px;">
                 <ui:Label text="SETTINGS" class="header-title" />
                 <ui:Label text="Music" /> <ui:Slider name="MusicSlider" high-value="1" />
@@ -140,7 +137,7 @@
              </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="DailyLoginPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+        <ui:VisualElement name="DailyLoginPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
             <ui:VisualElement class="form-card" style="width: 500px;">
                 <ui:Label text="DAILY REWARD" class="header-title" />
                 <ui:VisualElement name="DaysContainer" style="flex-direction: row; height: 100px; margin-bottom: 20px;" />
@@ -149,7 +146,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="LeaderboardPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+        <ui:VisualElement name="LeaderboardPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
             <ui:VisualElement class="form-card" style="width: 450px; height: 600px;">
                 <ui:Label text="TOP PLAYERS" class="header-title" />
                 <ui:ScrollView name="LeaderboardList" style="flex-grow: 1;" />
@@ -157,7 +154,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="WikiPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+        <ui:VisualElement name="WikiPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
             <ui:VisualElement class="form-card" style="width: 800px; height: 600px;">
                 <ui:Label text="WIKI" class="header-title" style="color: cyan;" />
                 <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
@@ -169,7 +166,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="MailPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+        <ui:VisualElement name="MailPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
             <ui:VisualElement class="form-card" style="width: 500px; height: 600px;">
                 <ui:Label text="MAILBOX" class="header-title" />
                 <ui:ScrollView name="MailList" style="flex-grow: 1; background-color: rgba(0,0,0,0.2); margin-bottom: 10px;" />
@@ -177,13 +174,13 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="NotiLogPanel" class="form-card hidden" style="width: 400px; height: 500px; position: absolute; right: 60px; top: 60px;">
+        <ui:VisualElement name="NotiLogPanel" class="form-card hidden" style="width: 400px; height: 500px; position: absolute; right: 60px; top: 60px; display: none;">
             <ui:Label text="LOGS" class="header-title" />
             <ui:ScrollView name="NotiLogList" style="flex-grow: 1;" />
             <ui:Button name="BtnCloseNoti" text="CLOSE" class="btn-close" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="TooltipContainer" class="form-card" style="position: absolute; padding: 10px; width: 200px; display: none;">
+        <ui:VisualElement name="TooltipContainer" class="form-card" style="position: absolute; padding: 10px; width: 200px; display: none;" picking-mode="Ignore">
             <ui:Label name="TtName" text="Item" style="color: gold; -unity-font-style: bold;" />
             <ui:Label name="TtStats" text="Stats" style="font-size: 12px;" />
             <ui:Label name="TtDesc" text="Description" style="font-size: 10px; color: gray;" />

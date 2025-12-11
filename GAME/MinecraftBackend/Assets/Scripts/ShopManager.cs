@@ -15,62 +15,53 @@ public class ShopManager : MonoBehaviour
     [Header("Effects")]
     public GameObject ConfettiPrefab;
 
-    // --- UI ELEMENTS ---
     private UIDocument _uiDoc;
     private VisualElement _root;
-    private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer, _baseContainer;
-    private ScrollView _shopScroll, _invScroll, _craftScroll;
     
+    private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer;
+    private ScrollView _shopScroll, _invScroll, _craftScroll;
     private Label _goldLabel, _gemLabel, _playerLevelLabel;
     private ProgressBar _hpBar, _staminaBar, _expBar;
-    
     private Label _pageLabel;
     private int _currentPage = 1;
     private int _pageSize = 8;
-
     private ProgressBar _monsterHpBar;
     private Button _btnAttack;
     private MonsterDto _currentMonster;
-
-    // Data Cache
     private CharacterDto _currentProfile;
     private List<InventoryDto> _fullInventory = new List<InventoryDto>();
 
-    // --- INITIALIZATION ---
     void OnEnable()
     {
         _uiDoc = GetComponent<UIDocument>();
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // 1. Containers
+        // Containers
         _shopContainer = _root.Q<VisualElement>("ShopContainer");
         _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
         _battleContainer = _root.Q<VisualElement>("BattleContainer");
-        _baseContainer = _root.Q<VisualElement>("BaseContainer");
 
         _shopScroll = _root.Q<ScrollView>("ShopScrollView");
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
 
-        // 2. Stats
+        // Stats
         _goldLabel = _root.Q<Label>("ShopGold");
         _gemLabel = _root.Q<Label>("ShopGem");
-        
         _hpBar = _root.Q<ProgressBar>("HpBar");
         _staminaBar = _root.Q<ProgressBar>("StaminaBar");
         _expBar = _root.Q<ProgressBar>("ExpBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // 3. Tabs
+        // Tabs
         SetupTabButton("TabShop", "Shop");
         SetupTabButton("TabInventory", "Inventory");
         SetupTabButton("TabCraft", "Craft");
         SetupTabButton("TabBattle", "Battle");
-        SetupTabButton("TabBase", "Base");
 
-        // 4. Shop Pagination
+        // Buttons
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
@@ -78,26 +69,20 @@ public class ShopManager : MonoBehaviour
         if (btnPrev != null) btnPrev.clicked += () => ChangePage(-1);
         if (btnNext != null) btnNext.clicked += () => ChangePage(1);
 
-        // 5. Battle
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
 
-        // 6. Filter Chips
         SetupInvFilter("BtnFilterAll", "All");
         SetupInvFilter("BtnFilterWep", "Weapon");
-        SetupInvFilter("BtnFilterArm", "Armor");
         SetupInvFilter("BtnFilterCon", "Consumable");
 
-        // 7. Notification Logs
         var btnLogs = _root.Q<Button>("BtnNotiLog");
         if (btnLogs != null) btnLogs.clicked += () => StartCoroutine(LoadTransactionHistory());
 
-        // --- REGISTER EVENTS ---
         GameEvents.OnCurrencyChanged += RefreshAllData;
         GameEvents.OnEquipRequest += HandleEquipRequest;
 
-        // Init
         StartCoroutine(LoadProfile());
         SwitchTab("Shop");
     }
@@ -111,15 +96,10 @@ public class ShopManager : MonoBehaviour
     void RefreshAllData()
     {
         StartCoroutine(LoadProfile());
-        if (_inventoryContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadInventory());
+        if (_inventoryContainer != null && _inventoryContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadInventory());
     }
 
-    // --- EVENT HANDLERS ---
-    
-    void HandleEquipRequest(string itemId)
-    {
-        StartCoroutine(EquipItem(itemId));
-    }
+    void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId)); }
 
     public void UseItemFromHotbar(string itemId)
     {
@@ -127,19 +107,18 @@ public class ShopManager : MonoBehaviour
         if (item != null)
         {
             if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
-            else if (item.Type == "Weapon" || item.Type == "Armor") StartCoroutine(EquipItem(itemId));
-        }
-        else
-        {
-            ToastManager.Instance.Show("Hết vật phẩm này!", false);
+            else StartCoroutine(EquipItem(itemId));
         }
     }
 
-    // --- TAB SYSTEM ---
     void SetupTabButton(string btnName, string tabName)
     {
         var btn = _root.Q<Button>(btnName);
-        if (btn != null) btn.clicked += () => SwitchTab(tabName);
+        if (btn != null) 
+        {
+            btn.clicked -= () => SwitchTab(tabName);
+            btn.clicked += () => SwitchTab(tabName);
+        }
     }
 
     void SetupInvFilter(string btnName, string type)
@@ -150,33 +129,33 @@ public class ShopManager : MonoBehaviour
 
     void SwitchTab(string tabName)
     {
-        _shopContainer.style.display = DisplayStyle.None;
-        _inventoryContainer.style.display = DisplayStyle.None;
-        _craftContainer.style.display = DisplayStyle.None;
-        _battleContainer.style.display = DisplayStyle.None;
-        if (_baseContainer != null) _baseContainer.style.display = DisplayStyle.None;
+        if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.None;
+        if (_inventoryContainer != null) _inventoryContainer.style.display = DisplayStyle.None;
+        if (_craftContainer != null) _craftContainer.style.display = DisplayStyle.None;
+        if (_battleContainer != null) _battleContainer.style.display = DisplayStyle.None;
 
-        if (tabName == "Shop") {
-            _shopContainer.style.display = DisplayStyle.Flex;
-            StartCoroutine(LoadShopItems(_currentPage));
-        }
-        else if (tabName == "Inventory") {
-            _inventoryContainer.style.display = DisplayStyle.Flex;
-            StartCoroutine(LoadInventory());
-        }
-        else if (tabName == "Craft") {
-            _craftContainer.style.display = DisplayStyle.Flex;
-            StartCoroutine(LoadRecipes());
-        }
-        else if (tabName == "Battle") {
-            _battleContainer.style.display = DisplayStyle.Flex;
-            StartCoroutine(SpawnMonster());
-        }
+        UpdateTabVisual("TabShop", tabName == "Shop");
+        UpdateTabVisual("TabInventory", tabName == "Inventory");
+        UpdateTabVisual("TabCraft", tabName == "Craft");
+        UpdateTabVisual("TabBattle", tabName == "Battle");
+
+        if (tabName == "Shop") { _shopContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadShopItems(_currentPage)); }
+        else if (tabName == "Inventory") { _inventoryContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadInventory()); }
+        else if (tabName == "Craft") { _craftContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadRecipes()); }
+        else if (tabName == "Battle") { _battleContainer.style.display = DisplayStyle.Flex; StartCoroutine(SpawnMonster()); }
         
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
     }
 
-    // --- API CALLS ---
+    void UpdateTabVisual(string btnName, bool isActive)
+    {
+        var btn = _root.Q<Button>(btnName);
+        if (btn != null)
+        {
+            if (isActive) btn.AddToClassList("active-tab");
+            else btn.RemoveFromClassList("active-tab");
+        }
+    }
 
     IEnumerator LoadProfile()
     {
@@ -192,7 +171,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- SHOP ---
     void ChangePage(int dir)
     {
         _currentPage += dir;
@@ -202,10 +180,14 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator LoadShopItems(int page)
     {
+        if (_shopScroll == null) yield break;
         _shopScroll.Clear();
+        
         yield return NetworkManager.Instance.SendRequest<List<ShopItemDto>>($"game/shop?page={page}&pageSize={_pageSize}", "GET", null,
             (items) => {
-                if (items.Count == 0 && page > 1) { _currentPage--; return; }
+                if (_shopScroll == null) return;
+                _shopScroll.Clear();
+                if (items.Count == 0 && page > 1) { _currentPage--; ChangePage(0); return; }
                 if (_pageLabel != null) _pageLabel.text = $"Page {_currentPage}";
                 
                 foreach (var item in items) {
@@ -225,6 +207,7 @@ public class ShopManager : MonoBehaviour
         StartCoroutine(template.Q<Image>("ItemImage").LoadImage(item.ImageURL));
         
         if (!string.IsNullOrEmpty(item.Rarity)) root.AddToClassList($"rarity-{item.Rarity.ToLower()}");
+        
         root.RegisterCallback<ClickEvent>(evt => ShowDetailPopup(item));
 
         var btnGold = template.Q<Button>("BtnBuyGold");
@@ -244,30 +227,61 @@ public class ShopManager : MonoBehaviour
 
     void ShowDetailPopup(ShopItemDto item)
     {
+        if (PopupTemplate == null) { Debug.LogError("Chưa gán Popup Template!"); return; }
+
         var popup = PopupTemplate.Instantiate();
         var overlay = popup.Q<VisualElement>("DetailOverlay");
+        
+        if (overlay == null) { Debug.LogError("Không tìm thấy 'DetailOverlay'!"); return; }
+
+        overlay.style.position = Position.Absolute;
+        overlay.style.width = Length.Percent(100);
+        overlay.style.height = Length.Percent(100);
+        
         _root.Add(overlay);
 
-        popup.Q<Label>("DetailName").text = item.Name;
-        popup.Q<Label>("DetailDesc").text = item.Description;
-        StartCoroutine(popup.Q<Image>("DetailImage").LoadImage(item.ImageURL));
+        var lblName = overlay.Q<Label>("DetailName");
+        if (lblName != null) lblName.text = item.Name;
+
+        var lblDesc = overlay.Q<Label>("DetailDesc");
+        if (lblDesc != null) lblDesc.text = item.Description;
+
+        var img = overlay.Q<Image>("DetailImage");
+        if (img != null) StartCoroutine(img.LoadImage(item.ImageURL));
 
         int qty = 1;
-        var lblQty = popup.Q<Label>("LblQuantity");
-        var lblTotal = popup.Q<Label>("LblTotalPrice");
+        var lblQty = overlay.Q<Label>("LblQuantity");
+        var lblTotal = overlay.Q<Label>("LblTotalPrice");
 
         Action UpdatePrice = () => {
-            lblQty.text = qty.ToString();
-            int total = item.PriceAmount * qty;
-            lblTotal.text = $"Total: {total:N0} {(item.PriceCurrency == "RES_GOLD" ? "G" : "💎")}";
+            if (lblQty != null) lblQty.text = qty.ToString();
+            if (lblTotal != null) {
+                int total = item.PriceAmount * qty;
+                lblTotal.text = $"Total: {total:N0} {(item.PriceCurrency == "RES_GOLD" ? "G" : "💎")}";
+            }
         };
-        popup.Q<Button>("BtnPlus").clicked += () => { qty++; UpdatePrice(); };
-        popup.Q<Button>("BtnMinus").clicked += () => { if (qty > 1) qty--; UpdatePrice(); };
-        popup.Q<Button>("BtnConfirmBuy").clicked += () => {
-            StartCoroutine(BuyProcess(item.ProductID, qty));
-            _root.Remove(overlay);
-        };
-        popup.Q<Button>("BtnCloseDetail").clicked += () => _root.Remove(overlay);
+
+        var btnPlus = overlay.Q<Button>("BtnPlus");
+        if (btnPlus != null) btnPlus.clicked += () => { qty++; UpdatePrice(); };
+
+        var btnMinus = overlay.Q<Button>("BtnMinus");
+        if (btnMinus != null) btnMinus.clicked += () => { if (qty > 1) qty--; UpdatePrice(); };
+
+        var btnConfirm = overlay.Q<Button>("BtnConfirmBuy");
+        if (btnConfirm != null) {
+            btnConfirm.clicked += () => {
+                StartCoroutine(BuyProcess(item.ProductID, qty));
+                if (_root.Contains(overlay)) _root.Remove(overlay);
+            };
+        }
+
+        var btnClose = overlay.Q<Button>("BtnCloseDetail");
+        if (btnClose != null) {
+            btnClose.clicked += () => {
+                if (_root.Contains(overlay)) _root.Remove(overlay);
+            };
+        }
+
         UpdatePrice();
     }
 
@@ -284,30 +298,38 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- INVENTORY ---
     IEnumerator LoadInventory()
     {
+        if (_invScroll == null) yield break;
+        _invScroll.Clear();
+        _invScroll.Add(new Label("Loading Inventory...") { style = { color = Color.gray, alignSelf = Align.Center } });
+
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
             (items) => { 
                 _fullInventory = items; 
-                
-                var capLabel = _root.Q<Label>("CapacityLabel");
-                if (capLabel != null)
-                {
-                    capLabel.text = $"Bag: {_fullInventory.Count}/{GameConfig.MAX_INVENTORY_SLOTS_BASE}";
-                    capLabel.style.color = (_fullInventory.Count >= GameConfig.MAX_INVENTORY_SLOTS_BASE) ? Color.red : Color.white;
-                }
-
                 FilterInventory("All"); 
-            }, null
+            }, 
+            (err) => {
+                if (_invScroll != null) {
+                    _invScroll.Clear();
+                    _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red } });
+                }
+            }
         );
     }
 
     void FilterInventory(string type)
     {
+        if (_invScroll == null) return;
         _invScroll.Clear();
         var list = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
         
+        if (list.Count == 0)
+        {
+            _invScroll.Add(new Label("Túi đồ trống.") { style = { color = Color.white, marginTop = 20, alignSelf = Align.Center } });
+            return;
+        }
+
         foreach (var inv in list)
         {
             var ui = ItemTemplate.Instantiate();
@@ -319,16 +341,12 @@ public class ShopManager : MonoBehaviour
             ui.Q<VisualElement>("price-row").style.display = DisplayStyle.None;
             root.Add(new Label($"x{inv.Quantity}") { style = { position = Position.Absolute, bottom = 2, right = 5, fontSize = 12 } });
             if (inv.IsEquipped) root.Add(new Label("E") { style = { position = Position.Absolute, top = 2, left = 2, backgroundColor = Color.green, fontSize = 10 } });
-            
             root.userData = inv.ItemId;
             
-            // Xử lý chuột phải để mở Context Menu
             root.RegisterCallback<ClickEvent>(e => {
                 if (e.button == 1) ShowContextMenu(inv, e.position); 
             });
-
             root.AddManipulator(new DragManipulator(root, _root));
-            
             _invScroll.Add(ui);
         }
     }
@@ -336,12 +354,11 @@ public class ShopManager : MonoBehaviour
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
-        if (old != null) _root.Remove(old);
+        if (old != null) old.style.display = DisplayStyle.None;
 
         var menu = ContextMenuTemplate.Instantiate();
         var menuRoot = menu.Q<VisualElement>("ContextMenu");
         
-        // Điều chỉnh vị trí menu để không bị tràn màn hình
         float x = mousePos.x;
         float y = mousePos.y;
         if (x + 120 > _root.resolvedStyle.width) x -= 120;
@@ -349,37 +366,31 @@ public class ShopManager : MonoBehaviour
 
         menuRoot.style.left = x;
         menuRoot.style.top = y;
+        menuRoot.style.display = DisplayStyle.Flex;
 
-        // 1. Nút Use/Equip
         menu.Q<Button>("BtnCtxUse").clicked += () => { 
             if (inv.Type == "Consumable") StartCoroutine(UseItem(inv.ItemId));
             else StartCoroutine(EquipItem(inv.ItemId));
             _root.Remove(menuRoot);
         };
 
-        // 2. Nút Sell (1 cái) - [CẬP NHẬT: Đã gán logic]
         menu.Q<Button>("BtnCtxSell").clicked += () => {
             StartCoroutine(SellItem(inv.ItemId, 1));
             _root.Remove(menuRoot);
         };
 
-        // 3. Nút Sell All (Tất cả stack) - [CẬP NHẬT: Đã gán logic]
         menu.Q<Button>("BtnCtxSellAll").clicked += () => {
             StartCoroutine(SellItem(inv.ItemId, inv.Quantity));
             _root.Remove(menuRoot);
         };
 
-        // 4. Nút Cancel
         menu.Q<Button>("BtnCtxCancel").clicked += () => _root.Remove(menuRoot);
-        
         _root.Add(menuRoot);
     }
 
-    // [MỚI] Hàm xử lý Bán vật phẩm gọi API
     IEnumerator SellItem(string itemId, int qty)
     {
         var body = new BuyRequest { ProductId = itemId, Quantity = qty };
-        // Endpoint "game/sell" đã được thêm ở bước trước
         yield return NetworkManager.Instance.SendRequest<object>("game/sell", "POST", body,
             (res) => {
                 ToastManager.Instance.Show("Đã bán thành công!", true);
@@ -406,7 +417,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- HISTORY LOGS ---
     IEnumerator LoadTransactionHistory()
     {
         var panel = _root.Q<VisualElement>("NotiLogPanel");
@@ -416,17 +426,15 @@ public class ShopManager : MonoBehaviour
         var list = panel.Q<ScrollView>("NotiLogList");
         list.Clear();
         list.Add(new Label("Đang tải lịch sử...") { style = { color = Color.gray } });
-
         yield return NetworkManager.Instance.SendRequest<List<TransactionDto>>("game/transactions/my", "GET", null,
             (logs) => {
                 list.Clear();
-                if (logs.Count == 0) list.Add(new Label("Chưa có giao dịch nào."));
+                if (logs.Count == 0) list.Add(new Label("Chưa có giao dịch nào.") { style = { color = Color.white } });
                 
                 foreach(var log in logs) {
                     string currencySymbol = (log.Currency == "RES_GEM") ? "💎" : "G";
                     var row = new Label($"[{log.Date}] {log.Action} ({log.Amount} {currencySymbol})");
                     row.style.color = log.Amount >= 0 ? Color.green : new Color(1f, 0.4f, 0.4f);
-                    if(log.Currency == "RES_GEM") row.style.unityFontStyleAndWeight = FontStyle.Bold;
                     row.style.borderBottomWidth = 1;
                     row.style.borderBottomColor = new Color(1,1,1,0.1f);
                     list.Add(row);
@@ -436,10 +444,14 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- CRAFT & BATTLE ---
     IEnumerator LoadRecipes() { 
+        _craftScroll.Clear();
+        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray } });
+
         yield return NetworkManager.Instance.SendRequest<List<RecipeDto>>("game/recipes", "GET", null, (recipes) => {
              _craftScroll.Clear();
+             if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white } });
+
              foreach(var r in recipes) {
                  var ui = ItemTemplate.Instantiate();
                  var root = ui.Q<VisualElement>("ItemContainer");
@@ -466,14 +478,24 @@ public class ShopManager : MonoBehaviour
     }
 
     IEnumerator SpawnMonster() { 
-        // Mock Spawn
         _currentMonster = new MonsterDto { Name = "Zombie", HP = 100, MaxHp = 100 };
         _root.Q<Label>("MonsterName").text = _currentMonster.Name;
         _monsterHpBar.value = 100;
         yield break; 
     }
 
+    // [FIX] Cập nhật hàm AttackProcess để kiểm tra null an toàn
     IEnumerator AttackProcess() {
+        if (_currentMonster != null) {
+            if (_monsterHpBar != null) _monsterHpBar.value -= 10; 
+            
+            // [FIX] Kiểm tra EffectsManager trước khi gọi để tránh crash nếu quên tạo
+            if (EffectsManager.Instance != null)
+            {
+                EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
+            }
+        }
+
         yield return NetworkManager.Instance.SendRequest<HuntResponse>("game/hunt", "POST", null,
             (res) => {
                 ToastManager.Instance.Show($"Damage dealt! +{res.GoldEarned}G", true);
