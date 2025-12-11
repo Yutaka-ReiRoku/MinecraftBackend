@@ -215,18 +215,23 @@
 </div>
 
 <script>
-    var triggerTabList = [].slice.call(document.querySelectorAll('#userTabs button'))
-    triggerTabList.forEach(function (triggerEl) {
-        var tabTrigger = new bootstrap.Tab(triggerEl)
-        triggerEl.addEventListener('click', function (event) {
-            event.preventDefault()
-            tabTrigger.show()
-            triggerTabList.forEach(btn => {
-                btn.classList.remove('text-info', 'border-info', 'border-bottom', 'border-3');
-                btn.classList.add('text-secondary');
+    document.addEventListener("DOMContentLoaded", function() {
+        // Lấy danh sách tất cả các nút Tab trong cụm #userTabs
+        const tabs = document.querySelectorAll('#userTabs button');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('show.bs.tab', function (event) {
+                // 1. RESET tất cả các nút về trạng thái "Chìm" (Màu xám, không gạch chân)
+                tabs.forEach(t => {
+                    t.classList.remove('text-info', 'border-info', 'border-bottom', 'border-3', 'active');
+                    t.classList.add('text-secondary');
+                });
+
+                // 2. KÍCH HOẠT nút vừa bấm lên trạng thái "Nổi" (Màu xanh, có gạch chân)
+                // 'event.target' chính là nút vừa được bấm
+                event.target.classList.remove('text-secondary');
+                event.target.classList.add('text-info', 'border-info', 'border-bottom', 'border-3', 'active');
             });
-            this.classList.remove('text-secondary');
-            this.classList.add('text-info', 'border-bottom', 'border-3', 'border-info');
-        })
-    })
+        });
+    });
 </script>
