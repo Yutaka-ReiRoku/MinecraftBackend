@@ -36,30 +36,22 @@ namespace MinecraftBackend.Controllers
                 return BadRequest(new { Message = "All fields are required." });
             }
 
-            // 2. Validate Password Length (Yêu cầu đề bài > 6 ký tự)
+            // 2. Validate Password Length
             if (request.Password.Length < 6)
             {
                 return BadRequest(new { Message = "Password must be at least 6 characters long." });
             }
 
-            // 3. Validate Email Format (Regex chuẩn)
+            // 3. Validate Email Format
             var emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
             if (!emailRegex.IsMatch(request.Email))
             {
                 return BadRequest(new { Message = "Invalid email format." });
             }
 
-            // 4. Validate Duplicate Email
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                return BadRequest(new { Message = "Email already exists!" });
-            }
-
-            // 5. Validate Duplicate Username
-            if (await _context.Users.AnyAsync(u => u.Username == request.Username))
-            {
-                return BadRequest(new { Message = "Username already taken!" });
-            }
+            // 4. Check trùng lặp
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email)) return BadRequest(new { Message = "Email already exists!" });
+            if (await _context.Users.AnyAsync(u => u.Username == request.Username)) return BadRequest(new { Message = "Username already taken!" });
 
             // --- CREATE USER ---
             var user = new User
@@ -74,7 +66,7 @@ namespace MinecraftBackend.Controllers
             };
             _context.Users.Add(user);
 
-            // --- CREATE PROFILE MẶC ĐỊNH ---
+            // --- CREATE PROFILE ---
             var defaultProfile = new PlayerProfile
             {
                 CharacterID = Guid.NewGuid().ToString(),
@@ -92,7 +84,7 @@ namespace MinecraftBackend.Controllers
             };
             _context.PlayerProfiles.Add(defaultProfile);
 
-            // Ghi Log
+            // Ghi Log (Có fix CurrencyType)
             _context.Transactions.Add(new Transaction
             {
                 UserId = user.Id,
@@ -100,7 +92,7 @@ namespace MinecraftBackend.Controllers
                 Details = "Account Created",
                 CreatedAt = DateTime.Now,
                 Amount = 0,
-                CurrencyType = "NONE" // [FIX] Thêm trường này để tránh lỗi 500
+                CurrencyType = "NONE"
             });
 
             await _context.SaveChangesAsync();
@@ -112,7 +104,6 @@ namespace MinecraftBackend.Controllers
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
-            // Kiểm tra user tồn tại và khớp mật khẩu
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
                 return BadRequest(new { Message = "Invalid email or password." });
@@ -120,9 +111,10 @@ namespace MinecraftBackend.Controllers
 
             if (user.Status != "Active") return BadRequest(new { Message = "Account is banned." });
 
+            // [FIX QUAN TRỌNG] Tạo token với thuật toán tương thích khóa ngắn
             string token = CreateToken(user);
 
-            // Ghi log đăng nhập
+            // Ghi log (Có fix CurrencyType)
             _context.Transactions.Add(new Transaction
             {
                 UserId = user.Id,
@@ -130,7 +122,7 @@ namespace MinecraftBackend.Controllers
                 Details = "User Login",
                 CreatedAt = DateTime.Now,
                 Amount = 0,
-                CurrencyType = "NONE" // [FIX] Thêm trường này để tránh lỗi 500
+                CurrencyType = "NONE"
             });
 
             await _context.SaveChangesAsync();
@@ -146,25 +138,16 @@ namespace MinecraftBackend.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return Unauthorized();
 
-            // Kiểm tra mật khẩu cũ
             if (!BCrypt.Net.BCrypt.Verify(req.OldPassword, user.PasswordHash))
-            {
                 return BadRequest(new { Message = "Incorrect old password." });
-            }
 
-            // Kiểm tra độ dài mật khẩu mới
             if (req.NewPassword.Length < 6)
-            {
                 return BadRequest(new { Message = "New password too short." });
-            }
 
-            // Cập nhật mật khẩu mới
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(req.NewPassword);
             await _context.SaveChangesAsync();
             return Ok(new { Message = "Password changed successfully!" });
         }
-
-        // ==================== 2. CHARACTER MANAGEMENT (Multi-Character) ====================
 
         [HttpGet("characters")]
         [Authorize]
@@ -190,7 +173,6 @@ namespace MinecraftBackend.Controllers
         public async Task<IActionResult> CreateCharacter([FromBody] CreateCharacterDto req)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            // Giới hạn tối đa 3 nhân vật
             int count = await _context.PlayerProfiles.CountAsync(p => p.UserId == userId);
             if (count >= 3) return BadRequest(new { Message = "Max 3 characters allowed." });
 
@@ -207,7 +189,7 @@ namespace MinecraftBackend.Controllers
                 Health = 100,
                 MaxHealth = 100,
                 Hunger = 100,
-                AvatarUrl = "/images/avatars/steve.png" // Đảm bảo luôn có ảnh mặc định
+                AvatarUrl = "/images/avatars/steve.png"
             };
             _context.PlayerProfiles.Add(newProfile);
             await _context.SaveChangesAsync();
@@ -226,8 +208,13 @@ namespace MinecraftBackend.Controllers
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             };
 
+            // Lấy khóa từ appsettings
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            // [FIX QUAN TRỌNG] Đổi HmacSha512Signature -> HmacSha256Signature
+            // HmacSha512 yêu cầu khóa > 64 ký tự. Khóa của bạn chỉ 57 ký tự nên gây lỗi 500.
+            // HmacSha256 chỉ cần 32 ký tự, an toàn và tương thích với khóa hiện tại.
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
             var token = new JwtSecurityToken(
                 claims: claims,
@@ -239,29 +226,8 @@ namespace MinecraftBackend.Controllers
         }
     }
 
-    // --- DTOs Riêng cho Auth ---
-    public class RegisterDto
-    {
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
-    public class LoginDto
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
-
-    public class CreateCharacterDto
-    {
-        public string CharacterName { get; set; }
-        public string GameMode { get; set; }
-    }
-
-    public class ChangePasswordDto
-    {
-        public string OldPassword { get; set; }
-        public string NewPassword { get; set; }
-    }
+    public class RegisterDto { public string Username { get; set; } public string Email { get; set; } public string Password { get; set; } }
+    public class LoginDto { public string Email { get; set; } public string Password { get; set; } }
+    public class CreateCharacterDto { public string CharacterName { get; set; } public string GameMode { get; set; } }
+    public class ChangePasswordDto { public string OldPassword { get; set; } public string NewPassword { get; set; } }
 }
