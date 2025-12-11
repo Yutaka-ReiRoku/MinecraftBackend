@@ -274,6 +274,41 @@ namespace MinecraftBackend.Controllers
             TempData["Message"] = "Data Seeded Successfully!";
             return RedirectToAction("Dashboard");
         }
+		
+		
+		// --- BỔ SUNG CÁC HÀM CÒN THIẾU ---
+
+        [HttpPost]
+        public async Task<IActionResult> FactoryReset()
+        {
+            // Xóa sạch dữ liệu chơi để reset server
+            _context.Inventories.RemoveRange(_context.Inventories);
+            _context.Transactions.RemoveRange(_context.Transactions);
+            
+            // Reset chỉ số người chơi về mặc định
+            var profiles = await _context.PlayerProfiles.ToListAsync();
+            foreach (var p in profiles)
+            {
+                p.Gold = 1000;
+                p.Gem = 0;
+                p.Level = 1;
+                p.Exp = 0;
+                p.Health = 100;
+                // Không xóa User để tránh lỗi đăng nhập
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Message"] = "Đã Reset toàn bộ dữ liệu Game!";
+            return RedirectToAction("Dashboard");
+        }
+
+        [HttpPost]
+        public IActionResult UpdateMOTD(string msg)
+        {
+            // Demo: Thông báo Server (Thực tế nên lưu vào DB)
+            TempData["Message"] = $"Đã cập nhật thông báo Server: {msg}";
+            return RedirectToAction("Dashboard");
+        }
 
         private async Task<string> SaveImage(IFormFile image, string type)
         {
