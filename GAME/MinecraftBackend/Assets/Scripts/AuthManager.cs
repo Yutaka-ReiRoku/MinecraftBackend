@@ -11,8 +11,6 @@ public class AuthManager : MonoBehaviour
 
     // UI Elements
     private VisualElement _root;
-    
-    // Containers
     private VisualElement _loginContainer;
     private VisualElement _registerContainer;
 
@@ -59,6 +57,15 @@ public class AuthManager : MonoBehaviour
         _btnRegister = _root.Q<Button>("BtnRegisterSubmit");
         _btnGotoLogin = _root.Q<Button>("BtnSwitchToLogin");
 
+        // --- [FIX] ÁP DỤNG VÁ LỖI NHẬP LIỆU ---
+        if (_loginEmail != null) _loginEmail.FixTextFieldInput();
+        if (_loginPass != null) _loginPass.FixTextFieldInput();
+        if (_regUser != null) _regUser.FixTextFieldInput();
+        if (_regEmail != null) _regEmail.FixTextFieldInput();
+        if (_regPass != null) _regPass.FixTextFieldInput();
+        if (_regConfirmPass != null) _regConfirmPass.FixTextFieldInput();
+        // ---------------------------------------
+
         // 2. Bind Events
         if (_btnLogin != null) _btnLogin.clicked += OnLoginClicked;
         if (_btnGotoRegister != null) _btnGotoRegister.clicked += () => SwitchMode(false);
@@ -66,24 +73,18 @@ public class AuthManager : MonoBehaviour
         if (_btnRegister != null) _btnRegister.clicked += OnRegisterClicked;
         if (_btnGotoLogin != null) _btnGotoLogin.clicked += () => SwitchMode(true);
 
-        // 3. Init State (Mặc định hiện Login)
+        // 3. Init State
         SwitchMode(true);
         ToggleLoading(false);
     }
 
     void SwitchMode(bool isLogin)
     {
-        // [FIXED] Đã xóa đoạn code animation gây lỗi StyleValues
-        // Chỉ dùng DisplayStyle để ẩn/hiện tab
         if (_loginContainer != null) 
-        {
             _loginContainer.style.display = isLogin ? DisplayStyle.Flex : DisplayStyle.None;
-        }
 
         if (_registerContainer != null) 
-        {
             _registerContainer.style.display = !isLogin ? DisplayStyle.Flex : DisplayStyle.None;
-        }
         
         if (_statusLabel != null) _statusLabel.text = "";
     }
@@ -100,8 +101,6 @@ public class AuthManager : MonoBehaviour
         _statusLabel.text = msg;
         _statusLabel.style.color = isError ? new Color(1f, 0.4f, 0.4f) : new Color(0.4f, 1f, 0.4f);
     }
-
-    // --- LOGIC ĐĂNG NHẬP ---
 
     void OnLoginClicked()
     {
@@ -120,11 +119,7 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(NetworkManager.Instance.SendRequest<TokenResponse>("auth/login", "POST", body,
             (res) => {
                 Debug.Log("Login Success! Token: " + res.Token);
-                
-                // 1. Lưu Token vào PlayerPrefs
                 NetworkManager.Instance.SetToken(res.Token);
-
-                // 2. Chuyển sang màn hình chọn nhân vật
                 ToggleLoading(false);
                 SceneManager.LoadScene("CharSelectScene");
             },
@@ -136,8 +131,6 @@ public class AuthManager : MonoBehaviour
         ));
     }
 
-    // --- LOGIC ĐĂNG KÝ ---
-
     void OnRegisterClicked()
     {
         string user = _regUser.value;
@@ -145,7 +138,6 @@ public class AuthManager : MonoBehaviour
         string pass = _regPass.value;
         string confirm = _regConfirmPass.value;
 
-        // Validate cơ bản
         if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(pass))
         {
             SetStatus("Không được để trống.", true);
@@ -171,8 +163,6 @@ public class AuthManager : MonoBehaviour
             (res) => {
                 ToggleLoading(false);
                 SetStatus("Đăng ký thành công! Hãy đăng nhập.", false);
-                
-                // Chuyển về tab login sau 1.5s
                 StartCoroutine(DelaySwitchToLogin());
             },
             (err) => {
@@ -186,7 +176,6 @@ public class AuthManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
         SwitchMode(true);
-        // Tự điền email giúp user
         _loginEmail.value = _regEmail.value;
     }
 }

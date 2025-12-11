@@ -1,234 +1,201 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container">
+    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: flex-start; padding: 20px;">
         
-        <ui:VisualElement class="header-row">
-            <ui:VisualElement class="stats-panel">
-                <ui:VisualElement style="flex-direction: row; align-items: center; margin-bottom: 5px;">
-                    <ui:Label name="LevelLabel" text="Lv.1" class="level-label"/>
-                    <ui:ProgressBar name="ExpBar" class="exp-bar-small" />
-                </ui:VisualElement>
-                <ui:ProgressBar name="HpBar" class="hp-bar" title="HP: 100/100" />
-                <ui:ProgressBar name="StaminaBar" class="stamina-bar" title="Stamina: 100/100" />
-            </ui:VisualElement>
-
-            <ui:VisualElement class="currency-panel">
-                <ui:VisualElement class="currency-box">
-                    <ui:Image name="IconGold" class="icon-small" />
-                    <ui:Label name="ShopGold" text="0 G" class="currency-text gold-text" />
-                </ui:VisualElement>
-                <ui:VisualElement class="currency-box">
-                    <ui:Image name="IconGem" class="icon-small" />
-                    <ui:Label name="ShopGem" text="0 💎" class="currency-text gem-text" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-
-            <ui:VisualElement class="system-panel">
-                <ui:Button name="BtnWiki" class="icon-btn tooltip-trigger" tooltip="Wiki" style="background-image: url('/images/ui/book_icon.png');" />
-                
-                <ui:VisualElement>
-                    <ui:Button name="BtnMail" class="icon-btn tooltip-trigger" tooltip="Mailbox" style="background-image: url('/images/ui/mail_icon.png');" />
-                    <ui:VisualElement name="MailRedDot" class="red-dot hidden" />
-                </ui:VisualElement>
-
-                <ui:Button name="BtnLeaderboard" class="icon-btn tooltip-trigger" tooltip="Rank" style="background-image: url('/images/ui/trophy_icon.png'); text-text: 🏆;" />
-
-                <ui:VisualElement>
-                    <ui:Button name="BtnNotiLog" class="icon-btn tooltip-trigger" tooltip="Logs" style="background-image: url('/images/ui/bell_icon.png');" />
-                    <ui:VisualElement name="NotiRedDot" class="red-dot hidden" />
-                </ui:VisualElement>
-                
-                <ui:Button name="BtnSettings" class="icon-btn tooltip-trigger" tooltip="Settings" style="background-image: url('/images/ui/gear_icon.png');" />
-                <ui:Button name="BtnHelp" class="icon-btn tooltip-trigger" tooltip="Help" text="?" />
-            </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement style="overflow: hidden; height: 24px; background-color: rgba(0,0,0,0.6); margin-bottom: 10px; border-radius: 4px;">
-            <ui:Label name="NewsTicker" text="Welcome to Minecraft RPG Server!" style="color: yellow; font-size: 12px; -unity-text-align: middle-left; padding-left: 10px;" />
-        </ui:VisualElement>
-
-        <ui:ScrollView name="TabContainer" mode="Horizontal" class="tabs-row">
-            <ui:Button name="TabShop" text="SHOP" class="tab-btn active-tab" />
-            <ui:Button name="TabInventory" text="INVENTORY" class="tab-btn" />
-            <ui:Button name="TabCraft" text="CRAFTING" class="tab-btn" />
-            <ui:Button name="TabBattle" text="ADVENTURE" class="tab-btn" />
-            <ui:Button name="TabBase" text="MY BASE" class="tab-btn" />
-        </ui:ScrollView>
-
-        <ui:VisualElement name="MainContent" class="content-area">
+        <ui:VisualElement style="flex-direction: row; width: 100%; height: 80px; background-color: rgb(50, 50, 55); border-radius: 15px; border-width: 1px; border-color: rgb(80, 80, 80); padding: 15px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
             
-            <ui:VisualElement name="ShopContainer" class="tab-content">
-                <ui:VisualElement class="search-bar-row">
-                    <ui:TextField name="SearchInput" placeholder-text="Search items..." class="search-input" />
-                    <ui:Button name="BtnSearch" text="FIND" class="btn-action-small" />
+            <ui:VisualElement style="width: 30%;">
+                <ui:VisualElement style="flex-direction: row; align-items: center; margin-bottom: 5px;">
+                    <ui:Label name="LevelLabel" text="Lv.10" style="font-size: 20px; -unity-font-style: bold; color: rgb(255, 215, 0); margin-right: 10px;" />
+                    <ui:ProgressBar name="ExpBar" style="flex-grow: 1; height: 8px;" />
                 </ui:VisualElement>
-                <ui:ScrollView name="ShopScrollView" class="grid-scroll" />
-                <ui:VisualElement name="PaginationContainer" class="pagination-row">
-                    <ui:Button name="BtnPrev" text="◄" class="page-btn" />
-                    <ui:Label name="PageLabel" text="1 / 1" class="page-lbl" />
-                    <ui:Button name="BtnNext" text="►" class="page-btn" />
-                </ui:VisualElement>
+                <ui:ProgressBar name="HpBar" class="hp-bar" title="HP" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="InventoryContainer" class="tab-content content-hidden">
-                <ui:VisualElement class="filter-chip-row">
-                    <ui:Button name="BtnFilterAll" text="ALL" class="filter-chip active-chip"/>
-                    <ui:Button name="BtnFilterWep" text="WEAPONS" class="filter-chip"/>
-                    <ui:Button name="BtnFilterArm" text="ARMOR" class="filter-chip"/>
-                    <ui:Button name="BtnFilterCon" text="FOOD" class="filter-chip"/>
-                </ui:VisualElement>
-                <ui:ScrollView name="InventoryScrollView" class="grid-scroll" />
+            <ui:VisualElement style="flex-direction: row; gap: 20px;">
+                <ui:Label name="ShopGold" text="5000 G" style="font-size: 18px; color: gold; -unity-font-style: bold;" />
+                <ui:Label name="ShopGem" text="50 💎" style="font-size: 18px; color: cyan; -unity-font-style: bold;" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="CraftContainer" class="tab-content content-hidden">
-                <ui:Label text="WORKBENCH" class="header-text" />
-                <ui:ScrollView name="CraftScrollView" class="list-scroll" />
-            </ui:VisualElement>
+            <ui:VisualElement style="flex-direction: row;">
+                <ui:Button name="BtnMail" text="✉" class="btn-secondary" style="width: 40px; margin-right: 5px;" />
+                <ui:VisualElement name="MailRedDot" class="red-dot hidden" />
+                
+                <ui:Button name="BtnNotiLog" text="🔔" class="btn-secondary" style="width: 40px; margin-right: 5px;" />
+                <ui:VisualElement name="NotiRedDot" class="red-dot hidden" />
 
-            <ui:VisualElement name="BattleContainer" class="tab-content content-hidden" style="align-items: center; justify-content: center;">
-                <ui:VisualElement class="monster-card">
-                    <ui:Label name="MonsterName" text="Unknown Entity" class="monster-name" />
-                    <ui:ProgressBar name="MonsterHpBar" class="monster-hp" />
-                    <ui:VisualElement name="MonsterImg" class="monster-image" />
-                </ui:VisualElement>
-                <ui:Button name="BtnAttack" text="ATTACK" class="btn-attack" />
+                <ui:Button name="BtnSettings" text="⚙" class="btn-secondary" style="width: 40px;" />
             </ui:VisualElement>
-
-            <ui:VisualElement name="BaseContainer" class="tab-content content-hidden">
-                <ui:Label text="UNDER CONSTRUCTION" class="section-title" />
-            </ui:VisualElement>
-
         </ui:VisualElement>
 
-        <ui:VisualElement name="QuestTracker" class="quest-tracker">
-            <ui:VisualElement class="quest-header">
-                <ui:Image name="IconQuestTitle" class="icon-tiny" />
-                <ui:Label text="OBJECTIVES" class="quest-title" />
-            </ui:VisualElement>
-            <ui:ScrollView name="TrackerList" class="quest-list" />
-        </ui:VisualElement>
-
-        <ui:VisualElement name="ChatContainer" class="chat-box">
-            <ui:ScrollView name="ChatHistory" class="chat-scroll" />
-            <ui:TextField name="ChatInput" placeholder-text="Press Enter to chat..." class="chat-input" />
-        </ui:VisualElement>
-
-        <ui:VisualElement name="HotbarContainer" class="hotbar-row">
-            <ui:Button name="Hotbar1" class="hotbar-slot"><ui:Label text="1" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar2" class="hotbar-slot"><ui:Label text="2" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar3" class="hotbar-slot"><ui:Label text="3" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar4" class="hotbar-slot"><ui:Label text="4" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar5" class="hotbar-slot"><ui:Label text="5" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar6" class="hotbar-slot"><ui:Label text="6" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar7" class="hotbar-slot"><ui:Label text="7" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar8" class="hotbar-slot"><ui:Label text="8" class="hotkey-lbl"/></ui:Button>
-            <ui:Button name="Hotbar9" class="hotbar-slot"><ui:Label text="9" class="hotkey-lbl"/></ui:Button>
-        </ui:VisualElement>
-
-    </ui:VisualElement> 
-
-    <ui:VisualElement name="ProfilePopup" class="overlay hidden">
-        <ui:VisualElement class="popup-box" style="width: 700px; height: 500px; flex-direction: row; padding: 0;">
-            <ui:VisualElement style="width: 300px; background-color: rgba(0,0,0,0.3); justify-content: center; align-items: center;">
-                <ui:Image name="LayerBody" style="width: 200px; height: 300px;" />
-            </ui:VisualElement>
-            <ui:VisualElement style="flex-grow: 1; padding: 20px;">
-                <ui:VisualElement style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="PROFILE" class="popup-title" />
-                    <ui:Button name="BtnCloseProfile" text="X" class="btn-close" style="width: 30px;" />
+        <ui:VisualElement style="flex-grow: 1; width: 100%; flex-direction: row;">
+            
+            <ui:VisualElement style="flex-grow: 1; margin-right: 20px;">
+                <ui:VisualElement name="TabContainer" class="tabs-row">
+                    <ui:Button name="TabShop" text="SHOP" class="tab-btn active-tab" />
+                    <ui:Button name="TabInventory" text="INVENTORY" class="tab-btn" />
+                    <ui:Button name="TabCraft" text="CRAFT" class="tab-btn" />
+                    <ui:Button name="TabBattle" text="BATTLE" class="tab-btn" />
                 </ui:VisualElement>
-                <ui:VisualElement name="InfoContainer">
-                    <ui:Label name="ProfileName" text="Player Name" style="font-size: 30px; color: gold;" />
-                    <ui:Label name="ProfileID" text="ID: 12345" style="color: #666;" />
-                    <ui:Label text="Attack: " /><ui:Label name="ValAtk" text="15" />
-                    <ui:Label text="Defense: " /><ui:Label name="ValDef" text="5" />
-                    <ui:Button name="BtnEditProfile" text="EDIT" class="btn-action" />
-                </ui:VisualElement>
-                <ui:VisualElement name="UpdateForm" style="display: none;">
-                    <ui:TextField name="EditName" label="Name" />
-                    <ui:TextField name="EditAvatar" label="Avatar URL" />
-                    <ui:ScrollView name="AvatarSelector" mode="Horizontal" style="height: 60px;" />
-                    <ui:Button name="BtnSaveProfile" text="SAVE" class="btn-confirm" />
-                    <ui:Button name="BtnCancelEdit" text="CANCEL" class="btn-cancel" />
+
+                <ui:VisualElement name="MainContent" style="flex-grow: 1; background-color: rgb(40, 40, 40); border-radius: 15px; padding: 15px;">
+                    
+                    <ui:VisualElement name="ShopContainer" class="tab-content" style="height: 100%;">
+                        <ui:ScrollView name="ShopScrollView" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
+                        <ui:VisualElement style="flex-direction: row; justify-content: center; height: 40px; align-items: center;">
+                            <ui:Button name="BtnPrev" text="◄" class="btn-secondary" style="width: 40px;" />
+                            <ui:Label name="PageLabel" text="1 / 5" style="margin: 0 15px;" />
+                            <ui:Button name="BtnNext" text="►" class="btn-secondary" style="width: 40px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="InventoryContainer" class="tab-content content-hidden" style="height: 100%;">
+                        <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                            <ui:Button name="BtnFilterAll" text="ALL" class="btn-secondary" style="margin-right: 5px; height: 30px;" />
+                            <ui:Button name="BtnFilterWep" text="WEAPON" class="btn-secondary" style="margin-right: 5px; height: 30px;" />
+                            <ui:Button name="BtnFilterCon" text="FOOD" class="btn-secondary" style="height: 30px;" />
+                        </ui:VisualElement>
+                        <ui:ScrollView name="InventoryScrollView" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="BattleContainer" class="tab-content content-hidden" style="align-items: center; justify-content: center; height: 100%;">
+                        <ui:VisualElement class="form-card" style="width: 300px; align-items: center;">
+                            <ui:Label name="MonsterName" text="ZOMBIE" class="header-title" style="color: red;" />
+                            <ui:ProgressBar name="MonsterHpBar" class="hp-bar" style="width: 100%; margin-bottom: 20px;" />
+                            <ui:Button name="BtnAttack" text="ATTACK!" class="btn-confirm" style="background-color: rgb(220, 53, 69);" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="CraftContainer" class="tab-content content-hidden">
+                        <ui:ScrollView name="CraftScrollView" />
+                    </ui:VisualElement>
+
                 </ui:VisualElement>
             </ui:VisualElement>
-        </ui:VisualElement>
-    </ui:VisualElement>
 
-    <ui:VisualElement name="MailPopup" class="overlay hidden">
-        <ui:VisualElement class="popup-box" style="width: 500px; height: 600px;">
-            <ui:VisualElement style="flex-direction: row; justify-content: space-between;">
-                <ui:Label text="MAILBOX" class="popup-title" />
+            <ui:VisualElement style="width: 250px;">
+                
+                <ui:VisualElement name="QuestTracker" class="form-card" style="padding: 15px; margin-bottom: 20px; height: 200px;">
+                    <ui:Label text="QUESTS" class="section-title" style="color: gold;" />
+                    <ui:ScrollView name="TrackerList" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="ChatContainer" class="form-card" style="padding: 10px; flex-grow: 1;">
+                    <ui:Label text="CHAT" class="section-title" />
+                    <ui:ScrollView name="ChatHistory" style="flex-grow: 1; margin-bottom: 10px;" />
+                    <ui:TextField name="ChatInput" class="input-field" style="height: 40px; margin-bottom: 0;" placeholder-text="..." />
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="HotbarContainer" class="hotbar-row" style="align-self: center;">
+            <ui:Button name="Hotbar1" class="hotbar-slot"><ui:Label text="1" /></ui:Button>
+            <ui:Button name="Hotbar2" class="hotbar-slot"><ui:Label text="2" /></ui:Button>
+            <ui:Button name="Hotbar3" class="hotbar-slot"><ui:Label text="3" /></ui:Button>
+            <ui:Button name="Hotbar4" class="hotbar-slot"><ui:Label text="4" /></ui:Button>
+            <ui:Button name="Hotbar5" class="hotbar-slot"><ui:Label text="5" /></ui:Button>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="ProfilePopup" class="screen-container" style="position: absolute; background-color: rgba(0,0,0,0.8); display: none;">
+            <ui:VisualElement class="form-card" style="width: 600px; flex-direction: row;">
+                <ui:Image name="LayerBody" style="width: 200px; height: 300px; background-color: black; margin-right: 20px;" />
+                <ui:VisualElement style="flex-grow: 1;">
+                    <ui:Label text="PROFILE" class="header-title" />
+                    <ui:VisualElement name="InfoContainer">
+                        <ui:Label name="ProfileName" text="Steve" style="font-size: 24px; color: gold;" />
+                        <ui:Label name="ProfileID" text="ID: 123" style="color: gray; margin-bottom: 20px;" />
+                        <ui:Button name="BtnEditProfile" text="EDIT" class="btn-secondary" />
+                    </ui:VisualElement>
+                    
+                    <ui:VisualElement name="UpdateForm" style="display: none;">
+                        <ui:TextField name="EditName" label="Name" class="input-field" />
+                        <ui:TextField name="EditAvatar" label="URL" class="input-field" />
+                        <ui:ScrollView name="AvatarSelector" style="height: 50px; margin-bottom: 10px;" />
+                        <ui:Button name="BtnSaveProfile" text="SAVE" class="btn-confirm" />
+                        <ui:Button name="BtnCancelEdit" text="CANCEL" class="btn-secondary" />
+                    </ui:VisualElement>
+
+                    <ui:Button name="BtnCloseProfile" text="CLOSE" class="btn-close" style="position: absolute; top: 10px; right: 10px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="SettingsPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+             <ui:VisualElement class="form-card" style="width: 400px;">
+                <ui:Label text="SETTINGS" class="header-title" />
+                <ui:Label text="Music" /> <ui:Slider name="MusicSlider" high-value="1" />
+                <ui:Label text="SFX" /> <ui:Slider name="SfxSlider" high-value="1" />
+                
+                <ui:Button name="BtnChangePass" text="Change Password" class="btn-secondary" />
+                <ui:VisualElement name="PassChangeArea" class="hidden">
+                    <ui:TextField name="OldPass" password="true" class="input-field" />
+                    <ui:TextField name="NewPass" password="true" class="input-field" />
+                    <ui:Button name="BtnConfirmPass" text="UPDATE" class="btn-confirm" />
+                </ui:VisualElement>
+
+                <ui:Button name="BtnLogout" text="LOGOUT" class="btn-secondary" style="border-color: red; color: red;" />
+                <ui:Button name="BtnCloseSettings" text="CLOSE" class="btn-secondary" />
+             </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="DailyLoginPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+            <ui:VisualElement class="form-card" style="width: 500px;">
+                <ui:Label text="DAILY REWARD" class="header-title" />
+                <ui:VisualElement name="DaysContainer" style="flex-direction: row; height: 100px; margin-bottom: 20px;" />
+                <ui:Button name="BtnClaimDaily" text="CLAIM" class="btn-confirm" />
+                <ui:Button name="BtnCloseDaily" text="CLOSE" class="btn-secondary" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="LeaderboardPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+            <ui:VisualElement class="form-card" style="width: 450px; height: 600px;">
+                <ui:Label text="TOP PLAYERS" class="header-title" />
+                <ui:ScrollView name="LeaderboardList" style="flex-grow: 1;" />
+                <ui:Button name="BtnCloseLeaderboard" text="CLOSE" class="btn-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="WikiPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+            <ui:VisualElement class="form-card" style="width: 800px; height: 600px;">
+                <ui:Label text="WIKI" class="header-title" style="color: cyan;" />
+                <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
+                    <ui:Button name="TabWikiItems" text="ITEMS" class="tab-btn active-tab"/>
+                    <ui:Button name="TabWikiMobs" text="BESTIARY" class="tab-btn"/>
+                </ui:VisualElement>
+                <ui:ScrollView name="WikiGrid" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap;" />
+                <ui:Button name="BtnCloseWiki" text="CLOSE" class="btn-close" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="MailPopup" class="screen-container hidden" style="position: absolute; background-color: rgba(0,0,0,0.8);">
+            <ui:VisualElement class="form-card" style="width: 500px; height: 600px;">
+                <ui:Label text="MAILBOX" class="header-title" />
+                <ui:ScrollView name="MailList" style="flex-grow: 1; background-color: rgba(0,0,0,0.2); margin-bottom: 10px;" />
                 <ui:Button name="BtnCloseMail" text="CLOSE" class="btn-close" />
             </ui:VisualElement>
-            <ui:ScrollView name="MailList" style="flex-grow: 1; background-color: rgba(0,0,0,0.2);" />
-        </ui:VisualElement>
-    </ui:VisualElement>
-
-    <ui:VisualElement name="DailyLoginPopup" class="overlay hidden">
-        <ui:VisualElement class="popup-box" style="width: 600px; align-items: center;">
-            <ui:Label text="DAILY REWARD" class="popup-title" style="color: yellow;" />
-            <ui:VisualElement name="DaysContainer" style="flex-direction: row; justify-content: center; width: 100%; margin-bottom: 30px;" />
-            <ui:Button name="BtnClaimDaily" text="CLAIM" class="btn-confirm" />
-            <ui:Button name="BtnCloseDaily" text="CLOSE" class="btn-cancel" />
-        </ui:VisualElement>
-    </ui:VisualElement>
-
-    <ui:VisualElement name="LeaderboardPopup" class="overlay hidden">
-        <ui:VisualElement class="popup-box" style="width: 450px; height: 600px;">
-            <ui:Label text="TOP PLAYERS" class="popup-title" />
-            <ui:ScrollView name="LeaderboardList" style="flex-grow: 1;" />
-            <ui:Button name="BtnCloseLeaderboard" text="CLOSE" class="btn-close" />
-        </ui:VisualElement>
-    </ui:VisualElement>
-
-    <ui:VisualElement name="WikiPopup" class="popup-box hidden" style="width: 800px; height: 600px; position: absolute;">
-        <ui:Label text="WIKI" class="popup-title" style="color: cyan;" />
-        <ui:VisualElement style="flex-direction: row; margin-bottom: 10px;">
-            <ui:Button name="TabWikiItems" text="ITEMS" class="tab-btn active-tab"/>
-            <ui:Button name="TabWikiMobs" text="BESTIARY" class="tab-btn"/>
-        </ui:VisualElement>
-        <ui:ScrollView name="WikiGrid" class="grid-scroll" />
-        <ui:Button name="BtnCloseWiki" text="CLOSE" class="btn-close" />
-    </ui:VisualElement>
-
-    <ui:VisualElement name="SettingsPopup" class="popup-box hidden" style="width: 400px; position: absolute;">
-        <ui:Label text="SETTINGS" class="popup-title" />
-        <ui:Label text="Music" /><ui:Slider name="MusicSlider" low-value="0" high-value="1" />
-        <ui:Label text="SFX" /><ui:Slider name="SfxSlider" low-value="0" high-value="1" />
-        
-        <ui:Button name="BtnChangePass" text="Change Password" class="btn-action mt-2" />
-        <ui:VisualElement name="PassChangeArea" class="hidden">
-            <ui:TextField name="OldPass" password="true" placeholder-text="Old Pass"/>
-            <ui:TextField name="NewPass" password="true" placeholder-text="New Pass"/>
-            <ui:Button name="BtnConfirmPass" text="UPDATE" class="btn-confirm"/>
         </ui:VisualElement>
 
-        <ui:Button name="BtnAbout" text="About" class="btn-info mt-2" />
-        <ui:Button name="BtnLogout" text="LOGOUT" class="btn-cancel mt-2" />
-        <ui:Button name="BtnExit" text="EXIT" class="btn-close mt-2" />
-        <ui:Button name="BtnCloseSettings" text="CLOSE" class="btn-close mt-4" />
-    </ui:VisualElement>
+        <ui:VisualElement name="NotiLogPanel" class="form-card hidden" style="width: 400px; height: 500px; position: absolute; right: 60px; top: 60px;">
+            <ui:Label text="LOGS" class="header-title" />
+            <ui:ScrollView name="NotiLogList" style="flex-grow: 1;" />
+            <ui:Button name="BtnCloseNoti" text="CLOSE" class="btn-close" />
+        </ui:VisualElement>
 
-    <ui:VisualElement name="NotiLogPanel" class="popup-box hidden" style="width: 400px; height: 500px; position: absolute; right: 60px; top: 60px;">
-        <ui:Label text="LOGS" class="popup-title" />
-        <ui:ScrollView name="NotiLogList" style="flex-grow: 1;" />
-        <ui:Button name="BtnCloseNoti" text="CLOSE" class="btn-close" />
-    </ui:VisualElement>
+        <ui:VisualElement name="TooltipContainer" class="form-card" style="position: absolute; padding: 10px; width: 200px; display: none;">
+            <ui:Label name="TtName" text="Item" style="color: gold; -unity-font-style: bold;" />
+            <ui:Label name="TtStats" text="Stats" style="font-size: 12px;" />
+            <ui:Label name="TtDesc" text="Description" style="font-size: 10px; color: gray;" />
+            <ui:Label name="TtRarity" text="Common" style="font-size: 10px; align-self: flex-end;" />
+        </ui:VisualElement>
 
-    <ui:VisualElement name="ContextMenu" class="context-menu hidden">
-        <ui:Button name="BtnCtxUse" text="Use / Equip" class="ctx-btn"/>
-        <ui:Button name="BtnCtxSell" text="Sell (1)" class="ctx-btn"/>
-        <ui:Button name="BtnCtxSellAll" text="Sell Stack" class="ctx-btn"/>
-        <ui:Button name="BtnCtxCancel" text="Cancel" class="ctx-btn ctx-cancel"/>
-    </ui:VisualElement>
+        <ui:VisualElement name="ContextMenu" style="position: absolute; width: 120px; background-color: rgb(30, 30, 30); border-width: 1px; border-color: rgb(80, 80, 80); border-radius: 5px; display: none;">
+            <ui:Button name="BtnCtxUse" text="Use / Equip" class="ctx-btn"/>
+            <ui:Button name="BtnCtxSell" text="Sell (1)" class="ctx-btn"/>
+            <ui:Button name="BtnCtxSellAll" text="Sell Stack" class="ctx-btn"/>
+            <ui:Button name="BtnCtxCancel" text="Cancel" class="ctx-btn" style="color: rgb(220, 53, 69); border-color: rgb(220, 53, 69);"/>
+        </ui:VisualElement>
 
-    <ui:VisualElement name="TooltipContainer" class="tooltip-box hidden">
-        <ui:Label name="TtName" text="Item Name" class="tt-title"/>
-        <ui:Label name="TtStats" text="ATK: 10" class="tt-stats"/>
-        <ui:Label name="TtRarity" text="Common" class="tt-rarity"/>
-        <ui:Label name="TtDesc" text="Desc..." class="tt-desc"/>
     </ui:VisualElement>
-
 </ui:UXML>

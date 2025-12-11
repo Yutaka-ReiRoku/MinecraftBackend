@@ -9,7 +9,6 @@ public class CharSelectManager : MonoBehaviour
     [Header("UI Document")]
     public UIDocument CharSelectDoc;
 
-    // UI Elements
     private VisualElement _root;
     private ScrollView _charList;
     private Button _btnCreateNew;
@@ -20,7 +19,6 @@ public class CharSelectManager : MonoBehaviour
     private VisualElement _loadingOverlay;
     private VisualElement _modeContainer;
 
-    // Logic Variables
     private string _selectedMode = "Survival";
     private List<string> _availableModes = new List<string> { "Survival", "Creative", "Hardcore" };
 
@@ -29,7 +27,6 @@ public class CharSelectManager : MonoBehaviour
         if (CharSelectDoc == null) CharSelectDoc = GetComponent<UIDocument>();
         _root = CharSelectDoc.rootVisualElement;
 
-        // Query Elements
         _charList = _root.Q<ScrollView>("CharList");
         _btnCreateNew = _root.Q<Button>("BtnCreateNew");
         _createPopup = _root.Q<VisualElement>("CreatePopup");
@@ -39,42 +36,30 @@ public class CharSelectManager : MonoBehaviour
         _loadingOverlay = _root.Q<VisualElement>("LoadingOverlay");
         _modeContainer = _root.Q<VisualElement>("ModeSelectionContainer");
 
-        // Gắn sự kiện
+        // --- [FIX] ÁP DỤNG VÁ LỖI NHẬP LIỆU ---
+        if (_inputName != null) _inputName.FixTextFieldInput();
+        // ---------------------------------------
+
         if (_btnCreateNew != null) _btnCreateNew.clicked += ShowCreatePopup;
         if (_btnCancelCreate != null) _btnCancelCreate.clicked += HideCreatePopup;
         if (_btnConfirmCreate != null) _btnConfirmCreate.clicked += OnConfirmCreate;
 
-        // Ẩn Popup mặc định
         HideCreatePopup();
         ToggleLoading(false);
-
-        // Setup Mode & Load Data
         SetupModeSelection();
         StartCoroutine(LoadCharacters());
     }
-
-    // --- 1. LOAD CHARACTERS ---
 
     IEnumerator LoadCharacters()
     {
         ToggleLoading(true);
         _charList.Clear();
 
-        // Gọi API lấy danh sách nhân vật
         yield return NetworkManager.Instance.SendRequest<List<CharacterDto>>("auth/characters", "GET", null,
             (chars) =>
             {
-                if (chars.Count == 0)
-                {
-                    ShowCreatePopup();
-                }
-                else
-                {
-                    foreach (var c in chars)
-                    {
-                        CreateCharButton(c);
-                    }
-                }
+                if (chars.Count == 0) ShowCreatePopup();
+                else foreach (var c in chars) CreateCharButton(c);
                
                 if (chars.Count >= 3) _btnCreateNew.style.display = DisplayStyle.None;
                 else _btnCreateNew.style.display = DisplayStyle.Flex;
@@ -99,26 +84,19 @@ public class CharSelectManager : MonoBehaviour
         btn.style.alignItems = Align.Center;
         btn.style.backgroundColor = new Color(0, 0, 0, 0.5f);
         
-        // [FIX] Sửa lỗi borderWidth/borderColor cho Button
-        btn.style.borderTopWidth = 1;
-        btn.style.borderBottomWidth = 1;
-        btn.style.borderLeftWidth = 1;
-        btn.style.borderRightWidth = 1;
-
+        btn.style.borderTopWidth = 1; btn.style.borderBottomWidth = 1;
+        btn.style.borderLeftWidth = 1; btn.style.borderRightWidth = 1;
         btn.style.borderTopColor = new Color(0.5f, 0.5f, 0.5f);
         btn.style.borderBottomColor = new Color(0.5f, 0.5f, 0.5f);
         btn.style.borderLeftColor = new Color(0.5f, 0.5f, 0.5f);
         btn.style.borderRightColor = new Color(0.5f, 0.5f, 0.5f);
 
-        // Avatar
         var avatar = new Image();
         avatar.style.width = 60; avatar.style.height = 60;
-        avatar.style.marginRight = 20;
-        avatar.style.marginLeft = 10;
+        avatar.style.marginRight = 20; avatar.style.marginLeft = 10;
         StartCoroutine(avatar.LoadImage(data.AvatarUrl));
         btn.Add(avatar);
 
-        // Info
         var info = new VisualElement();
         var nameLbl = new Label(data.CharacterName);
         nameLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -132,11 +110,8 @@ public class CharSelectManager : MonoBehaviour
         info.Add(detailsLbl);
         btn.Add(info);
 
-        // Hover Effect
         btn.RegisterCallback<MouseEnterEvent>(e => btn.style.backgroundColor = new Color(1, 1, 1, 0.1f));
         btn.RegisterCallback<MouseLeaveEvent>(e => btn.style.backgroundColor = new Color(0, 0, 0, 0.5f));
-
-        // Click Select
         btn.clicked += () => SelectCharacter(data.CharacterID);
         _charList.Add(btn);
     }
@@ -148,15 +123,11 @@ public class CharSelectManager : MonoBehaviour
         SceneManager.LoadScene("GameScene");
     }
 
-    // --- 2. CREATE CHARACTER LOGIC ---
-
     void ShowCreatePopup()
     {
         if (_createPopup != null)
         {
             _createPopup.style.display = DisplayStyle.Flex;
-            // [FIXED] Đã xóa đoạn code Animation (StyleValues/Easing) gây lỗi CS0246
-            // Popup sẽ hiện ngay lập tức
             _createPopup.style.opacity = 1;
         }
     }
@@ -183,9 +154,8 @@ public class CharSelectManager : MonoBehaviour
             
             btn.clicked += () => {
                 _selectedMode = mode;
-                SetupModeSelection(); // Re-render
+                SetupModeSelection(); 
             };
-
             _modeContainer.Add(btn);
         }
     }
@@ -196,7 +166,6 @@ public class CharSelectManager : MonoBehaviour
         if (string.IsNullOrEmpty(name)) return;
 
         ToggleLoading(true);
-
         var body = new { CharacterName = name, GameMode = _selectedMode };
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("auth/character", "POST", body,
             (res) =>
@@ -205,11 +174,7 @@ public class CharSelectManager : MonoBehaviour
                 HideCreatePopup();
                 StartCoroutine(LoadCharacters());
             },
-            (err) =>
-            {
-                Debug.LogError("Lỗi tạo nhân vật: " + err);
-                ToggleLoading(false);
-            }
+            (err) => { Debug.LogError("Lỗi tạo nhân vật: " + err); ToggleLoading(false); }
         ));
     }
 

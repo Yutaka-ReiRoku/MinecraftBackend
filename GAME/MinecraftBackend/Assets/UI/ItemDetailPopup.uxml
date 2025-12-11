@@ -1,41 +1,31 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="../ShopStyle.uss" />
+    <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="DetailOverlay" class="overlay">
+    <ui:VisualElement name="DetailOverlay" class="screen-container" style="background-color: rgba(0,0,0,0.8);">
         
-        <ui:VisualElement name="DetailBox" class="popup-box" style="width: 400px; align-items: center;">
+        <ui:VisualElement name="DetailBox" class="form-card" style="width: 400px; align-items: center;">
             
-            <ui:Label name="DetailName" text="Item Name" class="popup-title" style="margin-bottom: 15px;" />
+            <ui:Label name="DetailName" text="Item Name" class="header-title" style="margin-bottom: 15px; font-size: 24px;" />
             
-            <ui:VisualElement style="background-color: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
-                <ui:Image name="DetailImage" class="popup-img" style="width: 120px; height: 120px;" />
+            <ui:VisualElement style="background-color: rgb(30, 30, 30); border-radius: 10px; padding: 10px; margin-bottom: 10px; border-width: 1px; border-color: rgb(70, 70, 70);">
+                <ui:Image name="DetailImage" style="width: 100px; height: 100px;" />
             </ui:VisualElement>
 
             <ui:ScrollView style="height: 60px; width: 100%; margin-bottom: 10px;">
-                <ui:Label name="DetailDesc" text="This is a description of the item. It is very cool and powerful." style="white-space: normal; color: #bdc3c7; font-size: 14px; -unity-text-align: middle-center;" />
+                <ui:Label name="DetailDesc" text="Description..." style="white-space: normal; color: rgb(180, 180, 180); -unity-text-align: middle-center;" />
             </ui:ScrollView>
 
-            <ui:VisualElement name="BundleContentArea" style="display: none; width: 100%; margin-bottom: 10px;">
-                <ui:Label text="CONTAINS:" style="color: cyan; font-size: 12px; margin-bottom: 5px; -unity-font-style: bold;"/>
-                <ui:ScrollView name="BundleList" style="height: 50px; background-color: rgba(0,0,0,0.2);" />
+            <ui:VisualElement style="flex-direction: row; align-items: center; margin-bottom: 15px;">
+                <ui:Button name="BtnMinus" text="-" class="btn-secondary" style="width: 30px; margin: 0;" />
+                <ui:Label name="LblQuantity" text="1" style="font-size: 20px; margin: 0 15px; -unity-font-style: bold;" />
+                <ui:Button name="BtnPlus" text="+" class="btn-secondary" style="width: 30px; margin: 0;" />
             </ui:VisualElement>
 
-            <ui:VisualElement style="width: 100%; border-top-width: 1px; border-top-color: #555; padding-top: 10px; align-items: center;">
-                
-                <ui:Label name="DetailPrice" text="Unit Price: 100 G" style="color: #aaa; font-size: 12px; margin-bottom: 5px;" />
+            <ui:Label name="LblTotalPrice" text="Total: 100 G" style="font-size: 20px; color: gold; -unity-font-style: bold; margin-bottom: 15px;" />
 
-                <ui:VisualElement class="qty-row">
-                    <ui:Button name="BtnMinus" text="-" class="qty-btn" />
-                    <ui:Label name="LblQuantity" text="1" class="qty-val" style="margin-left: 10px; margin-right: 10px; color: white;" />
-                    <ui:Button name="BtnPlus" text="+" class="qty-btn" />
-                    </ui:VisualElement>
-
-                <ui:Label name="LblTotalPrice" text="Total: 100 G" class="total-price-lbl" style="font-size: 24px; color: gold; -unity-font-style: bold; margin-top: 5px; margin-bottom: 15px;" />
-            </ui:VisualElement>
-
-            <ui:VisualElement class="popup-actions" style="flex-direction: row; gap: 10px; width: 100%; justify-content: center;">
-                <ui:Button name="BtnConfirmBuy" text="CONFIRM" class="btn-confirm" style="width: 120px;" />
-                <ui:Button name="BtnCloseDetail" text="CANCEL" class="btn-cancel" style="width: 120px;" />
+            <ui:VisualElement style="flex-direction: row; gap: 10px; width: 100%;">
+                <ui:Button name="BtnCloseDetail" text="CANCEL" class="btn-secondary" style="flex-grow: 1;" />
+                <ui:Button name="BtnConfirmBuy" text="CONFIRM" class="btn-confirm" style="flex-grow: 1;" />
             </ui:VisualElement>
 
         </ui:VisualElement>
