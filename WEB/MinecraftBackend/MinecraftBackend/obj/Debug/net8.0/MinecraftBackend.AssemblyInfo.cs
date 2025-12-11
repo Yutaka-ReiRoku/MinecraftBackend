@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MinecraftBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+abf294c7204917ed766ac1edd904c7bf993c5b22")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0752c3ecb9c054dbcafe91f5b4750e721b075a94")]
 [assembly: System.Reflection.AssemblyProductAttribute("MinecraftBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MinecraftBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
