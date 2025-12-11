@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using MinecraftBackend.Models;
+using System.Diagnostics;
 
 namespace MinecraftBackend.Controllers
 {
@@ -15,7 +15,8 @@ namespace MinecraftBackend.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            // Mặc định chuyển hướng người dùng vào trang Admin Dashboard
+            return RedirectToAction("Dashboard", "Admin");
         }
 
         public IActionResult Privacy()
@@ -23,6 +24,7 @@ namespace MinecraftBackend.Controllers
             return View();
         }
 
+        // Action xử lý lỗi hệ thống
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
