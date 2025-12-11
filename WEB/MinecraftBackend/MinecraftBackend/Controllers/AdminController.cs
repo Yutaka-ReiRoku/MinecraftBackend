@@ -50,43 +50,54 @@ namespace MinecraftBackend.Controllers
         }
 
         // ==================== 2. SHOP ITEMS (CRUD) ====================
-        
+
         // [CẬP NHẬT] Thêm phân trang (Pagination) để đạt điểm tối đa
-        public async Task<IActionResult> Items(string search = "", int page = 1)
+        // [CẬP NHẬT] Thêm tham số sortOrder
+        public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "")
         {
-            int pageSize = 10; // Số lượng item trên mỗi trang
+            int pageSize = 10;
+
+            // 1. Thiết lập tham số sắp xếp cho View (Logic: Bấm lần đầu -> Tăng dần, Bấm lần nữa -> Giảm dần)
+            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
+            ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
+            ViewBag.StatusSortParm = sortOrder == "Status" ? "status_desc" : "Status";
+
+            // Lưu trạng thái hiện tại để giữ nguyên khi chuyển trang
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentSearch = search;
 
             var query = _context.ShopItems.AsQueryable();
 
-            // 1. Tìm kiếm
+            // 2. Logic Tìm kiếm (Giữ nguyên bản đã fix chữ hoa/thường)
             if (!string.IsNullOrEmpty(search))
-{
-    // Chuyển từ khóa về chữ thường
-    string term = search.ToLower(); 
-    
-    // So sánh: Tên (chữ thường) có chứa Từ khóa (chữ thường) không?
-    query = query.Where(i => i.Name.ToLower().Contains(term) || 
-                             i.ProductID.ToLower().Contains(term));
-}
+            {
+                string term = search.ToLower();
+                query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
+            }
 
-            // 2. Tính toán phân trang
+            // 3. Logic Sắp xếp (Mới)
+            query = sortOrder switch
+            {
+                "name_desc" => query.OrderByDescending(s => s.Name),
+                "Type" => query.OrderBy(s => s.ItemType),
+                "type_desc" => query.OrderByDescending(s => s.ItemType),
+                "Price" => query.OrderBy(s => s.PriceAmount),
+                "price_desc" => query.OrderByDescending(s => s.PriceAmount),
+                "Status" => query.OrderBy(s => s.IsShow),
+                "status_desc" => query.OrderByDescending(s => s.IsShow),
+                _ => query.OrderBy(s => s.Name), // Mặc định sắp xếp theo tên A-Z
+            };
+
+            // 4. Phân trang (Giữ nguyên)
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-            
-            // Đảm bảo page hợp lệ (không nhỏ hơn 1, không lớn hơn max)
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
 
-            // 3. Lấy dữ liệu (Skip & Take)
-            var items = await query
-                .OrderByDescending(i => i.IsShow) // Ưu tiên hiện đồ đang bán trước
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            // 4. Truyền thông tin sang View
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
-            ViewBag.CurrentSearch = search;
 
             return View(items);
         }
