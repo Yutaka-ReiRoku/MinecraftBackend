@@ -159,9 +159,9 @@ Waiting for commands...</div>
 
     // Hàm gọi API Get
     async function api(endpoint) {
-        log(`FETCHING: /api/GameApi/${endpoint}...`, 'info');
+        log(`FETCHING: /api/game/${endpoint}...`, 'info');
         try {
-            let res = await fetch('/api/GameApi/' + endpoint);
+            let res = await fetch('/api/game/' + endpoint);
             if (!res.ok) throw new Error(res.statusText);
             let data = await res.json();
             log("RESPONSE RECEIVED:", 'success');
