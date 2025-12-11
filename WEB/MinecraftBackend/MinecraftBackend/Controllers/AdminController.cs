@@ -291,18 +291,41 @@ namespace MinecraftBackend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditUser(PlayerProfile profile)
+        public async Task<IActionResult> EditUser(PlayerProfile profile, IFormFile? avatarFile)
         {
-            // Tìm theo CharacterID (Hidden field trong form) để update chính xác
             var existing = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == profile.CharacterID);
             if (existing == null) return NotFound();
 
+            // --- 1. XỬ LÝ UPLOAD ẢNH AVATAR ---
+            if (avatarFile != null)
+            {
+                // Tạo đường dẫn lưu vào thư mục /images/avatars/
+                string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
+
+                // Đảm bảo thư mục tồn tại
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                // Tạo tên file độc nhất để tránh trùng
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + avatarFile.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // Lưu file vật lý
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await avatarFile.CopyToAsync(fileStream);
+                }
+
+                // Cập nhật URL mới vào Database
+                existing.AvatarUrl = $"/images/avatars/{uniqueFileName}";
+            }
+            // Nếu không upload ảnh mới thì giữ nguyên URL cũ
+
+            // --- 2. CẬP NHẬT THÔNG TIN KHÁC ---
             existing.DisplayName = profile.DisplayName;
             existing.Level = profile.Level;
             existing.Gold = profile.Gold;
             existing.Gem = profile.Gem;
             existing.GameMode = profile.GameMode;
-            if(!string.IsNullOrEmpty(profile.AvatarUrl)) existing.AvatarUrl = profile.AvatarUrl;
 
             await _context.SaveChangesAsync();
             return RedirectToAction("UserDetails", new { id = existing.UserId });
