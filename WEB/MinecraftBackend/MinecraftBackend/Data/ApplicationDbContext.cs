@@ -21,16 +21,17 @@ namespace MinecraftBackend.Data
         // 4. Bảng Inventory
         public DbSet<GameInventory> Inventories { get; set; }
 
-        // 5. Bảng Transactions (Đổi tên từ PlayerActivityLogs -> Transactions)
+        // 5. Bảng Transactions (Lịch sử giao dịch)
         public DbSet<Transaction> Transactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // Unique Constraints
+            
+            // Ràng buộc duy nhất (Unique Constraints)
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username).IsUnique();
+            
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email).IsUnique();
         }
