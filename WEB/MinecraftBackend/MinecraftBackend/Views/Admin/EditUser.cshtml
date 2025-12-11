@@ -11,17 +11,27 @@
                 <i class="fas fa-user-edit me-2"></i>Edit Player Profile
             </h3>
 
-            <form asp-action="EditUser" method="post">
-                @* Giữ nguyên ID để post lại *@
+            <form asp-action="EditUser" method="post" enctype="multipart/form-data">
+
                 <input type="hidden" asp-for="CharacterID" />
                 <input type="hidden" asp-for="UserId" />
 
-                <div class="mb-3 text-center">
-                    <img src="@(Model.AvatarUrl ?? "/images/avatars/default.png")" 
-                         class="rounded-circle border border-warning shadow" 
-                         width="100" height="100" 
-                         style="object-fit: cover; background-color: #000;"
-                         onerror="this.src='/images/avatars/default.png'">
+                <div class="mb-4 text-center">
+                    <div class="position-relative d-inline-block">
+                        <img id="avatarPreview" src="@(Model.AvatarUrl ?? "/images/avatars/default.png")"
+                             class="rounded-circle border border-3 border-warning shadow-lg"
+                             width="120" height="120"
+                             style="object-fit: cover; background-color: #000;"
+                             onerror="this.src='/images/avatars/default.png'">
+
+                        <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-white text-dark rounded-circle border border-dark d-flex justify-content-center align-items-center"
+                               style="width: 35px; height: 35px; cursor: pointer; transition: 0.2s;"
+                               title="Change Avatar">
+                            <i class="fas fa-camera"></i>
+                        </label>
+                        <input type="file" id="avatarUpload" name="avatarFile" class="d-none" accept="image/*" onchange="previewAvatar(this)">
+                    </div>
+                    <div class="text-white-50 small mt-2">Click icon máy ảnh để đổi Avatar</div>
                 </div>
 
                 <div class="mb-3">
@@ -45,27 +55,36 @@
                     </div>
                 </div>
 
-                <div class="row g-2 mb-3">
+                <div class="row g-2 mb-4">
                     <div class="col-6">
-                        <label class="form-label text-warning small">Gold</label>
+                        <label class="form-label text-warning small fw-bold">Gold</label>
                         <input asp-for="Gold" type="number" class="form-control bg-dark text-white border-secondary" />
                     </div>
                     <div class="col-6">
-                        <label class="form-label text-info small">Gem</label>
+                        <label class="form-label text-info small fw-bold">Gem</label>
                         <input asp-for="Gem" type="number" class="form-control bg-dark text-white border-secondary" />
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label class="form-label text-white-50 small">Avatar URL</label>
-                    <input asp-for="AvatarUrl" class="form-control bg-dark text-white border-secondary font-monospace small" />
-                </div>
-
                 <div class="d-flex justify-content-between pt-3 border-top border-secondary">
-                    <a asp-action="Users" class="btn btn-outline-light">Cancel</a>
+                    @* Sửa nút Cancel để quay về đúng trang chi tiết *@
+                    <a asp-action="UserDetails" asp-route-id="@Model.UserId" class="btn btn-outline-light">Cancel</a>
                     <button type="submit" class="btn btn-warning fw-bold px-4">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    // Script xem trước ảnh khi chọn file
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('avatarPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
