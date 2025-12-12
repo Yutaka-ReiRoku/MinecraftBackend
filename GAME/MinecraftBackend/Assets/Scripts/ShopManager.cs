@@ -58,7 +58,7 @@ public class ShopManager : MonoBehaviour
         _expBar = _root.Q<ProgressBar>("ExpBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // --- Setup Tabs (Lưu reference để đổi màu sau này) ---
+        // --- Setup Tabs ---
         _btnTabShop = SetupTabButton("TabShop", "Shop");
         _btnTabInv = SetupTabButton("TabInventory", "Inventory");
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
@@ -91,7 +91,7 @@ public class ShopManager : MonoBehaviour
 
         // --- Init ---
         StartCoroutine(LoadProfile());
-        SwitchTab("Shop"); // Mặc định mở Shop
+        SwitchTab("Shop"); 
     }
 
     void OnDisable()
@@ -103,12 +103,36 @@ public class ShopManager : MonoBehaviour
     void RefreshAllData()
     {
         StartCoroutine(LoadProfile());
-        // Nếu đang ở tab Inventory thì load lại luôn
         if (_inventoryContainer != null && _inventoryContainer.style.display == DisplayStyle.Flex) 
             StartCoroutine(LoadInventory());
     }
 
     void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId)); }
+
+    // --- FIX: Hàm xử lý Hotbar (ĐÂY LÀ HÀM BẠN BỊ THIẾU) ---
+    public void UseItemFromHotbar(string itemId)
+    {
+        // Tìm item trong list inventory đã tải về
+        var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
+        
+        if (item != null)
+        {
+            if (item.Type == "Consumable") 
+            {
+                StartCoroutine(UseItem(itemId));
+            }
+            else 
+            {
+                StartCoroutine(EquipItem(itemId));
+            }
+        }
+        else
+        {
+            // Nếu item không có trong inventory (đã dùng hết hoặc bán), báo lỗi nhẹ
+            ToastManager.Instance.Show("Item không tồn tại!", false);
+        }
+    }
+    // --------------------------------------------------------
 
     // Helper setup nút Tab
     Button SetupTabButton(string btnName, string tabName)
@@ -116,9 +140,7 @@ public class ShopManager : MonoBehaviour
         var btn = _root.Q<Button>(btnName);
         if (btn != null) 
         {
-            // Xóa click cũ để tránh bị double click nếu OnEnable chạy nhiều lần
             btn.clicked -= () => SwitchTab(tabName); 
-            // Gán click mới
             btn.clicked += () => SwitchTab(tabName);
         }
         return btn;
@@ -130,22 +152,18 @@ public class ShopManager : MonoBehaviour
         if (btn != null) btn.clicked += () => FilterInventory(type);
     }
 
-    // --- CHUYỂN TAB & FIX UI TOGGLE ---
     void SwitchTab(string tabName)
     {
-        // 1. Ẩn hết nội dung cũ
         if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.None;
         if (_inventoryContainer != null) _inventoryContainer.style.display = DisplayStyle.None;
         if (_craftContainer != null) _craftContainer.style.display = DisplayStyle.None;
         if (_battleContainer != null) _battleContainer.style.display = DisplayStyle.None;
 
-        // 2. Cập nhật Visual cho các nút (Đổi màu trực tiếp)
         SetTabActive(_btnTabShop, tabName == "Shop");
         SetTabActive(_btnTabInv, tabName == "Inventory");
         SetTabActive(_btnTabCraft, tabName == "Craft");
         SetTabActive(_btnTabBattle, tabName == "Battle");
 
-        // 3. Hiển thị nội dung & Load dữ liệu
         if (tabName == "Shop") { 
             _shopContainer.style.display = DisplayStyle.Flex; 
             StartCoroutine(LoadShopItems(_currentPage));
@@ -166,14 +184,11 @@ public class ShopManager : MonoBehaviour
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
     }
 
-    // Hàm đổi màu nút Tab thủ công (Do class .active-tab bị thiếu trong USS)
     void SetTabActive(Button btn, bool isActive)
     {
         if (btn == null) return;
-
-        // Màu Neon Blue: rgb(0, 210, 255) -> (0, 0.823f, 1f)
         Color activeColor = new Color(0f, 0.823f, 1f); 
-        Color inactiveColor = new Color(0.8f, 0.8f, 0.8f); // Màu xám nhạt
+        Color inactiveColor = new Color(0.8f, 0.8f, 0.8f);
 
         if (isActive)
         {
@@ -187,8 +202,6 @@ public class ShopManager : MonoBehaviour
             btn.style.color = inactiveColor;
         }
     }
-
-    // --- CÁC HÀM LOAD DATA ---
 
     IEnumerator LoadProfile()
     {
@@ -368,7 +381,6 @@ public class ShopManager : MonoBehaviour
             
             if (!string.IsNullOrEmpty(inv.Rarity)) root.AddToClassList($"rarity-{inv.Rarity.ToLower()}");
             
-            // [FIX QUAN TRỌNG] Sửa tên thành PriceRow
             var priceRow = ui.Q<VisualElement>("PriceRow"); 
             if (priceRow != null) priceRow.style.display = DisplayStyle.None;
 
@@ -384,7 +396,6 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // ... (Phần Context Menu giữ nguyên) ...
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
@@ -494,7 +505,6 @@ public class ShopManager : MonoBehaviour
                  btn.AddToClassList("btn-buy");
                  btn.clicked += () => StartCoroutine(CraftProcess(r));
                  
-                 // [FIX QUAN TRỌNG] Sửa tên thành PriceRow
                  var priceRow = ui.Q<VisualElement>("PriceRow"); 
                  if(priceRow != null) priceRow.style.display = DisplayStyle.None;
 
@@ -521,7 +531,6 @@ public class ShopManager : MonoBehaviour
         yield break; 
     }
 
-    
     IEnumerator AttackProcess() {
         if (_currentMonster != null) {
             if (_monsterHpBar != null) _monsterHpBar.value -= 10;
