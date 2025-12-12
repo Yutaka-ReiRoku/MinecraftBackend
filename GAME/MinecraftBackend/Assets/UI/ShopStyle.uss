@@ -4,9 +4,9 @@
     --accent: rgb(255, 215, 0);        /* Gold */
     --danger: rgb(220, 53, 69);        /* Red */
     --success: rgb(40, 167, 69);       /* Green */
-    --bg-dark: rgba(20, 20, 25, 0.95);
-    --bg-glass: rgba(40, 40, 45, 0.8);
-    --border-color: rgba(255, 255, 255, 0.1);
+    --bg-dark: rgb(20, 20, 25);
+    --bg-glass: rgba(40, 40, 45, 0.95);
+    --border-light: rgba(255, 255, 255, 0.1);
     --font-main: resource('Fonts/Minecraft SDF');
 }
 
@@ -17,168 +17,184 @@
     padding: 0;
 }
 
-.hidden { display: none; }
-
-/* --- 2. LAYOUT CONTAINERS --- */
+/* --- 2. LAYOUT UTILITIES --- */
 .screen-container {
     width: 100%;
     height: 100%;
-    /* Flexbox căn giữa hoặc trải đều */
     display: flex;
-    flex-direction: column; 
-    background-color: rgb(30, 30, 30);
+    background-color: var(--bg-dark);
 }
 
-.overlay {
+.screen-center {
+    align-items: center;
+    justify-content: center;
+}
+
+.row { flex-direction: row; }
+.col { flex-direction: column; }
+.grow { flex-grow: 1; }
+.wrap { flex-wrap: wrap; }
+
+.hidden { display: none; }
+
+.overlay-bg {
     position: absolute;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.85);
     align-items: center;
     justify-content: center;
-    transition: opacity 0.2s;
 }
 
-/* Panel kính mờ hiện đại, bo góc, co giãn */
 .panel-glass {
     background-color: var(--bg-glass);
     border-width: 1px;
-    border-color: var(--border-color);
-    border-radius: 16px;
+    border-color: var(--border-light);
+    border-radius: 12px;
     padding: 20px;
 }
 
-/* --- 3. RESPONSIVE GRID (SHOP & INVENTORY) --- */
-/* Item tự động xuống dòng và co giãn */
-.grid-container {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
-    padding: 10px; 
+/* --- 3. TYPOGRAPHY --- */
+.text-gold { color: var(--accent); }
+.text-blue { color: var(--primary); }
+.text-red { color: var(--danger); }
+.text-gray { color: rgb(150, 150, 150); }
+
+.header-title {
+    font-size: 32px;
+    -unity-font-style: bold;
+    color: var(--accent);
+    margin-bottom: 20px;
+    -unity-text-align: middle-center;
 }
 
-.scroll-view {
-    flex-grow: 1; /* Chiếm hết không gian còn lại */
-    width: 100%;
-}
-
-/* --- 4. COMPONENTS --- */
-.header-bar {
-    height: 80px;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    background-color: var(--bg-dark);
+.section-title {
+    font-size: 18px;
+    -unity-font-style: bold;
+    color: rgb(200, 200, 200);
+    margin-bottom: 10px;
     border-bottom-width: 1px;
-    border-bottom-color: var(--border-color);
+    border-bottom-color: var(--border-light);
 }
 
-/* Thẻ Item: Responsive width */
-.item-card {
-    width: 140px;
-    height: 190px;
-    margin: 8px;
-    background-color: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    border-width: 1px;
-    border-color: transparent;
-    transition: all 0.1s ease-in-out;
-    align-items: center;
-    padding: 10px;
-}
-
-.item-card:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: var(--primary);
-    scale: 1.05;
-}
-
-/* --- 5. TABS --- */
-.tabs-container {
-    flex-direction: row;
-    margin-bottom: 15px;
-    background-color: rgba(0,0,0,0.3);
-    border-radius: 10px;
-    padding: 4px;
-    height: 50px;
-}
-
-.tab-btn {
-    flex-grow: 1; /* Tự động chia đều chiều rộng */
-    background-color: transparent;
-    border-width: 0;
-    border-radius: 8px;
-    color: rgb(150, 150, 150);
-    font-size: 16px;
-    -unity-font-style: bold;
-    transition: 0.2s;
-    margin: 0 2px;
-}
-
-.tab-btn:hover { background-color: rgba(255, 255, 255, 0.1); color: white; }
-.tab-btn.active-tab { background-color: rgba(255, 255, 255, 0.2); color: var(--accent); }
-
-/* --- 6. BUTTONS --- */
+/* --- 4. BUTTONS --- */
 .btn-primary {
+    height: 45px;
     background-color: var(--primary);
+    color: black;
     border-radius: 8px;
     border-width: 0;
-    color: black;
     -unity-font-style: bold;
-    padding: 10px 20px;
+    font-size: 16px;
     transition: 0.1s;
 }
 .btn-primary:hover { scale: 1.05; background-color: white; }
 
 .btn-secondary {
+    height: 40px;
     background-color: transparent;
     border-width: 1px;
     border-color: rgba(255,255,255,0.3);
     border-radius: 8px;
     color: rgb(200,200,200);
 }
-.btn-secondary:hover { border-color: white; color: white; }
+.btn-secondary:hover { border-color: white; color: white; background-color: rgba(255,255,255,0.1); }
 
 .btn-icon {
     width: 40px; height: 40px;
     justify-content: center; align-items: center;
-    border-radius: 8px;
     background-color: rgba(255,255,255,0.05);
+    border-radius: 8px;
     border-width: 0;
-    margin-left: 8px;
+    margin-left: 5px;
 }
 .btn-icon:hover { background-color: rgba(255,255,255,0.2); }
 
-/* --- 7. HOTBAR --- */
-.hotbar-container {
-    height: 80px;
-    width: 100%;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 20px;
-    /* Gradient mờ dần từ dưới lên */
-    background-image: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0)); 
+.btn-close {
+    width: 30px; height: 30px;
+    background-color: var(--danger);
+    border-radius: 15px;
+    border-width: 0;
+    position: absolute; top: 10px; right: 10px;
 }
 
+/* --- 5. TABS --- */
+.tabs-row {
+    flex-direction: row;
+    height: 50px;
+    margin-bottom: 15px;
+    background-color: rgba(0,0,0,0.3);
+    border-radius: 10px;
+    padding: 4px;
+}
+
+.tab-btn {
+    flex-grow: 1;
+    background-color: transparent;
+    border-width: 0;
+    color: rgb(150, 150, 150);
+    font-size: 14px;
+    -unity-font-style: bold;
+    border-radius: 6px;
+    margin: 0 2px;
+}
+.tab-btn:hover { background-color: rgba(255,255,255,0.1); color: white; }
+.tab-btn.active-tab { background-color: rgba(255,255,255,0.2); color: var(--accent); }
+
+/* --- 6. SHOP ITEMS (UPDATED GRID LAYOUT) --- */
+.grid-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* [FIX] Căn giữa các item giống Web */
+    justify-content: center;
+    padding: 10px;
+    width: 100%;
+}
+
+.item-card {
+    width: 140px; 
+    height: 190px;
+    margin: 10px; /* Tăng khoảng cách để thoáng hơn */
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: transparent;
+    padding: 10px;
+}
+.item-card:hover { background-color: rgba(255,255,255,0.1); scale: 1.05; }
+
+.rarity-common { border-bottom-width: 4px; border-bottom-color: gray; }
+.rarity-rare { border-bottom-width: 4px; border-bottom-color: var(--primary); }
+.rarity-epic { border-bottom-width: 4px; border-bottom-color: #a55eea; }
+.rarity-legendary { border-bottom-width: 4px; border-bottom-color: var(--accent); }
+
+/* --- 7. INPUTS --- */
+.input-field { height: 45px; margin-bottom: 15px; font-size: 16px; }
+.input-field > .unity-base-field__input {
+    background-color: rgba(0,0,0,0.3);
+    border-width: 1px; border-color: gray; border-radius: 8px; color: white;
+}
+
+/* --- 8. HOTBAR --- */
+.hotbar-container {
+    height: 80px; width: 100%;
+    flex-direction: row; justify-content: center; align-items: center;
+    background-color: rgba(0,0,0,0.5);
+    position: absolute; bottom: 0;
+}
 .slot {
-    width: 60px; height: 60px;
-    margin: 0 6px;
-    background-color: rgba(0,0,0,0.6);
-    border-width: 2px;
-    border-color: rgba(255,255,255,0.2);
-    border-radius: 12px;
-    transition: 0.1s;
+    width: 60px; height: 60px; margin: 0 5px;
+    background-color: rgba(50,50,50,0.8);
+    border-width: 2px; border-color: gray; border-radius: 10px;
     justify-content: center; align-items: center;
 }
 .slot:hover { border-color: white; scale: 1.1; }
-.slot.active { border-color: var(--accent); }
 
-/* --- 8. RARITY BORDERS --- */
-.rarity-common { border-bottom-color: gray; border-bottom-width: 3px; }
-.rarity-rare { border-bottom-color: var(--primary); border-bottom-width: 3px; }
-.rarity-epic { border-bottom-color: #a55eea; border-bottom-width: 3px; }
-.rarity-legendary { border-bottom-color: var(--accent); border-bottom-width: 3px; }
+/* --- 9. UTILS --- */
+.red-dot {
+    width: 10px; height: 10px;
+    background-color: var(--danger);
+    border-radius: 5px;
+    position: absolute; top: 2px; right: 2px;
+}
+.hp-bar .unity-progress-bar__progress { background-color: var(--danger); border-radius: 4px; }

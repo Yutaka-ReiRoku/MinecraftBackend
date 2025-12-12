@@ -1,36 +1,35 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-image: url('/images/modes/spectator.png'); -unity-background-scale-mode: scale-and-crop;">
+    <ui:VisualElement name="ScreenContainer" class="screen-container">
         
-        <ui:VisualElement style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);" />
+        <ui:VisualElement class="overlay-bg" />
 
-        <ui:Label text="SELECT YOUR HERO" style="font-size: 48px; color: white; -unity-font-style: bold; margin-bottom: 40px; text-shadow: 0 4px 10px black;" />
+        <ui:Label text="SELECT YOUR HERO" class="title-text" />
 
-        <ui:VisualElement class="panel-glass" style="width: 700px; height: 500px; padding: 30px;">
-            <ui:ScrollView name="CharList" style="flex-grow: 1; margin-bottom: 20px;" />
-            
-            <ui:Button name="BtnCreateNew" text="+ NEW CHARACTER" class="btn-primary" style="background-color: var(--success); color: white; height: 60px; font-size: 20px;" />
+        <ui:VisualElement class="panel-glass char-select-box">
+            <ui:ScrollView name="CharList" class="scroll-view-padded" />
+            <ui:Button name="BtnCreateNew" text="+ NEW CHARACTER" class="btn-primary btn-large" />
         </ui:VisualElement>
 
-        <ui:VisualElement name="CreatePopup" class="overlay hidden" style="display: none;">
-            <ui:VisualElement class="panel-glass" style="width: 400px;">
-                <ui:Label text="NEW HERO" style="font-size: 28px; align-self: center; margin-bottom: 20px;" />
+        <ui:VisualElement name="CreatePopup" class="overlay hidden">
+            <ui:VisualElement class="panel-glass popup-box-small">
+                <ui:Label text="NEW HERO" class="popup-title" />
                 
-                <ui:TextField name="InputCharName" label="Name" style="height: 50px; margin-bottom: 20px;" />
+                <ui:TextField name="InputCharName" label="Name" class="input-field mb-20" />
                 
-                <ui:Label text="Game Mode" style="font-size: 14px; color: gray; margin-bottom: 5px;" />
-                <ui:VisualElement name="ModeSelectionContainer" style="flex-direction: row; justify-content: space-between; margin-bottom: 30px; gap: 5px;" />
+                <ui:Label text="Game Mode" class="label-small mb-5" />
+                <ui:VisualElement name="ModeSelectionContainer" class="row-spaced mb-30" />
 
-                <ui:VisualElement style="flex-direction: row; gap: 15px;">
-                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn-secondary" style="flex-grow: 1; height: 45px;" />
-                    <ui:Button name="BtnConfirmCreate" text="Create" class="btn-primary" style="flex-grow: 1; height: 45px;" />
+                <ui:VisualElement class="row-spaced">
+                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn-secondary flex-1 h-45 mr-10" />
+                    <ui:Button name="BtnConfirmCreate" text="Create" class="btn-primary flex-1 h-45" />
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="LoadingOverlay" class="overlay hidden" style="display: none;">
-            <ui:Label text="ENTERING WORLD..." style="font-size: 24px;" />
+        <ui:VisualElement name="LoadingOverlay" class="overlay hidden">
+            <ui:Label text="ENTERING WORLD..." class="loading-text" />
         </ui:VisualElement>
 
     </ui:VisualElement>
