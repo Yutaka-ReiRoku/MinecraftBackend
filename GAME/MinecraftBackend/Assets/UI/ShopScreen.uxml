@@ -155,7 +155,7 @@
                 <ui:Slider name="SfxSlider" high-value="1" style="margin-bottom: 25px;" />
                 
                 <ui:Button name="BtnChangePass" text="Change Password" class="btn btn-outline-secondary mb-2" />
-                 <ui:VisualElement name="PassChangeArea" class="glass-card p-3 mb-2" style="background-color: rgba(0,0,0,0.3); display: none;">
+                <ui:VisualElement name="PassChangeArea" class="glass-card p-3 mb-2" style="background-color: rgba(0,0,0,0.3); display: none;">
                     <ui:TextField name="OldPass" placeholder="Old Password" password="true" class="form-control" />
                     <ui:TextField name="NewPass" placeholder="New Password" password="true" class="form-control" />
                     <ui:Button name="BtnConfirmPass" text="Update" class="btn btn-primary" />

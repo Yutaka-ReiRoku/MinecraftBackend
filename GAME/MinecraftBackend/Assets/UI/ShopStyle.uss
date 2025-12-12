@@ -1,41 +1,33 @@
-/* --- 1. CORE VARIABLES (Dựa trên site.css) --- */
 :root {
-    [cite_start]/* Colors matches site.css [cite: 495] */
-    --primary-color: rgb(0, 210, 255);   /* Neon Blue */
-    --secondary-color: rgb(255, 193, 7); /* Warning Yellow */
-    --success-color: rgb(40, 167, 69);   /* Green */
-    --danger-color: rgb(220, 53, 69);    /* Red */
-    --dark-bg: rgb(26, 28, 32);          /* #1a1c20 */
+    --primary-color: rgb(0, 210, 255);
+    --secondary-color: rgb(255, 193, 7);
+    --success-color: rgb(40, 167, 69);
+    --danger-color: rgb(220, 53, 69);
+    --dark-bg: rgb(26, 28, 32);
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
-    
-    /* Typography */
     --font-size-base: 14px;
     --font-size-h3: 24px;
     --font-size-h5: 18px;
-    --text-color: rgb(224, 224, 224);    /* #e0e0e0 */
-    --text-muted: rgba(255, 255, 255, 0.5); /* .text-white-50 */
+    --text-color: rgb(224, 224, 224);
+    --text-muted: rgba(255, 255, 255, 0.5);
 }
 
-/* --- 2. GLOBAL RESET & BASE --- */
 * {
     color: var(--text-color);
-    -unity-font-definition: resource('Fonts/Minecraft SDF'); /* Giả định font của bạn */
+    -unity-font-definition: resource('Fonts/Minecraft SDF');
     font-size: var(--font-size-base);
 }
 
 .screen-container {
     width: 100%;
     height: 100%;
-    [cite_start]/* Gradient Background giống body site.css [cite: 495] */
-    background-color: var(--dark-bg); 
+    background-color: var(--dark-bg);
     padding: 20px;
     display: flex;
     flex-direction: column;
 }
 
-/* --- 3. GLASSMORPHISM COMPONENTS (Core Design) --- */
-[cite_start]/* Class giả lập .glass-card trong site.css [cite: 495] */
 .glass-card {
     background-color: var(--glass-bg);
     border-width: 1px;
@@ -43,7 +35,6 @@
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 20px;
-    /* Unity không có box-shadow phức tạp như CSS, dùng padding/margin để tạo không gian */
 }
 
 .glass-card-header {
@@ -53,8 +44,6 @@
     margin-bottom: 15px;
 }
 
-/* --- 4. BOOTSTRAP-LIKE UTILITIES (Layout) --- */
-/* Flexbox Utilities để thay thế Bootstrap Grid */
 .d-flex { display: flex; }
 .flex-row { flex-direction: row; }
 .flex-col { flex-direction: column; }
@@ -78,7 +67,6 @@
 .justify-content-end { justify-content: flex-end; }
 .align-items-center { align-items: center; }
 
-/* Spacing Utilities (mb-2, mb-3...) */
 .mb-1 { margin-bottom: 4px; }
 .mb-2 { margin-bottom: 8px; }
 .mb-3 { margin-bottom: 16px; }
@@ -88,21 +76,19 @@
 .p-0 { padding: 0; }
 .p-3 { padding: 16px; }
 
-/* --- 5. TYPOGRAPHY & COLORS --- */
 .h3 { font-size: 28px; -unity-font-style: bold; margin: 0; }
 .h5 { font-size: 18px; -unity-font-style: bold; margin: 0; }
 .small { font-size: 12px; }
 .fw-bold { -unity-font-style: bold; }
 
 .text-white { color: white; }
-.text-white-50 { color: var(--text-muted); [cite_start]} /* [cite: 2] */
-.text-primary { color: var(--primary-color); [cite_start]} /* [cite: 495] */
-.text-warning { color: var(--secondary-color); [cite_start]} /* [cite: 495] */
+.text-white-50 { color: var(--text-muted); }
+.text-primary { color: var(--primary-color); }
+.text-warning { color: var(--secondary-color); }
 .text-danger { color: var(--danger-color); }
 .text-success { color: var(--success-color); }
 .text-info { color: rgb(23, 162, 184); }
 
-/* --- 6. FORMS & INPUTS (Mô phỏng form-control) --- */
 .form-label {
     font-size: 12px;
     color: var(--text-muted);
@@ -110,7 +96,6 @@
     -unity-font-style: bold;
 }
 
-[cite_start]/* Unity TextField styling to look like .form-control bg-dark [cite: 523] */
 .form-control {
     margin-bottom: 10px;
 }
@@ -135,7 +120,6 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-/* --- 7. BUTTONS (Mô phỏng .btn) --- */
 .btn {
     height: 40px;
     border-radius: 8px;
@@ -144,7 +128,7 @@
     align-items: center;
     border-width: 1px;
     transition: 0.2s;
-    cursor: url('link-cursor.png'); /* Nếu có */
+    cursor: url('link-cursor.png');
 }
 
 .btn-primary {
@@ -177,7 +161,6 @@
     color: white;
 }
 
-/* --- 8. BADGES & EXTRAS --- */
 .badge {
     padding: 4px 8px;
     border-radius: 12px;
@@ -188,7 +171,6 @@
 .bg-dark { background-color: rgba(0,0,0,0.5); }
 .border-secondary { border-color: var(--glass-border); border-width: 1px; }
 
-/* Scrollview cleaner look */
 .unity-scroller { width: 8px; }
 .unity-scroller__slider { min-width: 8px; width: 8px; }
 .unity-scroller__high-button, .unity-scroller__low-button { display: none; }
