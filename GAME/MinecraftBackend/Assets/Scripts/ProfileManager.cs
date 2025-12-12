@@ -10,14 +10,14 @@ public class ProfileManager : MonoBehaviour
     private VisualElement _root;
     private VisualElement _popup;
     
-    // UI Elements - View Mode
+    
     private Label _nameLabel;
     private Label _idLabel;
     private Label _statsAtk;
     private Label _statsDef;
     private VisualElement _avatarContainer;
 
-    // UI Elements - Edit Mode
+    
     private VisualElement _infoContainer;
     private VisualElement _updateForm;
     private TextField _editNameField;
@@ -26,7 +26,7 @@ public class ProfileManager : MonoBehaviour
     private Button _btnSave;
     private Button _btnCancel;
 
-    // Visual Equipment Layers
+    
     private Image _layerBody;
     private Image _layerHead;
     private Image _layerChest;
@@ -35,7 +35,7 @@ public class ProfileManager : MonoBehaviour
     private Image _layerWeapon;
     private Image _layerMount;
 
-    // Avatars mẫu
+    
     private readonly string[] _avatarOptions = new string[] 
     {
         "/images/avatars/steve.png",
@@ -53,7 +53,7 @@ public class ProfileManager : MonoBehaviour
         _popup = _root.Q<VisualElement>("ProfilePopup");
         if (_popup == null) return;
 
-        // Query Elements
+        
         _infoContainer = _popup.Q<VisualElement>("InfoContainer");
         _updateForm = _popup.Q<VisualElement>("UpdateForm");
         
@@ -62,7 +62,7 @@ public class ProfileManager : MonoBehaviour
         _statsAtk = _popup.Q<Label>("ValAtk");
         _statsDef = _popup.Q<Label>("ValDef");
 
-        // Layers
+        
         _layerBody = _popup.Q<Image>("LayerBody");
         _layerHead = _popup.Q<Image>("LayerHead");
         _layerChest = _popup.Q<Image>("LayerChest");
@@ -71,17 +71,17 @@ public class ProfileManager : MonoBehaviour
         _layerWeapon = _popup.Q<Image>("LayerWeapon");
         _layerMount = _popup.Q<Image>("LayerMount");
 
-        // Edit Inputs
+        
         _editNameField = _popup.Q<TextField>("EditName");
         _editAvatarField = _popup.Q<TextField>("EditAvatar");
 
-        // Buttons
+        
         _btnEditMode = _popup.Q<Button>("BtnEditProfile");
         _btnSave = _popup.Q<Button>("BtnSaveProfile");
         _btnCancel = _popup.Q<Button>("BtnCancelEdit");
         var btnClose = _popup.Q<Button>("BtnCloseProfile");
 
-        // Events
+        
         if (btnClose != null) btnClose.clicked += () => _popup.style.display = DisplayStyle.None;
         if (_btnEditMode != null) _btnEditMode.clicked += () => ToggleEditMode(true);
         if (_btnCancel != null) _btnCancel.clicked += () => ToggleEditMode(false);
@@ -106,8 +106,8 @@ public class ProfileManager : MonoBehaviour
             _popup.style.display = DisplayStyle.Flex;
             StartCoroutine(LoadProfileData());
             
-            // [FIXED] Xóa đoạn code Animation (StyleValues/Easing) gây lỗi
-            // Popup sẽ hiện ra ngay lập tức
+            
+            
         }
         else
         {
@@ -156,7 +156,7 @@ public class ProfileManager : MonoBehaviour
 
         var body = new { CharacterName = newName, AvatarUrl = newAvt };
         
-        // [CHECK] Đảm bảo dùng PUT để khớp với API
+        
         yield return NetworkManager.Instance.SendRequest<object>("game/profile/update", "PUT", body, 
             (res) => {
                 ToastManager.Instance.Show("Cập nhật thành công!", true);

@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using System; // Cần dùng DateTime
+using System; 
 
 public class DailyLoginManager : MonoBehaviour
 {
     private UIDocument _uiDoc;
     private VisualElement _root;
-    // UI Elements
+    
     private VisualElement _popup;
     private VisualElement _daysContainer;
     private Button _btnClaim;
     private Button _btnClose;
 
-    // DTO nhận dữ liệu từ API Checkin
+    
     [System.Serializable]
     public class DailyCheckinResponse
     {
@@ -36,7 +36,7 @@ public class DailyLoginManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Query UI
+        
         _popup = _root.Q<VisualElement>("DailyLoginPopup");
         if (_popup == null) return;
 
@@ -47,34 +47,34 @@ public class DailyLoginManager : MonoBehaviour
         if (_btnClose != null) _btnClose.clicked += () => _popup.style.display = DisplayStyle.None;
         if (_btnClaim != null) _btnClaim.clicked += () => StartCoroutine(ClaimProcess());
 
-        // Kiểm tra trạng thái ngay khi vào game
+        
         StartCoroutine(CheckDailyStatus());
     }
 
     IEnumerator CheckDailyStatus()
     {
-        // Gọi API lấy thông tin Profile
+        
         yield return NetworkManager.Instance.SendRequest<CharacterDto>("game/profile/me", "GET", null,
             (profile) => {
-                // [FIX] Check local storage để xem hôm nay đã nhận chưa thay vì hardcode
-                // Key: "LastDailyClaim" lưu chuỗi ngày "yyyy-MM-dd"
+                
+                
                 string lastClaimDate = PlayerPrefs.GetString("LastDailyClaim", "");
                 string today = DateTime.Now.ToString("yyyy-MM-dd");
 
-                // Nếu ngày lưu trong máy khác ngày hôm nay -> Chưa nhận -> Hiện popup
+                
                 if (lastClaimDate != today)
                 {
-                    // Demo logic: Streak để mặc định là 1 hoặc lấy từ Server nếu có
+                    
                     ShowPopup(1); 
                 }
                 else
                 {
-                    // Đã nhận rồi thì ẩn popup đi để không che nút bấm
+                    
                     _popup.style.display = DisplayStyle.None;
                 }
             },
             (err) => { 
-                // Nếu lỗi mạng, ẩn popup để người chơi vẫn chơi được game
+                
                 _popup.style.display = DisplayStyle.None; 
             }
         );
@@ -92,7 +92,7 @@ public class DailyLoginManager : MonoBehaviour
             dayBox.style.marginRight = 5;
             dayBox.style.backgroundColor = new Color(0, 0, 0, 0.5f);
 
-            // [FIX] Sửa lỗi borderWidth, borderColor, borderRadius bằng cách set từng cạnh cho Unity bản cũ
+            
             dayBox.style.borderTopWidth = 1;
             dayBox.style.borderBottomWidth = 1;
             dayBox.style.borderLeftWidth = 1;
@@ -123,16 +123,16 @@ public class DailyLoginManager : MonoBehaviour
             lblReward.style.color = Color.yellow;
             lblReward.style.unityFontStyleAndWeight = FontStyle.Bold;
 
-            // Highlight ngày hiện tại
+            
             if (i == currentStreak + 1)
             {
-                // [FIX] Set Border Color vàng
+                
                 dayBox.style.borderTopColor = Color.yellow;
                 dayBox.style.borderBottomColor = Color.yellow;
                 dayBox.style.borderLeftColor = Color.yellow;
                 dayBox.style.borderRightColor = Color.yellow;
 
-                // [FIX] Set Border Width dày hơn
+                
                 dayBox.style.borderTopWidth = 2;
                 dayBox.style.borderBottomWidth = 2;
                 dayBox.style.borderLeftWidth = 2;
@@ -142,7 +142,7 @@ public class DailyLoginManager : MonoBehaviour
                 lblDay.text = "TODAY";
                 lblDay.style.color = Color.yellow;
             }
-            // Ngày đã nhận
+            
             else if (i <= currentStreak)
             {
                 dayBox.style.opacity = 0.5f;
@@ -168,11 +168,11 @@ public class DailyLoginManager : MonoBehaviour
                 AudioManager.Instance.PlaySFX("coins");
                 GameEvents.TriggerCurrencyChanged();
                 
-                // [FIX] Lưu ngày đã nhận vào máy để lần sau vào không hiện nữa
+                
                 PlayerPrefs.SetString("LastDailyClaim", DateTime.Now.ToString("yyyy-MM-dd"));
                 PlayerPrefs.Save();
                 
-                // Đóng popup sau 1s
+                
                 _root.schedule.Execute(() => _popup.style.display = DisplayStyle.None).ExecuteLater(1000);
             },
             (err) => {

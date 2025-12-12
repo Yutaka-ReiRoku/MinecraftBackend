@@ -9,18 +9,18 @@ public class AuthManager : MonoBehaviour
     [Header("UI Document")]
     public UIDocument AuthDoc;
 
-    // UI Elements
+    
     private VisualElement _root;
     private VisualElement _loginContainer;
     private VisualElement _registerContainer;
 
-    // Inputs (Login)
+    
     private TextField _loginEmail;
     private TextField _loginPass;
     private Button _btnLogin;
     private Button _btnGotoRegister;
 
-    // Inputs (Register)
+    
     private TextField _regUser;
     private TextField _regEmail;
     private TextField _regPass;
@@ -28,7 +28,7 @@ public class AuthManager : MonoBehaviour
     private Button _btnRegister;
     private Button _btnGotoLogin;
     
-    // Status
+    
     private Label _statusLabel;
     private VisualElement _loadingOverlay;
 
@@ -37,19 +37,19 @@ public class AuthManager : MonoBehaviour
         if (AuthDoc == null) AuthDoc = GetComponent<UIDocument>();
         _root = AuthDoc.rootVisualElement;
 
-        // 1. Query Elements
+        
         _loginContainer = _root.Q<VisualElement>("LoginContainer");
         _registerContainer = _root.Q<VisualElement>("RegisterContainer");
         _loadingOverlay = _root.Q<VisualElement>("LoadingOverlay");
         _statusLabel = _root.Q<Label>("StatusLabel");
 
-        // Login Form
+        
         _loginEmail = _root.Q<TextField>("LoginEmail");
         _loginPass = _root.Q<TextField>("LoginPass");
         _btnLogin = _root.Q<Button>("BtnLoginSubmit");
         _btnGotoRegister = _root.Q<Button>("BtnSwitchToReg");
 
-        // Register Form
+        
         _regUser = _root.Q<TextField>("RegUsername");
         _regEmail = _root.Q<TextField>("RegEmail");
         _regPass = _root.Q<TextField>("RegPass");
@@ -57,23 +57,23 @@ public class AuthManager : MonoBehaviour
         _btnRegister = _root.Q<Button>("BtnRegisterSubmit");
         _btnGotoLogin = _root.Q<Button>("BtnSwitchToLogin");
 
-        // --- [FIX] ÁP DỤNG VÁ LỖI NHẬP LIỆU ---
+        
         if (_loginEmail != null) _loginEmail.FixTextFieldInput();
         if (_loginPass != null) _loginPass.FixTextFieldInput();
         if (_regUser != null) _regUser.FixTextFieldInput();
         if (_regEmail != null) _regEmail.FixTextFieldInput();
         if (_regPass != null) _regPass.FixTextFieldInput();
         if (_regConfirmPass != null) _regConfirmPass.FixTextFieldInput();
-        // ---------------------------------------
+        
 
-        // 2. Bind Events
+        
         if (_btnLogin != null) _btnLogin.clicked += OnLoginClicked;
         if (_btnGotoRegister != null) _btnGotoRegister.clicked += () => SwitchMode(false);
         
         if (_btnRegister != null) _btnRegister.clicked += OnRegisterClicked;
         if (_btnGotoLogin != null) _btnGotoLogin.clicked += () => SwitchMode(true);
 
-        // 3. Init State
+        
         SwitchMode(true);
         ToggleLoading(false);
     }
@@ -143,7 +143,7 @@ public class AuthManager : MonoBehaviour
             return;
         }
 
-        // [MỚI] Validate định dạng Email
+        
         if (!email.Contains("@") || !email.Contains("."))
         {
             SetStatus("Email không hợp lệ (cần có @ và .).", true);
@@ -165,7 +165,7 @@ public class AuthManager : MonoBehaviour
         ToggleLoading(true);
         var body = new RegisterRequest { Username = user, Email = email, Password = pass };
         
-        // Gửi request đăng ký
+        
         StartCoroutine(NetworkManager.Instance.SendRequest<object>("auth/register", "POST", body,
             (res) => {
                 ToggleLoading(false);
@@ -174,7 +174,7 @@ public class AuthManager : MonoBehaviour
             },
             (err) => {
                 ToggleLoading(false);
-                // Hiển thị lỗi từ server trả về (vd: "Email already exists!")
+                
                 SetStatus(err, true);
             }
         ));
@@ -185,7 +185,7 @@ public class AuthManager : MonoBehaviour
         yield return new WaitForSeconds(1.5f);
         SwitchMode(true);
         _loginEmail.value = _regEmail.value;
-        // Xóa pass cũ để bảo mật
+        
         _regPass.value = "";
         _regConfirmPass.value = "";
     }

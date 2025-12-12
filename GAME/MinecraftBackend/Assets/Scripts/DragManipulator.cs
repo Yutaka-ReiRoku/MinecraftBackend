@@ -34,14 +34,14 @@ public class DragManipulator : PointerManipulator
 
     private void OnPointerDown(PointerDownEvent evt)
     {
-        // SECURITY: Chỉ cho phép kéo từ kho đồ (inv-slot)
+        
         bool canDrag = false;
         VisualElement parent = _target.parent;
         while (parent != null)
         {
             if (parent.ClassListContains("item-card")) 
             {
-                // Logic check ID để đảm bảo là item thật
+                
                 if (_target.userData != null) 
                 {
                     canDrag = true;
@@ -56,7 +56,7 @@ public class DragManipulator : PointerManipulator
         _isDragging = true;
         target.CapturePointer(evt.pointerId);
 
-        // Tạo Ghost Icon
+        
         _ghostIcon = new VisualElement();
         _ghostIcon.style.backgroundImage = _target.resolvedStyle.backgroundImage;
         _ghostIcon.style.width = 50; 
@@ -79,13 +79,13 @@ public class DragManipulator : PointerManipulator
         _ghostIcon.style.left = evt.position.x - 25;
         _ghostIcon.style.top = evt.position.y - 25;
 
-        // UX: Highlight slot
+        
         VisualElement elementUnderMouse = _root.panel.Pick(evt.position);
         VisualElement slot = FindSlotParent(elementUnderMouse);
         
         if (slot != _lastHoveredSlot)
         {
-            if (_lastHoveredSlot != null) _lastHoveredSlot.RemoveFromClassList("slot-highlight"); // Cần định nghĩa CSS này nếu muốn đẹp
+            if (_lastHoveredSlot != null) _lastHoveredSlot.RemoveFromClassList("slot-highlight"); 
             if (slot != null) slot.AddToClassList("slot-highlight");
             _lastHoveredSlot = slot;
         }
@@ -106,7 +106,7 @@ public class DragManipulator : PointerManipulator
             _lastHoveredSlot = null;
         }
 
-        // LOGIC THẢ (DROP)
+        
         VisualElement dropTarget = _root.panel.Pick(evt.position);
         VisualElement slot = FindSlotParent(dropTarget);
 
@@ -114,21 +114,21 @@ public class DragManipulator : PointerManipulator
         {
             string itemId = (string)_target.userData;
 
-            // A. Thả vào ô Trang Bị (Nếu có)
+            
             if (slot.ClassListContains("equip-slot"))
             {
                 GameEvents.TriggerEquipRequest(itemId);
                 if(AudioManager.Instance != null) AudioManager.Instance.PlaySFX("equip");
             }
-            // B. Thả vào Hotbar (FIXED: Gọi đúng HotbarManager)
+            
             else if (slot.ClassListContains("hotbar-slot"))
             {
-                string slotName = slot.name; // VD: "Hotbar1"
-                // Lấy số cuối cùng
+                string slotName = slot.name; 
+                
                 string numPart = slotName.Replace("Hotbar", "");
                 if (int.TryParse(numPart, out int index))
                 {
-                    // Index 1-9 -> Array 0-8
+                    
                     if (HotbarManager.Instance != null)
                     {
                         HotbarManager.Instance.AssignSlot(index - 1, itemId, _target.resolvedStyle.backgroundImage);

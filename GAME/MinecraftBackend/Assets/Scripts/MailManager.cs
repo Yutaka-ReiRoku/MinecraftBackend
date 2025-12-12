@@ -66,7 +66,7 @@ public class MailManager : MonoBehaviour
 
     IEnumerator LoadMails(bool checkOnly = false)
     {
-        // [FIX] Sửa đường dẫn API thành "game/mail" để khớp với GameApiController
+        
         yield return NetworkManager.Instance.SendRequest<List<MailDto>>("game/mail", "GET", null,
             (mails) => {
                 if (mails == null) return;
@@ -103,7 +103,7 @@ public class MailManager : MonoBehaviour
             row.style.paddingLeft = 10; row.style.paddingRight = 10;
             row.style.paddingTop = 5; row.style.paddingBottom = 5;
             
-            // Border radius
+            
             row.style.borderTopLeftRadius = 5; row.style.borderTopRightRadius = 5;
             row.style.borderBottomLeftRadius = 5; row.style.borderBottomRightRadius = 5;
             row.style.borderTopWidth = 1; row.style.borderBottomWidth = 1;
@@ -172,7 +172,7 @@ public class MailManager : MonoBehaviour
 
     IEnumerator ClaimMail(int mailId)
     {
-        // [FIX] Sửa API endpoint cho Claim
+        
         yield return NetworkManager.Instance.SendRequest<object>($"game/mail/claim/{mailId}", "POST", null,
             (res) => {
                 ToastManager.Instance.Show("Đã nhận quà thành công!", true);

@@ -21,25 +21,25 @@ public class EffectsManager : MonoBehaviour
 
     void Start()
     {
-        // [FIX] Tự tìm UIDocument trong scene nếu chưa gán
+        
         if (_uiDoc == null) _uiDoc = FindFirstObjectByType<UIDocument>();
         if (_uiDoc != null) _root = _uiDoc.rootVisualElement;
     }
 
     public void SpawnFloatingText(Vector2 position, string text, Color color, int fontSize = 30)
     {
-        // [FIX] Thử tìm lại Root lần nữa nếu null (phòng trường hợp load scene)
+        
         if (_root == null)
         {
             _uiDoc = FindFirstObjectByType<UIDocument>();
             if (_uiDoc != null) _root = _uiDoc.rootVisualElement;
-            else return; // Vẫn không thấy thì chịu, return để không crash game
+            else return; 
         }
 
-        // 1. Tạo Label
+        
         var label = new Label(text);
         
-        // 2. Style ban đầu
+        
         label.style.position = Position.Absolute;
         label.style.left = position.x;
         label.style.top = position.y;
@@ -49,7 +49,7 @@ public class EffectsManager : MonoBehaviour
         label.style.unityFontStyleAndWeight = FontStyle.Bold;
         label.style.textShadow = new TextShadow { offset = new Vector2(2, 2), blurRadius = 0, color = new Color(0,0,0, 0.5f) };
         
-        // Animation CSS Transition
+        
         label.style.transitionProperty = new List<StylePropertyName> { 
             new StylePropertyName("top"), 
             new StylePropertyName("opacity"),
@@ -61,14 +61,14 @@ public class EffectsManager : MonoBehaviour
 
         _root.Add(label);
 
-        // 3. Chạy Animation
+        
         _root.schedule.Execute(() => {
-            label.style.top = position.y - 100; // Bay lên
-            label.style.opacity = 0;            // Mờ dần
-            label.style.scale = new Scale(new Vector3(1.5f, 1.5f, 1)); // Phóng to
-        }); // Execute ngay frame sau để CSS ăn transition
+            label.style.top = position.y - 100; 
+            label.style.opacity = 0;            
+            label.style.scale = new Scale(new Vector3(1.5f, 1.5f, 1)); 
+        }); 
 
-        // 4. Dọn dẹp
+        
         _root.schedule.Execute(() => {
             if(_root.Contains(label)) _root.Remove(label);
         }).ExecuteLater(1200);
@@ -83,7 +83,7 @@ public class EffectsManager : MonoBehaviour
         if (isCrit)
         {
             text += " CRIT!";
-            color = new Color(1f, 0.2f, 0.2f); // Đỏ
+            color = new Color(1f, 0.2f, 0.2f); 
             size = 45;
             if (CameraShake.Instance != null) CameraShake.Instance.Shake(0.1f, 5f);
         }
