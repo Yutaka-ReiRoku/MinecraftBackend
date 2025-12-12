@@ -12,6 +12,8 @@ public class ShopManager : MonoBehaviour
     public VisualTreeAsset PopupTemplate;
     public VisualTreeAsset ContextMenuTemplate;
     
+    [Header("Effects")]
+    public GameObject ConfettiPrefab;
 
     private UIDocument _uiDoc;
     private VisualElement _root;
@@ -21,8 +23,11 @@ public class ShopManager : MonoBehaviour
     private ProgressBar _hpBar, _staminaBar, _expBar;
     private Label _pageLabel;
     
-    // Quản lý Tab Button để đổi màu
+    // --- BIẾN QUẢN LÝ NÚT TAB CHÍNH ---
     private Button _btnTabShop, _btnTabInv, _btnTabCraft, _btnTabBattle;
+
+    // --- BIẾN QUẢN LÝ NÚT FILTER INVENTORY (MỚI) ---
+    private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
     private int _currentPage = 1;
     private int _pageSize = 8;
@@ -56,7 +61,7 @@ public class ShopManager : MonoBehaviour
         _expBar = _root.Q<ProgressBar>("ExpBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // --- Setup Tabs ---
+        // --- Setup Main Tabs ---
         _btnTabShop = SetupTabButton("TabShop", "Shop");
         _btnTabInv = SetupTabButton("TabInventory", "Inventory");
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
@@ -75,10 +80,10 @@ public class ShopManager : MonoBehaviour
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
 
-        // --- Filter Inventory ---
-        SetupInvFilter("BtnFilterAll", "All");
-        SetupInvFilter("BtnFilterWep", "Weapon");
-        SetupInvFilter("BtnFilterCon", "Consumable");
+        // --- Setup Inventory Filter (Đã cập nhật để lưu nút) ---
+        _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
+        _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
+        _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
 
         var btnLogs = _root.Q<Button>("BtnNotiLog");
         if (btnLogs != null) btnLogs.clicked += () => StartCoroutine(LoadTransactionHistory());
@@ -107,32 +112,21 @@ public class ShopManager : MonoBehaviour
 
     void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId)); }
 
-    // --- FIX: Hàm xử lý Hotbar (ĐÂY LÀ HÀM BẠN BỊ THIẾU) ---
     public void UseItemFromHotbar(string itemId)
     {
-        // Tìm item trong list inventory đã tải về
         var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
-        
         if (item != null)
         {
-            if (item.Type == "Consumable") 
-            {
-                StartCoroutine(UseItem(itemId));
-            }
-            else 
-            {
-                StartCoroutine(EquipItem(itemId));
-            }
+            if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
+            else StartCoroutine(EquipItem(itemId));
         }
         else
         {
-            // Nếu item không có trong inventory (đã dùng hết hoặc bán), báo lỗi nhẹ
             ToastManager.Instance.Show("Item không tồn tại!", false);
         }
     }
-    // --------------------------------------------------------
 
-    // Helper setup nút Tab
+    // --- HELPER SETUP BUTTON ---
     Button SetupTabButton(string btnName, string tabName)
     {
         var btn = _root.Q<Button>(btnName);
@@ -144,12 +138,15 @@ public class ShopManager : MonoBehaviour
         return btn;
     }
 
-    void SetupInvFilter(string btnName, string type)
+    // [FIX] Cập nhật hàm này để trả về Button
+    Button SetupInvFilter(string btnName, string type)
     {
         var btn = _root.Q<Button>(btnName);
         if (btn != null) btn.clicked += () => FilterInventory(type);
+        return btn;
     }
 
+    // --- TAB SWITCHING ---
     void SwitchTab(string tabName)
     {
         if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.None;
@@ -201,6 +198,97 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    // --- INVENTORY FILTER LOGIC (ĐÃ FIX VISUAL) ---
+    
+    // Hàm mới để đổi màu nút Filter
+    void UpdateFilterVisual(string activeType)
+    {
+        SetFilterStyle(_btnFilterAll, activeType == "All");
+        SetFilterStyle(_btnFilterWep, activeType == "Weapon");
+        SetFilterStyle(_btnFilterCon, activeType == "Consumable");
+    }
+
+    // Hàm helper đổi class CSS
+    void SetFilterStyle(Button btn, bool isActive)
+    {
+        if (btn == null) return;
+        if (isActive)
+        {
+            // Nếu Active: Dùng style 'btn-primary' (Màu xanh)
+            btn.RemoveFromClassList("btn-outline-secondary");
+            btn.AddToClassList("btn-primary");
+        }
+        else
+        {
+            // Nếu Inactive: Dùng style 'btn-outline-secondary' (Viền xám)
+            btn.RemoveFromClassList("btn-primary");
+            btn.AddToClassList("btn-outline-secondary");
+        }
+    }
+
+    void FilterInventory(string type)
+    {
+        // 1. Cập nhật giao diện nút bấm ngay lập tức
+        UpdateFilterVisual(type);
+
+        if (_invScroll == null) return;
+        _invScroll.Clear();
+        
+        var list = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
+        
+        if (list.Count == 0)
+        {
+            _invScroll.Add(new Label("Túi đồ trống.") { style = { color = Color.white, marginTop = 20, alignSelf = Align.Center } });
+            return;
+        }
+
+        foreach (var inv in list)
+        {
+            var ui = ItemTemplate.Instantiate();
+            var root = ui.Q<VisualElement>("ItemContainer");
+            ui.Q<Label>("ItemName").text = inv.Name;
+            StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(inv.ImageUrl));
+            
+            if (!string.IsNullOrEmpty(inv.Rarity)) root.AddToClassList($"rarity-{inv.Rarity.ToLower()}");
+            
+            var priceRow = ui.Q<VisualElement>("PriceRow"); 
+            if (priceRow != null) priceRow.style.display = DisplayStyle.None;
+
+            root.Add(new Label($"x{inv.Quantity}") { style = { position = Position.Absolute, bottom = 2, right = 5, fontSize = 12 } });
+            if (inv.IsEquipped) root.Add(new Label("E") { style = { position = Position.Absolute, top = 2, left = 2, backgroundColor = Color.green, fontSize = 10 } });
+            root.userData = inv.ItemId;
+            
+            root.RegisterCallback<ClickEvent>(e => {
+                if (e.button == 1) ShowContextMenu(inv, e.position); 
+            });
+            root.AddManipulator(new DragManipulator(root, _root));
+            _invScroll.Add(ui);
+        }
+    }
+
+    IEnumerator LoadInventory()
+    {
+        if (_invScroll == null) yield break;
+        _invScroll.Clear();
+        _invScroll.Add(new Label("Loading Inventory...") { style = { color = Color.gray, alignSelf = Align.Center } });
+        
+        yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
+            (items) => { 
+                _fullInventory = items; 
+                // Mặc định khi load xong sẽ chọn All
+                FilterInventory("All"); 
+            }, 
+            (err) => {
+                if (_invScroll != null) {
+                    _invScroll.Clear();
+                    _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red } });
+                }
+            }
+        );
+    }
+
+    // --- CÁC HÀM XỬ LÝ KHÁC ---
+
     IEnumerator LoadProfile()
     {
         yield return NetworkManager.Instance.SendRequest<CharacterDto>("game/profile/me", "GET", null,
@@ -213,13 +301,6 @@ public class ShopManager : MonoBehaviour
                 if (_playerLevelLabel != null) _playerLevelLabel.text = $"Lv.{res.Level}";
             }, null
         );
-    }
-
-    void ChangePage(int dir)
-    {
-        _currentPage += dir;
-        if (_currentPage < 1) _currentPage = 1;
-        StartCoroutine(LoadShopItems(_currentPage));
     }
 
     IEnumerator LoadShopItems(int page)
@@ -339,61 +420,7 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    IEnumerator LoadInventory()
-    {
-        if (_invScroll == null) yield break;
-        _invScroll.Clear();
-        _invScroll.Add(new Label("Loading Inventory...") { style = { color = Color.gray, alignSelf = Align.Center } });
-        
-        yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
-            (items) => { 
-                _fullInventory = items; 
-                FilterInventory("All"); 
-            }, 
-            (err) => {
-                if (_invScroll != null) {
-                    _invScroll.Clear();
-                    _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red } });
-                }
-            }
-        );
-    }
-
-    void FilterInventory(string type)
-    {
-        if (_invScroll == null) return;
-        _invScroll.Clear();
-        var list = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
-        if (list.Count == 0)
-        {
-            _invScroll.Add(new Label("Túi đồ trống.") { style = { color = Color.white, marginTop = 20, alignSelf = Align.Center } });
-            return;
-        }
-
-        foreach (var inv in list)
-        {
-            var ui = ItemTemplate.Instantiate();
-            var root = ui.Q<VisualElement>("ItemContainer");
-            ui.Q<Label>("ItemName").text = inv.Name;
-            StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(inv.ImageUrl));
-            
-            if (!string.IsNullOrEmpty(inv.Rarity)) root.AddToClassList($"rarity-{inv.Rarity.ToLower()}");
-            
-            var priceRow = ui.Q<VisualElement>("PriceRow"); 
-            if (priceRow != null) priceRow.style.display = DisplayStyle.None;
-
-            root.Add(new Label($"x{inv.Quantity}") { style = { position = Position.Absolute, bottom = 2, right = 5, fontSize = 12 } });
-            if (inv.IsEquipped) root.Add(new Label("E") { style = { position = Position.Absolute, top = 2, left = 2, backgroundColor = Color.green, fontSize = 10 } });
-            root.userData = inv.ItemId;
-            
-            root.RegisterCallback<ClickEvent>(e => {
-                if (e.button == 1) ShowContextMenu(inv, e.position); 
-            });
-            root.AddManipulator(new DragManipulator(root, _root));
-            _invScroll.Add(ui);
-        }
-    }
-
+    // ... (Phần Context Menu, Sell, Use, Equip, History, Craft, Monster, Attack giữ nguyên như cũ) ...
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
@@ -477,7 +504,6 @@ public class ShopManager : MonoBehaviour
                     string currencySymbol = (log.Currency == "RES_GEM") ? "💎" : "G";
                     var row = new Label($"[{log.Date}] {log.Action} ({log.Amount} {currencySymbol})");
                     row.style.color = log.Amount >= 0 ? Color.green : new Color(1f, 0.4f, 0.4f);
-         
                     row.style.borderBottomWidth = 1;
                     row.style.borderBottomColor = new Color(1,1,1,0.1f);
                     list.Add(row);
@@ -532,10 +558,7 @@ public class ShopManager : MonoBehaviour
     IEnumerator AttackProcess() {
         if (_currentMonster != null) {
             if (_monsterHpBar != null) _monsterHpBar.value -= 10;
-            if (EffectsManager.Instance != null)
-            {
-                EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
-            }
+            if (EffectsManager.Instance != null) EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
         }
 
         yield return NetworkManager.Instance.SendRequest<HuntResponse>("game/hunt", "POST", null,
@@ -543,7 +566,6 @@ public class ShopManager : MonoBehaviour
                 ToastManager.Instance.Show($"Damage dealt! +{res.GoldEarned}G", true);
                 if(res.LevelUp) ToastManager.Instance.Show("LEVEL UP!", true);
                 GameEvents.TriggerCurrencyChanged();
-            
             }, null
         );
     }
