@@ -23,7 +23,7 @@ namespace MinecraftBackend.Controllers
         {
             _context = context;
 
-            
+            // Khởi tạo thư mẫu nếu chưa có
             if (_mockMails.Count == 0)
             {
                 _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEP_IRON_SWORD", AttachedItemName = "Iron Sword", AttachedAmount = 1 });
@@ -35,16 +35,14 @@ namespace MinecraftBackend.Controllers
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            
+            // Nếu Client gửi kèm ID nhân vật cụ thể thì lấy theo ID đó
             if (Request.Headers.TryGetValue("X-Character-ID", out var charIdStr))
             {
                 return await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId && p.CharacterID == charIdStr.ToString());
             }
-            
+            // Mặc định lấy profile đầu tiên tìm thấy
             return await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         }
-
-        
 
         [HttpGet("profile/me")]
         public async Task<IActionResult> GetProfile()
@@ -129,7 +127,7 @@ namespace MinecraftBackend.Controllers
                 profile.Gem -= totalCost;
             }
 
-            
+            // Cộng đồ vào kho
             var existingItem = await _context.Inventories.FirstOrDefaultAsync(i => i.UserId == profile.UserId && i.ItemID == product.TargetItemID);
             if (existingItem != null)
             {
@@ -147,7 +145,7 @@ namespace MinecraftBackend.Controllers
                 });
             }
 
-            
+            // Ghi log
             _context.Transactions.Add(new Transaction
             {
                 UserId = profile.UserId,
@@ -163,25 +161,22 @@ namespace MinecraftBackend.Controllers
             return Ok(new { message = "Purchase successful", newBalance = (product.PriceCurrency == "RES_GOLD" ? profile.Gold : profile.Gem) });
         }
 
-        
         [HttpPost("sell")]
         public async Task<IActionResult> SellItem([FromBody] BuyRequestDto req)
         {
-            
             if (req.Quantity <= 0) return BadRequest("Invalid quantity.");
 
             var profile = await GetCurrentProfile();
             if (profile == null) return Unauthorized();
 
-            
+            // Tìm item trong kho
             var inventoryItem = await _context.Inventories.FirstOrDefaultAsync(i => i.UserId == profile.UserId && i.ItemID == req.ProductId);
             if (inventoryItem == null || inventoryItem.Quantity < req.Quantity)
             {
                 return BadRequest("Not enough item quantity to sell.");
             }
 
-            
-            
+            // Định giá bán (bằng 50% giá mua gốc)
             var shopInfo = await _context.ShopItems.FirstOrDefaultAsync(s => s.TargetItemID == req.ProductId);
 
             int unitPrice = 10;
@@ -189,25 +184,24 @@ namespace MinecraftBackend.Controllers
 
             if (shopInfo != null)
             {
-                
                 unitPrice = Math.Max(1, shopInfo.PriceAmount / 2);
                 currency = shopInfo.PriceCurrency;
             }
 
             int totalEarn = unitPrice * req.Quantity;
 
-            
+            // Cộng tiền
             if (currency == "RES_GOLD") profile.Gold += totalEarn;
             else profile.Gem += totalEarn;
 
-            
+            // Trừ đồ
             inventoryItem.Quantity -= req.Quantity;
             if (inventoryItem.Quantity <= 0)
             {
                 _context.Inventories.Remove(inventoryItem);
             }
 
-            
+            // Ghi log
             _context.Transactions.Add(new Transaction
             {
                 UserId = profile.UserId,
@@ -234,7 +228,7 @@ namespace MinecraftBackend.Controllers
 
             foreach (var inv in invItems)
             {
-                
+                // Lấy thông tin hiển thị từ ShopItems
                 var meta = await _context.ShopItems.FirstOrDefaultAsync(s => s.TargetItemID == inv.ItemID);
 
                 result.Add(new InventoryDto
@@ -263,11 +257,11 @@ namespace MinecraftBackend.Controllers
 
             if (inv == null || inv.Quantity < 1) return BadRequest("Item not found");
 
-            
+            // Trừ số lượng
             inv.Quantity--;
             if (inv.Quantity <= 0) _context.Inventories.Remove(inv);
 
-            
+            // Tác dụng: Hồi 20 máu (Ví dụ đơn giản)
             profile.Health = Math.Min(profile.Health + 20, profile.MaxHealth);
 
             await _context.SaveChangesAsync();
@@ -282,15 +276,14 @@ namespace MinecraftBackend.Controllers
 
             if (inv == null) return BadRequest("Item not found");
 
-            
+            // Logic trang bị đơn giản (Toggle)
             if (inv.IsEquipped)
             {
                 inv.IsEquipped = false;
             }
             else
             {
-                
-                
+                // Có thể thêm logic: Bỏ trang bị món cũ cùng loại trước khi đeo món mới
                 inv.IsEquipped = true;
             }
 
@@ -298,14 +291,12 @@ namespace MinecraftBackend.Controllers
             return Ok(new { message = inv.IsEquipped ? "Equipped" : "Unequipped" });
         }
 
-        
-
         [HttpGet("leaderboard")]
         public async Task<IActionResult> GetLeaderboard()
         {
             var list = await _context.PlayerProfiles
                 .OrderByDescending(p => p.Level)
-                .ThenByDescending(p => p.Gold) 
+                .ThenByDescending(p => p.Gold)
                 .Take(10)
                 .Select(p => new LeaderboardEntryDto
                 {
@@ -331,9 +322,9 @@ namespace MinecraftBackend.Controllers
 
             var profile = await GetCurrentProfile();
 
-            
+            // Xử lý nhận quà
             if (mail.AttachedItemId == "RES_GOLD") profile.Gold += mail.AttachedAmount;
-            
+            // (Thêm logic nhận Item nếu cần)
 
             mail.IsClaimed = true;
             mail.IsRead = true;
@@ -352,7 +343,7 @@ namespace MinecraftBackend.Controllers
             var msg = new ChatMessageDto { Sender = profile.DisplayName, Content = dto.Msg, Time = DateTime.Now.ToString("HH:mm") };
             _globalChat.Add(msg);
 
-            
+            // Giới hạn lịch sử chat
             if (_globalChat.Count > 100) _globalChat.RemoveAt(0);
 
             return Ok(msg);
@@ -375,7 +366,7 @@ namespace MinecraftBackend.Controllers
         {
             var p = await GetCurrentProfile();
             p.Gold += 500;
-            
+            // Logic kiểm tra ngày có thể thêm ở đây
             await _context.SaveChangesAsync();
             return Ok(new DailyCheckinResponse { Message = "+500G", Gold = 500, Streak = 1 });
         }
@@ -399,14 +390,53 @@ namespace MinecraftBackend.Controllers
             return Ok(new HuntResponse { GoldEarned = 10, ExpEarned = 5, LevelUp = lvUp });
         }
 
+        // --- HỆ THỐNG CRAFTING (CHẾ TẠO) ---
+
         [HttpGet("recipes")]
         public IActionResult GetRecipes() => Ok(new List<object> { new { RecipeId = "R1", ResultItemName = "Iron Sword", ResultItemImage = "/images/weapons/iron_sword.png", CraftingTime = 3 } });
 
+        // [QUAN TRỌNG] Đã sửa logic: Thêm item vào Database thật sự
         [HttpPost("craft/{recipeId}")]
         public async Task<IActionResult> CraftItem(string recipeId)
         {
-            await Task.Delay(100); 
-            return Ok(new { message = "Crafted" });
+            // 1. Xác định vật phẩm đích (Hiện tại Hardcode cho demo)
+            string targetItemId = "";
+            if (recipeId == "R1") targetItemId = "WEP_IRON_SWORD";
+
+            if (string.IsNullOrEmpty(targetItemId)) return BadRequest(new { message = "Recipe not found" });
+
+            var profile = await GetCurrentProfile();
+            if (profile == null) return Unauthorized();
+
+            // 2. Thêm vật phẩm vào kho (Inventories Table)
+            // Lưu ý: Ở đây chưa check nguyên liệu đầu vào để test cho dễ
+            _context.Inventories.Add(new GameInventory
+            {
+                InventoryId = Guid.NewGuid().ToString(),
+                UserId = profile.UserId,
+                ItemID = targetItemId,
+                Quantity = 1,
+                AcquiredDate = DateTime.Now,
+                IsEquipped = false,
+                CurrentDurability = 100, // Durability mặc định
+                UpgradeLevel = 0
+            });
+
+            // 3. Ghi log giao dịch
+            _context.Transactions.Add(new Transaction
+            {
+                UserId = profile.UserId,
+                ActionType = "CRAFT",
+                Details = $"Crafted item {targetItemId}",
+                Amount = 0,
+                CurrencyType = "NONE",
+                CreatedAt = DateTime.Now
+            });
+
+            // 4. Lưu thay đổi xuống Database
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Crafted successfully!" });
         }
 
         [HttpGet("transactions/my")]
@@ -431,7 +461,9 @@ namespace MinecraftBackend.Controllers
             return Ok(logs);
         }
 
-        
+        // --- SIMULATOR & TESTING ENDPOINTS ---
+        // Các API này dùng cho trang Admin Simulator, không cần Auth
+
         [AllowAnonymous]
         [HttpPost("sim/buy")]
         public async Task<IActionResult> SimBuy(string charId, string prodId)
