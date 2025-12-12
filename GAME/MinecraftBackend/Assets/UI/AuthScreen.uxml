@@ -1,42 +1,72 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container screen-center">
-        <ui:VisualElement style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);" />
-
-        <ui:VisualElement name="LoginContainer" class="panel-glass" style="width: 400px;">
-            <ui:Label text="WELCOME" class="header-title" />
+    <ui:VisualElement name="ScreenContainer" class="screen-container justify-content-center align-items-center">
+        
+        <ui:VisualElement name="LoginContainer" class="glass-card" style="width: 450px; max-width: 90%;">
             
-            <ui:TextField name="LoginEmail" label="Email" class="input-field" />
-            <ui:TextField name="LoginPass" label="Password" password="true" class="input-field" />
-            
-            <ui:Button name="BtnLoginSubmit" text="LOGIN" class="btn-primary" style="margin-bottom: 20px;" />
-            
-            <ui:VisualElement class="row screen-center">
-                <ui:Label text="New here?" class="text-gray" style="margin-right: 10px;" />
-                <ui:Button name="BtnSwitchToReg" text="Create Account" class="btn-secondary" style="border-width: 0; color: rgb(0, 210, 255);" />
-            </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement name="RegisterContainer" class="panel-glass hidden" style="width: 450px;">
-            <ui:Label text="REGISTER" class="header-title" />
-            
-            <ui:TextField name="RegUsername" label="Username" class="input-field" />
-            <ui:TextField name="RegEmail" label="Email" class="input-field" />
-            
-            <ui:VisualElement class="row" style="justify-content: space-between;">
-                <ui:TextField name="RegPass" label="Pass" password="true" class="input-field" style="width: 48%;" />
-                <ui:TextField name="RegConfirmPass" label="Confirm" password="true" class="input-field" style="width: 48%;" />
+            <ui:VisualElement class="glass-card-header mb-4">
+                <ui:Label text="LOGIN" class="h3 text-primary mb-1" />
+                <ui:Label text="Welcome back, adventurer." class="small text-white-50" />
             </ui:VisualElement>
 
-            <ui:Button name="BtnRegisterSubmit" text="SIGN UP" class="btn-primary" />
-            <ui:Button name="BtnSwitchToLogin" text="Back to Login" class="btn-secondary" style="margin-top: 15px; border-width: 0;" />
+            <ui:VisualElement class="mb-3">
+                <ui:Label text="Email Address" class="form-label" />
+                <ui:TextField name="LoginEmail" placeholder="user@example.com" class="form-control" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="mb-4">
+                <ui:Label text="Password" class="form-label" />
+                <ui:TextField name="LoginPass" password="true" class="form-control" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="row justify-content-between align-items-center">
+                <ui:Button name="BtnSwitchToReg" text="Create Account" class="btn btn-outline-secondary" style="width: 45%;" />
+                <ui:Button name="BtnLoginSubmit" text="SIGN IN" class="btn btn-primary" style="width: 45%;" />
+            </ui:VisualElement>
+
         </ui:VisualElement>
 
-        <ui:Label name="StatusLabel" text="" style="margin-top: 20px; font-size: 16px; -unity-font-style: bold; color: rgb(220, 53, 69);" />
+        <ui:VisualElement name="RegisterContainer" class="glass-card" style="width: 450px; max-width: 90%; display: none;">
+            
+            <ui:VisualElement class="glass-card-header mb-4">
+                <ui:Label text="NEW PLAYER" class="h3 text-success mb-1" />
+                <ui:Label text="Create your identity in the world." class="small text-white-50" />
+            </ui:VisualElement>
 
-        <ui:VisualElement name="LoadingOverlay" class="overlay-bg hidden">
-            <ui:Label text="CONNECTING..." style="font-size: 24px;" />
+            <ui:VisualElement class="mb-3">
+                <ui:Label text="Username" class="form-label" />
+                <ui:TextField name="RegUsername" class="form-control" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="mb-3">
+                <ui:Label text="Email" class="form-label" />
+                <ui:TextField name="RegEmail" class="form-control" />
+            </ui:VisualElement>
+
+            <ui:VisualElement class="row mb-4">
+                <ui:VisualElement class="col-6 p-0" style="padding-right: 5px;">
+                    <ui:Label text="Password" class="form-label" />
+                    <ui:TextField name="RegPass" password="true" class="form-control" />
+                </ui:VisualElement>
+                <ui:VisualElement class="col-6 p-0" style="padding-left: 5px;">
+                    <ui:Label text="Confirm" class="form-label" />
+                    <ui:TextField name="RegConfirmPass" password="true" class="form-control" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement class="row justify-content-between align-items-center">
+                <ui:Button name="BtnSwitchToLogin" text="Cancel" class="btn btn-outline-secondary" style="width: 30%;" />
+                <ui:Button name="BtnRegisterSubmit" text="CREATE ACCOUNT" class="btn btn-success" style="width: 65%;" />
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <ui:Label name="StatusLabel" text="" class="small text-danger mt-3" style="-unity-text-align: middle-center; -unity-font-style: bold;" />
+
+        <ui:VisualElement name="LoadingOverlay" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; display: none;">
+            <ui:Label text="CONNECTING TO SERVER..." class="h5 text-info" style="letter-spacing: 2px;" />
+            <ui:VisualElement style="width: 200px; height: 2px; background-color: var(--primary-color); margin-top: 20px;" />
         </ui:VisualElement>
 
     </ui:VisualElement>

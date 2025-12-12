@@ -1,200 +1,194 @@
-/* --- 1. VARIABLES & RESET --- */
+/* --- 1. CORE VARIABLES (Dựa trên site.css) --- */
 :root {
-    --primary: rgb(0, 210, 255);       /* Neon Blue */
-    --accent: rgb(255, 215, 0);        /* Gold */
-    --danger: rgb(220, 53, 69);        /* Red */
-    --success: rgb(40, 167, 69);       /* Green */
-    --bg-dark: rgb(20, 20, 25);
-    --bg-glass: rgba(40, 40, 45, 0.95);
-    --border-light: rgba(255, 255, 255, 0.1);
-    --font-main: resource('Fonts/Minecraft SDF');
+    [cite_start]/* Colors matches site.css [cite: 495] */
+    --primary-color: rgb(0, 210, 255);   /* Neon Blue */
+    --secondary-color: rgb(255, 193, 7); /* Warning Yellow */
+    --success-color: rgb(40, 167, 69);   /* Green */
+    --danger-color: rgb(220, 53, 69);    /* Red */
+    --dark-bg: rgb(26, 28, 32);          /* #1a1c20 */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    
+    /* Typography */
+    --font-size-base: 14px;
+    --font-size-h3: 24px;
+    --font-size-h5: 18px;
+    --text-color: rgb(224, 224, 224);    /* #e0e0e0 */
+    --text-muted: rgba(255, 255, 255, 0.5); /* .text-white-50 */
 }
 
+/* --- 2. GLOBAL RESET & BASE --- */
 * {
-    -unity-font-definition: var(--font-main);
-    color: white;
-    margin: 0;
-    padding: 0;
+    color: var(--text-color);
+    -unity-font-definition: resource('Fonts/Minecraft SDF'); /* Giả định font của bạn */
+    font-size: var(--font-size-base);
 }
 
-/* --- 2. LAYOUT UTILITIES --- */
 .screen-container {
     width: 100%;
     height: 100%;
-    display: flex;
-    background-color: var(--bg-dark);
-}
-
-.screen-center {
-    align-items: center;
-    justify-content: center;
-}
-
-.row { flex-direction: row; }
-.col { flex-direction: column; }
-.grow { flex-grow: 1; }
-.wrap { flex-wrap: wrap; }
-
-.hidden { display: none; }
-
-.overlay-bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    align-items: center;
-    justify-content: center;
-}
-
-.panel-glass {
-    background-color: var(--bg-glass);
-    border-width: 1px;
-    border-color: var(--border-light);
-    border-radius: 12px;
+    [cite_start]/* Gradient Background giống body site.css [cite: 495] */
+    background-color: var(--dark-bg); 
     padding: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* --- 3. TYPOGRAPHY --- */
-.text-gold { color: var(--accent); }
-.text-blue { color: var(--primary); }
-.text-red { color: var(--danger); }
-.text-gray { color: rgb(150, 150, 150); }
-
-.header-title {
-    font-size: 32px;
-    -unity-font-style: bold;
-    color: var(--accent);
-    margin-bottom: 20px;
-    -unity-text-align: middle-center;
-}
-
-.section-title {
-    font-size: 18px;
-    -unity-font-style: bold;
-    color: rgb(200, 200, 200);
-    margin-bottom: 10px;
-    border-bottom-width: 1px;
-    border-bottom-color: var(--border-light);
-}
-
-/* --- 4. BUTTONS --- */
-.btn-primary {
-    height: 45px;
-    background-color: var(--primary);
-    color: black;
-    border-radius: 8px;
-    border-width: 0;
-    -unity-font-style: bold;
-    font-size: 16px;
-    transition: 0.1s;
-}
-.btn-primary:hover { scale: 1.05; background-color: white; }
-
-.btn-secondary {
-    height: 40px;
-    background-color: transparent;
+/* --- 3. GLASSMORPHISM COMPONENTS (Core Design) --- */
+[cite_start]/* Class giả lập .glass-card trong site.css [cite: 495] */
+.glass-card {
+    background-color: var(--glass-bg);
     border-width: 1px;
-    border-color: rgba(255,255,255,0.3);
-    border-radius: 8px;
-    color: rgb(200,200,200);
-}
-.btn-secondary:hover { border-color: white; color: white; background-color: rgba(255,255,255,0.1); }
-
-.btn-icon {
-    width: 40px; height: 40px;
-    justify-content: center; align-items: center;
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 8px;
-    border-width: 0;
-    margin-left: 5px;
-}
-.btn-icon:hover { background-color: rgba(255,255,255,0.2); }
-
-.btn-close {
-    width: 30px; height: 30px;
-    background-color: var(--danger);
+    border-color: var(--glass-border);
     border-radius: 15px;
-    border-width: 0;
-    position: absolute; top: 10px; right: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    /* Unity không có box-shadow phức tạp như CSS, dùng padding/margin để tạo không gian */
 }
 
-/* --- 5. TABS --- */
-.tabs-row {
-    flex-direction: row;
-    height: 50px;
+.glass-card-header {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--glass-border);
+    padding-bottom: 10px;
     margin-bottom: 15px;
-    background-color: rgba(0,0,0,0.3);
-    border-radius: 10px;
-    padding: 4px;
 }
 
-.tab-btn {
-    flex-grow: 1;
-    background-color: transparent;
-    border-width: 0;
-    color: rgb(150, 150, 150);
-    font-size: 14px;
-    -unity-font-style: bold;
-    border-radius: 6px;
-    margin: 0 2px;
-}
-.tab-btn:hover { background-color: rgba(255,255,255,0.1); color: white; }
-.tab-btn.active-tab { background-color: rgba(255,255,255,0.2); color: var(--accent); }
+/* --- 4. BOOTSTRAP-LIKE UTILITIES (Layout) --- */
+/* Flexbox Utilities để thay thế Bootstrap Grid */
+.d-flex { display: flex; }
+.flex-row { flex-direction: row; }
+.flex-col { flex-direction: column; }
 
-/* --- 6. SHOP ITEMS (UPDATED GRID LAYOUT) --- */
-.grid-container {
+.row {
+    display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    /* [FIX] Căn giữa các item giống Web */
-    justify-content: center;
-    padding: 10px;
-    width: 100%;
+    margin-left: -10px;
+    margin-right: -10px;
 }
 
-.item-card {
-    width: 140px; 
-    height: 190px;
-    margin: 10px; /* Tăng khoảng cách để thoáng hơn */
-    background-color: rgba(255,255,255,0.05);
-    border-radius: 10px;
+.col-12 { width: 100%; padding: 5px 10px; }
+.col-6 { width: 50%; padding: 5px 10px; }
+.col-4 { width: 33.33%; padding: 5px 10px; }
+.col-3 { width: 25%; padding: 5px 10px; }
+.flex-grow-1 { flex-grow: 1; }
+
+.justify-content-between { justify-content: space-between; }
+.justify-content-center { justify-content: center; }
+.justify-content-end { justify-content: flex-end; }
+.align-items-center { align-items: center; }
+
+/* Spacing Utilities (mb-2, mb-3...) */
+.mb-1 { margin-bottom: 4px; }
+.mb-2 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 16px; }
+.mb-4 { margin-bottom: 24px; }
+.me-2 { margin-right: 8px; }
+.ms-2 { margin-left: 8px; }
+.p-0 { padding: 0; }
+.p-3 { padding: 16px; }
+
+/* --- 5. TYPOGRAPHY & COLORS --- */
+.h3 { font-size: 28px; -unity-font-style: bold; margin: 0; }
+.h5 { font-size: 18px; -unity-font-style: bold; margin: 0; }
+.small { font-size: 12px; }
+.fw-bold { -unity-font-style: bold; }
+
+.text-white { color: white; }
+.text-white-50 { color: var(--text-muted); [cite_start]} /* [cite: 2] */
+.text-primary { color: var(--primary-color); [cite_start]} /* [cite: 495] */
+.text-warning { color: var(--secondary-color); [cite_start]} /* [cite: 495] */
+.text-danger { color: var(--danger-color); }
+.text-success { color: var(--success-color); }
+.text-info { color: rgb(23, 162, 184); }
+
+/* --- 6. FORMS & INPUTS (Mô phỏng form-control) --- */
+.form-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    -unity-font-style: bold;
+}
+
+[cite_start]/* Unity TextField styling to look like .form-control bg-dark [cite: 523] */
+.form-control {
+    margin-bottom: 10px;
+}
+
+.form-control > .unity-base-field__input {
+    background-color: rgba(0, 0, 0, 0.3);
     border-width: 1px;
-    border-color: transparent;
-    padding: 10px;
-}
-.item-card:hover { background-color: rgba(255,255,255,0.1); scale: 1.05; }
-
-.rarity-common { border-bottom-width: 4px; border-bottom-color: gray; }
-.rarity-rare { border-bottom-width: 4px; border-bottom-color: var(--primary); }
-.rarity-epic { border-bottom-width: 4px; border-bottom-color: #a55eea; }
-.rarity-legendary { border-bottom-width: 4px; border-bottom-color: var(--accent); }
-
-/* --- 7. INPUTS --- */
-.input-field { height: 45px; margin-bottom: 15px; font-size: 16px; }
-.input-field > .unity-base-field__input {
-    background-color: rgba(0,0,0,0.3);
-    border-width: 1px; border-color: gray; border-radius: 8px; color: white;
+    border-color: #444;
+    border-radius: 4px;
+    color: white;
+    padding: 8px;
+    height: 40px;
+    -unity-text-align: middle-left;
 }
 
-/* --- 8. HOTBAR --- */
-.hotbar-container {
-    height: 80px; width: 100%;
-    flex-direction: row; justify-content: center; align-items: center;
-    background-color: rgba(0,0,0,0.5);
-    position: absolute; bottom: 0;
+.form-control:hover > .unity-base-field__input {
+    border-color: var(--primary-color);
 }
-.slot {
-    width: 60px; height: 60px; margin: 0 5px;
-    background-color: rgba(50,50,50,0.8);
-    border-width: 2px; border-color: gray; border-radius: 10px;
-    justify-content: center; align-items: center;
-}
-.slot:hover { border-color: white; scale: 1.1; }
 
-/* --- 9. UTILS --- */
-.red-dot {
-    width: 10px; height: 10px;
-    background-color: var(--danger);
-    border-radius: 5px;
-    position: absolute; top: 2px; right: 2px;
+.form-control:focus > .unity-base-field__input {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 0, 0, 0.5);
 }
-.hp-bar .unity-progress-bar__progress { background-color: var(--danger); border-radius: 4px; }
+
+/* --- 7. BUTTONS (Mô phỏng .btn) --- */
+.btn {
+    height: 40px;
+    border-radius: 8px;
+    -unity-font-style: bold;
+    justify-content: center;
+    align-items: center;
+    border-width: 1px;
+    transition: 0.2s;
+    cursor: url('link-cursor.png'); /* Nếu có */
+}
+
+.btn-primary {
+    background-color: rgba(0, 210, 255, 0.2);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+.btn-primary:hover {
+    background-color: var(--primary-color);
+    color: black;
+}
+
+.btn-success {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: var(--success-color);
+    color: var(--success-color);
+}
+.btn-success:hover {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.3);
+    color: rgb(200, 200, 200);
+}
+.btn-outline-secondary:hover {
+    border-color: white;
+    color: white;
+}
+
+/* --- 8. BADGES & EXTRAS --- */
+.badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    -unity-font-style: bold;
+    align-self: flex-start;
+}
+.bg-dark { background-color: rgba(0,0,0,0.5); }
+.border-secondary { border-color: var(--glass-border); border-width: 1px; }
+
+/* Scrollview cleaner look */
+.unity-scroller { width: 8px; }
+.unity-scroller__slider { min-width: 8px; width: 8px; }
+.unity-scroller__high-button, .unity-scroller__low-button { display: none; }

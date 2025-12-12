@@ -1,22 +1,31 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ItemContainer" class="item-card rarity-common">
+    <ui:VisualElement name="ItemContainer" class="glass-card align-items-center justify-content-between p-2" style="width: 140px; height: 190px; margin: 5px; border-width: 1px;">
         
-        <ui:VisualElement class="grow screen-center" style="width: 100%; background-color: rgba(0,0,0,0.2); border-radius: 8px; margin-bottom: 5px;">
-            <ui:Image name="ItemImage" style="width: 75%; height: 75%; -unity-background-scale-mode: scale-to-fit;" picking-mode="Ignore" />
+        <ui:VisualElement class="mb-2" style="width: 100px; height: 100px; background-color: rgba(0,0,0,0.3); border-radius: 8px; align-items: center; justify-content: center; border-width: 1px; border-color: rgba(255,255,255,0.05);">
+            <ui:Image name="ItemImage" style="width: 80%; height: 80%; -unity-background-scale-mode: scale-to-fit;" picking-mode="Ignore" />
+            
+            <ui:Label name="QtyLabel" text="x1" class="badge bg-dark border-secondary" style="position: absolute; bottom: 2px; right: 2px; font-size: 10px; display: none;" />
+            
+            <ui:Label name="EquippedLabel" text="E" class="badge text-white" style="position: absolute; top: 2px; left: 2px; background-color: var(--success-color); font-size: 10px; display: none;" />
         </ui:VisualElement>
 
-        <ui:Label name="ItemName" text="Item Name" style="font-size: 13px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: normal; height: 35px; margin-bottom: 5px; color: white;" picking-mode="Ignore" />
+        <ui:VisualElement class="w-100 align-items-center flex-grow-1">
+            <ui:Label name="ItemName" text="Item Name" class="small fw-bold text-white mb-1" style="-unity-text-align: middle-center; white-space: normal;" picking-mode="Ignore" />
+            <ui:Label name="ItemRarity" text="Common" class="small text-white-50" style="font-size: 10px;" picking-mode="Ignore" />
+        </ui:VisualElement>
 
-        <ui:VisualElement name="price-row" class="row screen-center" style="width: 100%;">
+        <ui:VisualElement name="PriceRow" class="flex-row w-100 justify-content-center mt-2">
             
-            <ui:Button name="BtnBuyGold" class="btn-secondary" style="height: 30px; width: 100%; padding: 0; border-color: rgb(255, 215, 0); color: rgb(255, 215, 0); border-radius: 6px;">
-                <ui:Label name="PriceGoldLabel" text="100" picking-mode="Ignore" style="-unity-font-style: bold;" />
+            <ui:Button name="BtnBuyGold" class="btn btn-outline-secondary flex-row align-items-center justify-content-center" style="height: 30px; width: 100%; border-color: var(--secondary-color); color: var(--secondary-color);">
+                <ui:Label text="G" style="margin-right: 5px; font-size: 10px;" />
+                <ui:Label name="PriceGoldLabel" text="100" class="fw-bold" style="font-size: 12px;" />
             </ui:Button>
 
-            <ui:Button name="BtnBuyGem" class="btn-secondary" style="height: 30px; width: 100%; padding: 0; border-color: rgb(0, 210, 255); color: rgb(0, 210, 255); border-radius: 6px; display: none;">
-                <ui:Label name="PriceGemLabel" text="10" picking-mode="Ignore" style="-unity-font-style: bold;" />
+            <ui:Button name="BtnBuyGem" class="btn btn-outline-secondary flex-row align-items-center justify-content-center" style="height: 30px; width: 100%; border-color: var(--primary-color); color: var(--primary-color); display: none;">
+                <ui:Label text="Gem" style="margin-right: 5px; font-size: 10px;" />
+                <ui:Label name="PriceGemLabel" text="10" class="fw-bold" style="font-size: 12px;" />
             </ui:Button>
 
         </ui:VisualElement>

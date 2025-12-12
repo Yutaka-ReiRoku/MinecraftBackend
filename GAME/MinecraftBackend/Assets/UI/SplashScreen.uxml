@@ -1,20 +1,28 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container" style="justify-content: center; align-items: center; background-color: #1e1e1e;">
+    <ui:VisualElement name="ScreenContainer" class="screen-container align-items-center justify-content-center" style="background-color: #0f1012;">
         
-        <ui:Label text="MINECRAFT RPG" style="font-size: 60px; -unity-font-style: bold; color: white; margin-bottom: 10px; text-shadow: 4px 4px 0px rgba(0,0,0,0.5); letter-spacing: 5px;" />
-        <ui:Label text="ONLINE" style="font-size: 30px; color: yellow; margin-bottom: 50px; -unity-font-style: italic;" />
+        <ui:VisualElement class="align-items-center mb-4">
+             <ui:VisualElement style="width: 80px; height: 80px; background-color: transparent; border-width: 4px; border-color: var(--primary-color); transform-origin: center; rotate: 45deg; margin-bottom: 30px;">
+                <ui:VisualElement style="width: 50%; height: 50%; background-color: var(--primary-color); margin: 25%;" />
+            </ui:VisualElement>
 
-        <ui:VisualElement class="spinner" style="width: 50px; height: 50px; border-width: 5px; margin-bottom: 20px;" />
-
-        <ui:Label text="LOADING RESOURCES..." style="color: #aaa; font-size: 14px; margin-bottom: 50px;" />
-
-        <ui:VisualElement style="position: absolute; bottom: 50px; width: 80%; align-items: center; background-color: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px;">
-            <ui:Label name="LoadingTipLabel" text="Tip: Did you know you can craft items?" style="color: white; font-size: 16px; -unity-text-align: middle-center; white-space: normal;" />
+            <ui:Label text="MINECRAFT RPG" class="h3 text-white" style="font-size: 40px; letter-spacing: 5px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);" />
+            <ui:Label text="ADMIN & GAME CLIENT" class="small text-info" style="letter-spacing: 3px; margin-top: 5px;" />
         </ui:VisualElement>
 
-        <ui:Label text="v1.0.0" style="position: absolute; bottom: 10px; right: 10px; color: #555; font-size: 10px;" />
+        <ui:VisualElement style="width: 300px; margin-top: 50px;">
+            <ui:Label text="LOADING RESOURCES..." class="small text-white-50 mb-2" style="-unity-text-align: middle-center;" />
+            
+            <ui:VisualElement style="height: 4px; width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+                <ui:VisualElement name="LoadingBar" style="height: 100%; width: 50%; background-color: var(--primary-color); border-radius: 2px;" />
+            </ui:VisualElement>
+            
+            <ui:Label name="LoadingTipLabel" text="Tip: You can craft items in the Crafting tab." class="small text-white-50 mt-3" style="-unity-text-align: middle-center; font-style: italic;" />
+        </ui:VisualElement>
+
+        <ui:Label text="v1.0.0 Stable" class="small text-white-50" style="position: absolute; bottom: 20px;" />
 
     </ui:VisualElement>
 </ui:UXML>
