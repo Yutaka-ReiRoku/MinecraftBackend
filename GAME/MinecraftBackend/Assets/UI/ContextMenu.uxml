@@ -1,17 +1,25 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ContextMenu" style="position: absolute; width: 140px; background-color: rgb(30, 30, 30); border-width: 1px; border-color: gray; border-radius: 8px; overflow: hidden;">
+    <ui:VisualElement name="ContextMenu" style="width: 160px; background-color: rgb(30, 30, 30); border-width: 1px; border-color: rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; padding: 5px;">
         
-        <ui:Button name="BtnCtxUse" text="Use / Equip" class="btn-secondary" style="border-width: 0; border-radius: 0; text-align: left; height: 35px; padding-left: 15px;" />
+        <ui:Button name="BtnCtxUse" class="btn btn-outline-secondary mb-1" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
+            <ui:Label text="▶ Use / Equip" style="font-size: 12px; color: white;" />
+        </ui:Button>
         
-        <ui:Button name="BtnCtxSell" text="Sell One" class="btn-secondary" style="border-width: 0; border-radius: 0; text-align: left; height: 35px; padding-left: 15px;" />
+        <ui:Button name="BtnCtxSell" class="btn btn-outline-secondary mb-1" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
+            <ui:Label text="$ Sell One" style="font-size: 12px; color: var(--secondary-color);" />
+        </ui:Button>
         
-        <ui:Button name="BtnCtxSellAll" text="Sell Stack" class="btn-secondary" style="border-width: 0; border-radius: 0; text-align: left; height: 35px; padding-left: 15px;" />
+        <ui:Button name="BtnCtxSellAll" class="btn btn-outline-secondary mb-1" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
+            <ui:Label text="$$ Sell Stack" style="font-size: 12px; color: var(--secondary-color);" />
+        </ui:Button>
         
-        <ui:VisualElement style="height: 1px; background-color: rgba(255,255,255,0.1); margin: 2px 5px;" />
+        <ui:VisualElement style="height: 1px; background-color: rgba(255,255,255,0.1); margin: 4px 2px;" />
         
-        <ui:Button name="BtnCtxCancel" text="Cancel" class="btn-secondary text-red" style="border-width: 0; border-radius: 0; text-align: left; height: 35px; padding-left: 15px;" />
+        <ui:Button name="BtnCtxCancel" class="btn btn-outline-secondary" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
+             <ui:Label text="✕ Cancel" style="font-size: 12px; color: var(--danger-color);" />
+        </ui:Button>
         
     </ui:VisualElement>
 

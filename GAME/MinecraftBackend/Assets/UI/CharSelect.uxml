@@ -1,35 +1,63 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="ShopStyle.uss" />
 
-    <ui:VisualElement name="ScreenContainer" class="screen-container">
+    <ui:VisualElement name="ScreenContainer" class="screen-container align-items-center justify-content-center">
         
-        <ui:VisualElement class="overlay-bg" />
+        <ui:VisualElement class="glass-card" style="width: 600px; max-width: 95%; height: 80%;">
+            
+            <ui:VisualElement class="glass-card-header flex-row justify-content-between align-items-center mb-3">
+                <ui:VisualElement>
+                    <ui:Label text="SELECT CHARACTER" class="h3 text-warning mb-1" />
+                    <ui:Label text="Choose your hero to enter the world." class="small text-white-50" />
+                </ui:VisualElement>
+                
+                <ui:Button name="BtnCreateNew" text="+ NEW HERO" class="btn btn-success" style="width: 120px;" />
+            </ui:VisualElement>
 
-        <ui:Label text="SELECT YOUR HERO" class="title-text" />
+            <ui:ScrollView name="CharList" class="flex-grow-1" style="margin-top: 10px;">
+                <ui:Label text="No characters found. Create one!" class="text-white-50 small" style="-unity-text-align: middle-center; margin-top: 50px;" />
+            </ui:ScrollView>
 
-        <ui:VisualElement class="panel-glass char-select-box">
-            <ui:ScrollView name="CharList" class="scroll-view-padded" />
-            <ui:Button name="BtnCreateNew" text="+ NEW CHARACTER" class="btn-primary btn-large" />
+            <ui:VisualElement style="border-top-width: 1px; border-top-color: var(--glass-border); padding-top: 10px; margin-top: 10px;">
+                <ui:Label text="Server Status: ONLINE" class="small text-success" style="-unity-text-align: middle-right;" />
+            </ui:VisualElement>
+
         </ui:VisualElement>
 
-        <ui:VisualElement name="CreatePopup" class="overlay hidden">
-            <ui:VisualElement class="panel-glass popup-box-small">
-                <ui:Label text="NEW HERO" class="popup-title" />
+        <ui:VisualElement name="CreatePopup" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; display: none;">
+            
+            <ui:VisualElement class="glass-card" style="width: 400px; background-color: var(--dark-bg);">
                 
-                <ui:TextField name="InputCharName" label="Name" class="input-field mb-20" />
-                
-                <ui:Label text="Game Mode" class="label-small mb-5" />
-                <ui:VisualElement name="ModeSelectionContainer" class="row-spaced mb-30" />
-
-                <ui:VisualElement class="row-spaced">
-                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn-secondary flex-1 h-45 mr-10" />
-                    <ui:Button name="BtnConfirmCreate" text="Create" class="btn-primary flex-1 h-45" />
+                <ui:VisualElement class="glass-card-header mb-3">
+                    <ui:Label text="CREATE NEW HERO" class="h3 text-white mb-1" />
+                    <ui:Label text="Define your identity." class="small text-white-50" />
                 </ui:VisualElement>
+
+                <ui:VisualElement class="mb-3">
+                    <ui:Label text="Character Name" class="form-label" />
+                    <ui:TextField name="InputCharName" placeholder="Enter name..." class="form-control" />
+                </ui:VisualElement>
+
+                <ui:VisualElement class="mb-4">
+                    <ui:Label text="Game Mode" class="form-label" />
+                    <ui:VisualElement name="ModeSelectionContainer" class="row">
+                        <ui:Button name="ModeSurvival" text="Survival" class="btn btn-outline-secondary col-6 mb-1" />
+                        <ui:Button name="ModeCreative" text="Creative" class="btn btn-outline-secondary col-6 mb-1" />
+                        <ui:Button name="ModeHardcore" text="Hardcore" class="btn btn-outline-secondary col-6 mb-1" />
+                        <ui:Button name="ModeAdventure" text="Adventure" class="btn btn-outline-secondary col-6 mb-1" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="row justify-content-end" style="border-top-width: 1px; border-top-color: var(--glass-border); padding-top: 15px;">
+                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn btn-outline-secondary" style="width: 100px; margin-right: 10px;" />
+                    <ui:Button name="BtnConfirmCreate" text="Create Hero" class="btn btn-primary" style="width: 120px;" />
+                </ui:VisualElement>
+
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="LoadingOverlay" class="overlay hidden">
-            <ui:Label text="ENTERING WORLD..." class="loading-text" />
+        <ui:VisualElement name="LoadingOverlay" style="position: absolute; width: 100%; height: 100%; background-color: black; align-items: center; justify-content: center; display: none;">
+            <ui:Label text="ENTERING WORLD..." class="h3 text-warning" style="letter-spacing: 3px;" />
         </ui:VisualElement>
 
     </ui:VisualElement>
