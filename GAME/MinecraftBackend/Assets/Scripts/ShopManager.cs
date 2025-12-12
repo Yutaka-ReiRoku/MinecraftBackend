@@ -10,7 +10,7 @@ public class ShopManager : MonoBehaviour
     [Header("UI Templates")]
     public VisualTreeAsset ItemTemplate;
     public VisualTreeAsset PopupTemplate;
-    public VisualTreeAsset ContextMenuTemplate;
+    public VisualTreeAsset ContextMenuTemplate; [cite_start]// [cite: 625]
 
     [Header("Effects")]
     public GameObject ConfettiPrefab;
@@ -34,9 +34,10 @@ public class ShopManager : MonoBehaviour
 
     // --- DATA CACHE ---
     private CharacterDto _currentProfile;
-    private List<InventoryDto> _fullInventory = new List<InventoryDto>();
+    private List<InventoryDto> _fullInventory = new List<InventoryDto>(); [cite_start]// [cite: 630]
 
-    // --- STATE MANAGEMENT ---
+    // --- STATE MANAGEMENT (FIXED) ---
+    // Dictionary để quản lý trạng thái Active của các nút
     private Dictionary<string, Button> _tabButtons = new Dictionary<string, Button>();
     private Dictionary<string, Button> _filterButtons = new Dictionary<string, Button>();
     private string _currentFilter = "All";
@@ -45,16 +46,12 @@ public class ShopManager : MonoBehaviour
     void OnEnable()
     {
         _uiDoc = GetComponent<UIDocument>();
-        if (_uiDoc == null)
-        {
-            Debug.LogError("[ShopManager] Missing UIDocument!");
-            return;
-        }
+        if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
         // 1. Containers
         _shopContainer = _root.Q<VisualElement>("ShopContainer");
-        _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
+        _inventoryContainer = _root.Q<VisualElement>("InventoryContainer"); [cite_start]// [cite: 632]
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
         _battleContainer = _root.Q<VisualElement>("BattleContainer");
         _baseContainer = _root.Q<VisualElement>("BaseContainer");
@@ -72,7 +69,7 @@ public class ShopManager : MonoBehaviour
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
         // 3. Tabs (Setup và lưu cache nút)
-        SetupTabButton("TabShop", "Shop");
+        SetupTabButton("TabShop", "Shop"); [cite_start]// [cite: 635]
         SetupTabButton("TabInventory", "Inventory");
         SetupTabButton("TabCraft", "Craft");
         SetupTabButton("TabBattle", "Battle");
@@ -91,8 +88,8 @@ public class ShopManager : MonoBehaviour
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
 
-        // 6. Filter Chips (Inventory)
-        SetupInvFilter("BtnFilterAll", "All");
+        // 6. Filter Chips (Setup và lưu cache nút)
+        SetupInvFilter("BtnFilterAll", "All"); [cite_start]// [cite: 640]
         SetupInvFilter("BtnFilterWep", "Weapon");
         SetupInvFilter("BtnFilterArm", "Armor");
         SetupInvFilter("BtnFilterCon", "Consumable");
@@ -144,14 +141,14 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // --- TAB SYSTEM ---
+    // --- TAB SYSTEM (FIXED) ---
 
     void SetupTabButton(string btnName, string tabName)
     {
         var btn = _root.Q<Button>(btnName);
         if (btn != null)
         {
-            _tabButtons[tabName] = btn;
+            _tabButtons[tabName] = btn; // Lưu nút vào Dictionary
             btn.clicked += () => SwitchTab(tabName);
         }
     }
@@ -161,7 +158,7 @@ public class ShopManager : MonoBehaviour
         var btn = _root.Q<Button>(btnName);
         if (btn != null)
         {
-            _filterButtons[type] = btn;
+            _filterButtons[type] = btn; // Lưu nút vào Dictionary
             btn.clicked += () => {
                 _currentFilter = type;
                 FilterInventory(type);
@@ -212,7 +209,7 @@ public class ShopManager : MonoBehaviour
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
     }
 
-    // --- API CALLS: PROFILE ---
+    // --- API CALLS ---
 
     IEnumerator LoadProfile()
     {
@@ -228,7 +225,7 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- SHOP LOGIC ---
+    // --- SHOP ---
     void ChangePage(int dir)
     {
         _currentPage += dir;
@@ -239,11 +236,8 @@ public class ShopManager : MonoBehaviour
     IEnumerator LoadShopItems(int page)
     {
         _shopScroll.Clear();
-        _shopScroll.Add(new Label("Loading Shop...") { style = { color = Color.gray, alignSelf = Align.Center } });
-
         yield return NetworkManager.Instance.SendRequest<List<ShopItemDto>>($"game/shop?page={page}&pageSize={_pageSize}", "GET", null,
             (items) => {
-                _shopScroll.Clear();
                 if (items.Count == 0 && page > 1) { _currentPage--; return; }
                 if (_pageLabel != null) _pageLabel.text = $"Page {_currentPage}";
 
@@ -253,10 +247,7 @@ public class ShopManager : MonoBehaviour
                     _shopScroll.Add(card);
                 }
             },
-            (err) => {
-                _shopScroll.Clear();
-                ToastManager.Instance.Show("Lỗi tải Shop: " + err, false);
-            }
+            (err) => ToastManager.Instance.Show("Lỗi tải Shop: " + err, false)
         );
     }
 
@@ -330,22 +321,15 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- INVENTORY (PHẦN ĐÃ ĐƯỢC SỬA LỖI) ---
-    [cite_start]// [cite: 603] Đã thêm callback báo lỗi để không bị màn hình trắng
+    // --- INVENTORY (FIXED) ---
     IEnumerator LoadInventory()
     {
-        // 1. Hiển thị trạng thái đang tải
-        _invScroll.Clear();
-        _invScroll.Add(new Label("Đang tải túi đồ...") { 
-            style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 50, fontSize = 16 } 
-        });
-
-        // 2. Gọi API lấy Inventory
+        [cite_start]// 1. Gọi API lấy Inventory [cite: 680]
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
             (items) => {
-                _fullInventory = items ?? new List<InventoryDto>();
+                _fullInventory = items;
 
-                // Cập nhật sức chứa
+                // 2. Cập nhật sức chứa
                 var capLabel = _root.Q<Label>("CapacityLabel");
                 if (capLabel != null)
                 {
@@ -353,17 +337,9 @@ public class ShopManager : MonoBehaviour
                     capLabel.style.color = (_fullInventory.Count >= GameConfig.MAX_INVENTORY_SLOTS_BASE) ? Color.red : Color.white;
                 }
 
-                // Render lại UI với bộ lọc hiện tại
+                // 3. Gọi Filter để render lại UI với bộ lọc hiện tại
                 FilterInventory(_currentFilter);
-            },
-            // [QUAN TRỌNG] Callback xử lý lỗi
-            (err) => {
-                ToastManager.Instance.Show("Lỗi tải túi đồ: " + err, false);
-                _invScroll.Clear();
-                _invScroll.Add(new Label("Lỗi kết nối.\nKhông thể tải dữ liệu.") { 
-                    style = { color = new Color(1f, 0.4f, 0.4f), alignSelf = Align.Center, paddingTop = 50, whiteSpace = WhiteSpace.Normal, unityTextAlign = TextAnchor.MiddleCenter } 
-                });
-            }
+            }, null
         );
     }
 
@@ -388,7 +364,7 @@ public class ShopManager : MonoBehaviour
             emptyLabel.style.color = Color.gray;
             emptyLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             emptyLabel.style.paddingTop = 50;
-            emptyLabel.style.fontSize = 18;
+            emptyLabel.style.fontSize = 20;
             _invScroll.Add(emptyLabel);
             return;
         }
@@ -402,35 +378,17 @@ public class ShopManager : MonoBehaviour
             StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(inv.ImageUrl));
 
             if (!string.IsNullOrEmpty(inv.Rarity)) root.AddToClassList($"rarity-{inv.Rarity.ToLower()}");
+            ui.Q<VisualElement>("price-row").style.display = DisplayStyle.None;
+            root.Add(new Label($"x{inv.Quantity}") { style = { position = Position.Absolute, bottom = 2, right = 5, fontSize = 12 } });
+            if (inv.IsEquipped) root.Add(new Label("E") { style = { position = Position.Absolute, top = 2, left = 2, backgroundColor = new Color(0, 0.8f, 0), fontSize = 10, paddingLeft = 2, paddingRight = 2 } });
             
-            // Ẩn giá tiền vì đây là Inventory
-            var priceRow = ui.Q<VisualElement>("PriceRow");
-            if(priceRow != null) priceRow.style.display = DisplayStyle.None;
+            root.userData = inv.ItemId;
 
-            // Hiển thị số lượng
-            var qtyLabel = ui.Q<Label>("QtyLabel");
-            if (qtyLabel != null)
-            {
-                qtyLabel.text = $"x{inv.Quantity}";
-                qtyLabel.style.display = DisplayStyle.Flex;
-            }
-
-            // Hiển thị trạng thái trang bị
-            var equipLabel = ui.Q<Label>("EquippedLabel");
-            if (equipLabel != null)
-            {
-                equipLabel.style.display = inv.IsEquipped ? DisplayStyle.Flex : DisplayStyle.None;
-            }
-
-            root.userData = inv.ItemId; // Lưu ID vào userData để DragManipulator dùng
-
-            // Context Menu (Chuột phải)
+            // Context Menu & Drag
             root.RegisterCallback<ClickEvent>(e => {
                 if (e.button == 1) ShowContextMenu(inv, e.position);
             });
-
-            // Kéo thả
-            root.AddManipulator(new DragManipulator(root, _root));
+            root.AddManipulator(new DragManipulator(root, _root)); [cite_start]// [cite: 689]
 
             _invScroll.Add(ui);
         }
@@ -443,11 +401,11 @@ public class ShopManager : MonoBehaviour
 
         var menu = ContextMenuTemplate.Instantiate();
         var menuRoot = menu.Q<VisualElement>("ContextMenu");
-
+        
         // Chỉnh vị trí menu không tràn màn hình
         float x = mousePos.x;
         float y = mousePos.y;
-        if (x + 160 > _root.resolvedStyle.width) x -= 160;
+        if (x + 120 > _root.resolvedStyle.width) x -= 120;
         if (y + 150 > _root.resolvedStyle.height) y -= 150;
 
         menuRoot.style.left = x;
@@ -473,8 +431,6 @@ public class ShopManager : MonoBehaviour
 
         _root.Add(menuRoot);
     }
-
-    // --- ACTIONS ---
 
     IEnumerator SellItem(string itemId, int qty)
     {
@@ -515,7 +471,6 @@ public class ShopManager : MonoBehaviour
         var list = panel.Q<ScrollView>("NotiLogList");
         list.Clear();
         list.Add(new Label("Đang tải lịch sử...") { style = { color = Color.gray } });
-
         yield return NetworkManager.Instance.SendRequest<List<TransactionDto>>("game/transactions/my", "GET", null,
             (logs) => {
                 list.Clear();
@@ -547,14 +502,10 @@ public class ShopManager : MonoBehaviour
                 var root = ui.Q<VisualElement>("ItemContainer");
                 ui.Q<Label>("ItemName").text = r.ResultItemName;
                 StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(r.ResultItemImage));
-                
                 var btn = new Button { text = $"CRAFT ({r.CraftingTime}s)" };
                 btn.AddToClassList("btn-buy");
                 btn.clicked += () => StartCoroutine(CraftProcess(r));
-                
-                var priceRow = ui.Q<VisualElement>("PriceRow");
-                if (priceRow != null) priceRow.style.display = DisplayStyle.None;
-                
+                ui.Q<VisualElement>("price-row").style.display = DisplayStyle.None;
                 root.Add(btn);
                 _craftScroll.Add(ui);
             }
