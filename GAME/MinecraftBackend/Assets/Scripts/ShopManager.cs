@@ -26,7 +26,7 @@ public class ShopManager : MonoBehaviour
     // --- BIẾN QUẢN LÝ NÚT TAB CHÍNH ---
     private Button _btnTabShop, _btnTabInv, _btnTabCraft, _btnTabBattle;
 
-    // --- BIẾN QUẢN LÝ NÚT FILTER INVENTORY (MỚI) ---
+    // --- BIẾN QUẢN LÝ NÚT FILTER INVENTORY ---
     private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
     private int _currentPage = 1;
@@ -80,7 +80,7 @@ public class ShopManager : MonoBehaviour
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
 
-        // --- Setup Inventory Filter (Đã cập nhật để lưu nút) ---
+        // --- Setup Inventory Filter ---
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
@@ -138,7 +138,6 @@ public class ShopManager : MonoBehaviour
         return btn;
     }
 
-    // [FIX] Cập nhật hàm này để trả về Button
     Button SetupInvFilter(string btnName, string type)
     {
         var btn = _root.Q<Button>(btnName);
@@ -198,9 +197,7 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // --- INVENTORY FILTER LOGIC (ĐÃ FIX VISUAL) ---
-    
-    // Hàm mới để đổi màu nút Filter
+    // --- INVENTORY FILTER LOGIC ---
     void UpdateFilterVisual(string activeType)
     {
         SetFilterStyle(_btnFilterAll, activeType == "All");
@@ -208,19 +205,16 @@ public class ShopManager : MonoBehaviour
         SetFilterStyle(_btnFilterCon, activeType == "Consumable");
     }
 
-    // Hàm helper đổi class CSS
     void SetFilterStyle(Button btn, bool isActive)
     {
         if (btn == null) return;
         if (isActive)
         {
-            // Nếu Active: Dùng style 'btn-primary' (Màu xanh)
             btn.RemoveFromClassList("btn-outline-secondary");
             btn.AddToClassList("btn-primary");
         }
         else
         {
-            // Nếu Inactive: Dùng style 'btn-outline-secondary' (Viền xám)
             btn.RemoveFromClassList("btn-primary");
             btn.AddToClassList("btn-outline-secondary");
         }
@@ -228,7 +222,6 @@ public class ShopManager : MonoBehaviour
 
     void FilterInventory(string type)
     {
-        // 1. Cập nhật giao diện nút bấm ngay lập tức
         UpdateFilterVisual(type);
 
         if (_invScroll == null) return;
@@ -275,7 +268,6 @@ public class ShopManager : MonoBehaviour
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
             (items) => { 
                 _fullInventory = items; 
-                // Mặc định khi load xong sẽ chọn All
                 FilterInventory("All"); 
             }, 
             (err) => {
@@ -302,6 +294,15 @@ public class ShopManager : MonoBehaviour
             }, null
         );
     }
+
+    // --- ĐÂY LÀ HÀM BỊ THIẾU TRONG BẢN TRƯỚC ---
+    void ChangePage(int dir)
+    {
+        _currentPage += dir;
+        if (_currentPage < 1) _currentPage = 1;
+        StartCoroutine(LoadShopItems(_currentPage));
+    }
+    // ------------------------------------------
 
     IEnumerator LoadShopItems(int page)
     {
@@ -420,7 +421,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // ... (Phần Context Menu, Sell, Use, Equip, History, Craft, Monster, Attack giữ nguyên như cũ) ...
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
@@ -558,7 +558,10 @@ public class ShopManager : MonoBehaviour
     IEnumerator AttackProcess() {
         if (_currentMonster != null) {
             if (_monsterHpBar != null) _monsterHpBar.value -= 10;
-            if (EffectsManager.Instance != null) EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
+            if (EffectsManager.Instance != null)
+            {
+                EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
+            }
         }
 
         yield return NetworkManager.Instance.SendRequest<HuntResponse>("game/hunt", "POST", null,
