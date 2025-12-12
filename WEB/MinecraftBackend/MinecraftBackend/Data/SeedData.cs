@@ -13,10 +13,7 @@ namespace MinecraftBackend.Data
             using (var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<DbContextOptions<ApplicationDbContext>>()))
             {
-                // 1. Đảm bảo Database đã được tạo
                 context.Database.EnsureCreated();
-
-                // 2. Kiểm tra nếu đã có dữ liệu thì không nạp đè
                 if (context.ShopItems.Any())
                 {
                     return; 
@@ -25,11 +22,10 @@ namespace MinecraftBackend.Data
                 Console.WriteLine(">>> Seeding Sample Data for Shop & Inventory Master Data...");
 
                 context.ShopItems.AddRange(
-                    // ==================== WEAPONS ====================
                     new ShopItem
                     {
                         ProductID = "WEP_WOODEN_SWORD",
-                        TargetItemID = "WEP_WOODEN_SWORD", // ID dùng trong Inventory
+                        TargetItemID = "WEP_WOODEN_SWORD",
                         Name = "Wooden Sword",
                         Description = "A fragile sword for beginners. 5 ATK.",
                         ImageURL = "/images/weapons/wooden_sword.png",
@@ -60,13 +56,12 @@ namespace MinecraftBackend.Data
                         Description = "Legendary blade. 50 ATK.",
                         ImageURL = "/images/weapons/diamond_sword.png",
                         PriceAmount = 50,
-                        PriceCurrency = "RES_GEM", // Mua bằng Gem
+                        PriceCurrency = "RES_GEM",
                         ItemType = "Weapon",
                         Rarity = "Legendary",
                         IsShow = true
                     },
 
-                    // ==================== ARMOR ====================
                     new ShopItem
                     {
                         ProductID = "ARM_IRON_HELMET",
@@ -94,7 +89,6 @@ namespace MinecraftBackend.Data
                         IsShow = true
                     },
 
-                    // ==================== CONSUMABLES ====================
                     new ShopItem
                     {
                         ProductID = "CON_APPLE",
@@ -135,7 +129,6 @@ namespace MinecraftBackend.Data
                         IsShow = true
                     },
 
-                    // ==================== RESOURCES ====================
                     new ShopItem
                     {
                         ProductID = "RES_DIAMOND",
@@ -163,10 +156,6 @@ namespace MinecraftBackend.Data
                         IsShow = true
                     },
 
-                    // ==================== BUNDLES / SPECIAL ====================
-                    // Ví dụ về Bundle: Mua 1 Gói (Product) nhưng nhận vật phẩm khác (TargetItem)
-                    // Ở đây demo mua hộp quà thì nhận được hộp quà vào kho. 
-                    // Logic mở hộp quà sẽ xử lý ở Client/Server sau.
                     new ShopItem
                     {
                         ProductID = "BOX_STARTER",
