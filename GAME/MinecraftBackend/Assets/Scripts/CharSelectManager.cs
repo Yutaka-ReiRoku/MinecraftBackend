@@ -13,7 +13,7 @@ public class CharSelectManager : MonoBehaviour
     private ScrollView _charList;
     private Button _btnCreateNew;
     
-    // Popup Tạo nhân vật
+    
     private VisualElement _createPopup;
     private TextField _inputName;
     private Button _btnConfirmCreate;
@@ -34,7 +34,7 @@ public class CharSelectManager : MonoBehaviour
         }
         _root = CharSelectDoc.rootVisualElement;
 
-        // Query Elements
+        
         _charList = _root.Q<ScrollView>("CharList");
         _btnCreateNew = _root.Q<Button>("BtnCreateNew");
         _createPopup = _root.Q<VisualElement>("CreatePopup");
@@ -44,20 +44,20 @@ public class CharSelectManager : MonoBehaviour
         _loadingOverlay = _root.Q<VisualElement>("LoadingOverlay");
         _modeContainer = _root.Q<VisualElement>("ModeSelectionContainer");
 
-        // --- Fix Lỗi Nhập Liệu ---
+        
         if (_inputName != null) _inputName.FixTextFieldInput();
 
-        // Bind Events
+        
         if (_btnCreateNew != null) _btnCreateNew.clicked += ShowCreatePopup;
         if (_btnCancelCreate != null) _btnCancelCreate.clicked += HideCreatePopup;
         if (_btnConfirmCreate != null) _btnConfirmCreate.clicked += OnConfirmCreate;
 
-        // Init State
+        
         HideCreatePopup();
         ToggleLoading(false);
         SetupModeSelection();
         
-        // Tải dữ liệu ngay khi bật
+        
         StartCoroutine(LoadCharacters());
     }
 
@@ -77,7 +77,7 @@ public class CharSelectManager : MonoBehaviour
 
                 if (chars == null || chars.Count == 0)
                 {
-                    // Chưa có nhân vật -> Mở popup tạo mới ngay
+                    
                     ShowCreatePopup();
                 }
                 else
@@ -85,7 +85,7 @@ public class CharSelectManager : MonoBehaviour
                     foreach (var c in chars) CreateCharButton(c);
                 }
 
-                // Giới hạn 3 nhân vật, ẩn nút tạo nếu đã đủ
+                
                 if (_btnCreateNew != null)
                 {
                     _btnCreateNew.style.display = (chars != null && chars.Count >= 3) ? DisplayStyle.None : DisplayStyle.Flex;
@@ -102,7 +102,7 @@ public class CharSelectManager : MonoBehaviour
                     _charList.Add(new Label("Failed to load data.") { style = { color = Color.red, alignSelf = Align.Center } });
                 }
                 ToggleLoading(false);
-                // Vẫn hiện nút tạo để test nếu cần
+                
                 if (_btnCreateNew != null) _btnCreateNew.style.display = DisplayStyle.Flex;
             }
         );
@@ -112,40 +112,40 @@ public class CharSelectManager : MonoBehaviour
     {
         if (_charList == null) return;
 
-        // Tạo Button chứa thông tin nhân vật (Style Responsive)
-        var btn = new Button();
-        btn.AddToClassList("panel-glass"); // Sử dụng class kính mờ có sẵn
         
-        // Override một chút style để phù hợp layout danh sách
+        var btn = new Button();
+        btn.AddToClassList("panel-glass"); 
+        
+        
         btn.style.height = 100;
         btn.style.flexDirection = FlexDirection.Row;
         btn.style.alignItems = Align.Center;
         btn.style.marginBottom = 15;
         btn.style.paddingLeft = 20;
         btn.style.paddingRight = 20;
-        // Hiệu ứng hover thủ công vì Button mặc định của Unity đôi khi ghi đè
+        
         btn.RegisterCallback<MouseEnterEvent>(e => btn.style.backgroundColor = new Color(1, 1, 1, 0.15f));
-        btn.RegisterCallback<MouseLeaveEvent>(e => btn.style.backgroundColor = new Color(0.15f, 0.15f, 0.18f, 0.8f)); // Màu gốc của panel-glass
+        btn.RegisterCallback<MouseLeaveEvent>(e => btn.style.backgroundColor = new Color(0.15f, 0.15f, 0.18f, 0.8f)); 
 
-        // 1. Avatar
+        
         var avatar = new Image();
         avatar.style.width = 70; 
         avatar.style.height = 70;
         avatar.style.marginRight = 20;
-        // Bo tròn avatar
+        
         avatar.style.borderTopLeftRadius = 35;
         avatar.style.borderTopRightRadius = 35;
         avatar.style.borderBottomLeftRadius = 35;
         avatar.style.borderBottomRightRadius = 35;
         avatar.style.borderRightWidth = 2;
         avatar.style.borderBottomWidth = 2;
-        avatar.style.borderRightColor = new Color(0, 0.8f, 1f); // Neon Blue border
+        avatar.style.borderRightColor = new Color(0, 0.8f, 1f); 
         avatar.style.borderBottomColor = new Color(0, 0.8f, 1f);
         
         StartCoroutine(avatar.LoadImage(data.AvatarUrl));
         btn.Add(avatar);
 
-        // 2. Thông tin text (Cột giữa)
+        
         var infoCol = new VisualElement();
         infoCol.style.flexGrow = 1;
         infoCol.style.justifyContent = Justify.Center;
@@ -153,7 +153,7 @@ public class CharSelectManager : MonoBehaviour
         var nameLbl = new Label(data.CharacterName);
         nameLbl.style.fontSize = 22;
         nameLbl.style.unityFontStyleAndWeight = FontStyle.Bold;
-        nameLbl.style.color = new Color(1f, 0.84f, 0f); // Gold color
+        nameLbl.style.color = new Color(1f, 0.84f, 0f); 
         
         var detailLbl = new Label($"Lv.{data.Level}  •  {data.GameMode}");
         detailLbl.style.fontSize = 14;
@@ -163,13 +163,13 @@ public class CharSelectManager : MonoBehaviour
         infoCol.Add(detailLbl);
         btn.Add(infoCol);
 
-        // 3. Mũi tên chỉ dẫn (Icon Play)
+        
         var playIcon = new Label("▶");
         playIcon.style.fontSize = 20;
         playIcon.style.color = new Color(0, 0.8f, 1f);
         btn.Add(playIcon);
 
-        // Sự kiện Click -> Vào game
+        
         btn.clicked += () => SelectCharacter(data.CharacterID);
         
         _charList.Add(btn);
@@ -177,22 +177,22 @@ public class CharSelectManager : MonoBehaviour
 
     void SelectCharacter(string charId)
     {
-        // Lưu ID nhân vật hiện tại để các scene sau biết đang chơi ai
+        
         PlayerPrefs.SetString("CurrentCharID", charId);
         PlayerPrefs.Save();
         
-        // Chuyển cảnh
+        
         SceneManager.LoadScene("GameScene");
     }
 
-    // --- POPUP LOGIC ---
+    
 
     void ShowCreatePopup()
     {
         if (_createPopup != null)
         {
             _createPopup.style.display = DisplayStyle.Flex;
-            SetupModeSelection(); // Reset mode về mặc định
+            SetupModeSelection(); 
         }
     }
 
@@ -210,16 +210,16 @@ public class CharSelectManager : MonoBehaviour
         {
             var btn = new Button();
             btn.text = mode;
-            btn.AddToClassList("btn-secondary"); // Dùng style chung
+            btn.AddToClassList("btn-secondary"); 
             btn.style.flexGrow = 1;
             btn.style.height = 40;
             
-            // Highlight mode đang chọn
+            
             if (_selectedMode == mode)
             {
-                btn.style.backgroundColor = new Color(0, 0.8f, 1f, 0.3f); // Xanh sáng
+                btn.style.backgroundColor = new Color(0, 0.8f, 1f, 0.3f); 
                 
-                // [FIX LỖI CS1061]: Thay vì btn.style.borderColor = ..., ta set từng cạnh
+                
                 Color highlightColor = new Color(0, 0.8f, 1f);
                 btn.style.borderTopColor = highlightColor;
                 btn.style.borderBottomColor = highlightColor;
@@ -231,7 +231,7 @@ public class CharSelectManager : MonoBehaviour
             
             btn.clicked += () => {
                 _selectedMode = mode;
-                SetupModeSelection(); // Re-render để cập nhật highlight
+                SetupModeSelection(); 
             };
             _modeContainer.Add(btn);
         }
@@ -242,7 +242,7 @@ public class CharSelectManager : MonoBehaviour
         string name = _inputName.value;
         if (string.IsNullOrEmpty(name)) 
         {
-            // Có thể thêm Toast báo lỗi ở đây
+            
             return;
         }
 
@@ -254,7 +254,7 @@ public class CharSelectManager : MonoBehaviour
             {
                 Debug.Log("Tạo nhân vật thành công!");
                 HideCreatePopup();
-                StartCoroutine(LoadCharacters()); // Reload danh sách
+                StartCoroutine(LoadCharacters()); 
             },
             (err) => 
             { 

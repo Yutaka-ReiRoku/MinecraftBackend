@@ -22,13 +22,13 @@ public class SettingsManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
         
-        // [FIX] Kiểm tra root null
+        
         if (_root == null) return;
 
         _popup = _root.Q<VisualElement>("SettingsPopup");
-        if (_popup == null) return; // Nếu không tìm thấy popup thì dừng, tránh lỗi
+        if (_popup == null) return; 
 
-        // 1. Setup Audio Sliders
+        
         _musicSlider = _root.Q<Slider>("MusicSlider");
         _sfxSlider = _root.Q<Slider>("SfxSlider");
         
@@ -51,7 +51,7 @@ public class SettingsManager : MonoBehaviour
             });
         }
 
-        // 2. Setup Buttons
+        
         var btnOpen = _root.Q<Button>("BtnSettings");
         if (btnOpen != null) btnOpen.clicked += ToggleSettings; 
 
@@ -61,7 +61,7 @@ public class SettingsManager : MonoBehaviour
         var btnLogout = _root.Q<Button>("BtnLogout");
         if(btnLogout != null) btnLogout.clicked += Logout;
 
-        // Change Password UI
+        
         _passChangeArea = _root.Q<VisualElement>("PassChangeArea");
         var btnTogglePass = _root.Q<Button>("BtnChangePass");
         if (btnTogglePass != null) {

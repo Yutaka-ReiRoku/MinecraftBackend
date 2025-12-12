@@ -10,7 +10,7 @@ public class HotbarManager : MonoBehaviour
     private UIDocument _uiDoc;
     private VisualElement _root;
     
-    // Mảng lưu ItemID đang được gán cho từng slot (0-8)
+    
     private string[] _assignedItemIds = new string[9];
 
     void Awake()
@@ -25,10 +25,10 @@ public class HotbarManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Gán sự kiện click cho các nút trên UI (để hỗ trợ mobile hoặc click chuột)
+        
         for (int i = 0; i < 9; i++)
         {
-            int index = i; // Capture biến cho closure
+            int index = i; 
             var btn = _root.Q<Button>($"Hotbar{index + 1}");
             if (btn != null)
             {
@@ -39,7 +39,7 @@ public class HotbarManager : MonoBehaviour
 
     void Update()
     {
-        // Lắng nghe phím tắt bàn phím (1-9)
+        
         if (Input.GetKeyDown(KeyCode.Alpha1)) UseSlot(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) UseSlot(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) UseSlot(2);
@@ -51,27 +51,27 @@ public class HotbarManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha9)) UseSlot(8);
     }
 
-    /// <summary>
-    /// Được gọi từ DragManipulator khi người chơi thả Item vào ô Hotbar
-    /// </summary>
+    
+    
+    
     public void AssignSlot(int index, string itemId, StyleBackground icon)
     {
         if (index < 0 || index >= 9) return;
 
-        // 1. Lưu dữ liệu
+        
         _assignedItemIds[index] = itemId;
 
-        // 2. Cập nhật UI
+        
         var btn = _root.Q<Button>($"Hotbar{index + 1}");
         if (btn != null)
         {
             btn.style.backgroundImage = icon;
             
-            // Ẩn số thứ tự hoặc text cũ đi để hiện icon rõ hơn
+            
             var label = btn.Q<Label>();
             if (label != null) label.style.display = DisplayStyle.None;
 
-            // Hiệu ứng nảy nhẹ báo hiệu gán thành công
+            
             btn.style.scale = new Scale(Vector3.one * 1.2f);
             btn.schedule.Execute(() => btn.style.scale = new Scale(Vector3.one)).ExecuteLater(150);
         }
@@ -80,33 +80,33 @@ public class HotbarManager : MonoBehaviour
         ToastManager.Instance.Show($"Đã gán vào phím số {index + 1}", true);
     }
 
-    /// <summary>
-    /// Kích hoạt vật phẩm trong slot
-    /// </summary>
+    
+    
+    
     public void UseSlot(int index)
     {
         if (index < 0 || index >= 9) return;
 
-        // 1. Hiệu ứng Visual (Sáng viền lên)
+        
         var btn = _root.Q<Button>($"Hotbar{index + 1}");
         if (btn != null)
         {
-            // Thêm class highlight (định nghĩa trong USS: border-color: yellow)
+            
             btn.AddToClassList("hotbar-active");
             btn.schedule.Execute(() => btn.RemoveFromClassList("hotbar-active")).ExecuteLater(200);
         }
 
-        // 2. Logic Sử dụng
+        
         string itemId = _assignedItemIds[index];
         if (string.IsNullOrEmpty(itemId)) return;
 
-        // Tìm ShopManager để thực hiện hành động (vì ShopManager nắm giữ logic API)
-        // [FIX] Thay FindObjectOfType bằng FindFirstObjectByType để sửa Warning CS0618
+        
+        
         var shopManager = Object.FindFirstObjectByType<ShopManager>();
         
         if (shopManager != null)
         {
-            // Gọi hàm UseItemFromHotbar bên ShopManager
+            
             shopManager.UseItemFromHotbar(itemId);
         }
     }

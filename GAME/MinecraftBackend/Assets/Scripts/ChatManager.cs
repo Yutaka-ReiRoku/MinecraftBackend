@@ -30,17 +30,17 @@ public class ChatManager : MonoBehaviour
         _chatHistory = _root.Q<ScrollView>("ChatHistory");
         _chatInput = _root.Q<TextField>("ChatInput");
 
-        // --- [FIX] ÁP DỤNG VÁ LỖI NHẬP LIỆU ---
+        
         if (_chatInput != null)
         {
-            _chatInput.FixTextFieldInput(); // Fix lỗi crash khi nhập
+            _chatInput.FixTextFieldInput(); 
             
             _chatInput.RegisterCallback<KeyDownEvent>(evt => 
             {
                 if (evt.keyCode == KeyCode.Return) SendChat();
             });
         }
-        // ---------------------------------------
+        
 
         StartCoroutine(ChatLoop());
     }

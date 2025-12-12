@@ -37,7 +37,7 @@ public class ShopManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Containers
+        
         _shopContainer = _root.Q<VisualElement>("ShopContainer");
         _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
@@ -47,7 +47,7 @@ public class ShopManager : MonoBehaviour
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
 
-        // Stats
+        
         _goldLabel = _root.Q<Label>("ShopGold");
         _gemLabel = _root.Q<Label>("ShopGem");
         _hpBar = _root.Q<ProgressBar>("HpBar");
@@ -55,13 +55,13 @@ public class ShopManager : MonoBehaviour
         _expBar = _root.Q<ProgressBar>("ExpBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // Tabs
+        
         SetupTabButton("TabShop", "Shop");
         SetupTabButton("TabInventory", "Inventory");
         SetupTabButton("TabCraft", "Craft");
         SetupTabButton("TabBattle", "Battle");
 
-        // Buttons
+        
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
@@ -484,12 +484,12 @@ public class ShopManager : MonoBehaviour
         yield break; 
     }
 
-    // [FIX] Cập nhật hàm AttackProcess để kiểm tra null an toàn
+    
     IEnumerator AttackProcess() {
         if (_currentMonster != null) {
             if (_monsterHpBar != null) _monsterHpBar.value -= 10; 
             
-            // [FIX] Kiểm tra EffectsManager trước khi gọi để tránh crash nếu quên tạo
+            
             if (EffectsManager.Instance != null)
             {
                 EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);

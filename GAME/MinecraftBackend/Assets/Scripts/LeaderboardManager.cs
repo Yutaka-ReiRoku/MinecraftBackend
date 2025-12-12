@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class LeaderboardManager : MonoBehaviour
 {
-    // DTO nhận dữ liệu
+    
     [System.Serializable]
     public class LeaderboardEntryDto
     {
@@ -29,7 +29,7 @@ public class LeaderboardManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Query Elements
+        
         _popup = _root.Q<VisualElement>("LeaderboardPopup");
         
         if (_popup == null) return;
@@ -47,8 +47,8 @@ public class LeaderboardManager : MonoBehaviour
         _popup.style.display = DisplayStyle.Flex;
         StartCoroutine(LoadLeaderboardData());
         
-        // [FIXED] Xóa animation cũ gây lỗi StyleValues/Easing
-        // Chỉ cần scale về 1 để hiển thị
+        
+        
         _popup.style.scale = new Scale(Vector3.one);
     }
 
@@ -82,7 +82,7 @@ public class LeaderboardManager : MonoBehaviour
             var entry = entries[i];
             int rank = i + 1;
 
-            // Tạo Row
+            
             var row = new VisualElement();
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems = Align.Center;
@@ -92,20 +92,20 @@ public class LeaderboardManager : MonoBehaviour
             row.style.paddingRight = 10;
             row.style.backgroundColor = new Color(0, 0, 0, 0.3f);
             
-            // [FIXED] Sửa lỗi borderRadius (Set 4 góc)
+            
             row.style.borderTopLeftRadius = 5;
             row.style.borderTopRightRadius = 5;
             row.style.borderBottomLeftRadius = 5;
             row.style.borderBottomRightRadius = 5;
 
-            // Màu sắc Top 3
+            
             if (rank == 1) row.style.borderLeftColor = Color.yellow;
-            else if (rank == 2) row.style.borderLeftColor = Color.gray; // Bạc
-            else if (rank == 3) row.style.borderLeftColor = new Color(0.8f, 0.5f, 0.2f); // Đồng
+            else if (rank == 2) row.style.borderLeftColor = Color.gray; 
+            else if (rank == 3) row.style.borderLeftColor = new Color(0.8f, 0.5f, 0.2f); 
             
             if (rank <= 3) row.style.borderLeftWidth = 4;
 
-            // 1. Rank Number
+            
             var lblRank = new Label($"#{rank}");
             lblRank.style.width = 40;
             lblRank.style.fontSize = 18;
@@ -113,12 +113,12 @@ public class LeaderboardManager : MonoBehaviour
             lblRank.style.color = (rank == 1) ? Color.yellow : Color.white;
             row.Add(lblRank);
 
-            // 2. Avatar
+            
             var avatar = new Image();
             avatar.style.width = 40; avatar.style.height = 40;
             avatar.style.marginRight = 10;
             
-            // [FIXED] Sửa lỗi borderRadius cho Avatar (Tròn)
+            
             avatar.style.borderTopLeftRadius = 20;
             avatar.style.borderTopRightRadius = 20;
             avatar.style.borderBottomLeftRadius = 20;
@@ -127,16 +127,16 @@ public class LeaderboardManager : MonoBehaviour
             StartCoroutine(avatar.LoadImage(entry.AvatarUrl));
             row.Add(avatar);
 
-            // 3. Name
+            
             var lblName = new Label(entry.DisplayName);
             lblName.style.flexGrow = 1;
             lblName.style.fontSize = 14;
             lblName.style.unityTextAlign = TextAnchor.MiddleLeft;
             row.Add(lblName);
 
-            // 4. Level
+            
             var lblLv = new Label($"Lv.{entry.Level}");
-            lblLv.style.color = new Color(0.2f, 1f, 0.4f); // Xanh lá
+            lblLv.style.color = new Color(0.2f, 1f, 0.4f); 
             lblLv.style.fontSize = 14;
             row.Add(lblLv);
 

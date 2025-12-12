@@ -9,19 +9,19 @@ public class WikiManager : MonoBehaviour
     private UIDocument _uiDoc;
     private VisualElement _root;
     
-    // UI Elements
+    
     private VisualElement _wikiPopup;
     private ScrollView _wikiGrid;
     private Button _btnClose;
-    private Button _btnOpenWiki; // Nút mở trên HUD
+    private Button _btnOpenWiki; 
 
-    // Tabs
+    
     private Button _tabItems;
     private Button _tabMobs;
     
-    // Data Cache - Sử dụng đúng class WikiEntryDto trong GameModels.cs
+    
     private List<WikiEntryDto> _allEntries = new List<WikiEntryDto>();
-    private string _currentTab = "ITEM"; // "ITEM" hoặc "MONSTER"
+    private string _currentTab = "ITEM"; 
 
     void Start()
     {
@@ -29,7 +29,7 @@ public class WikiManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Query UI
+        
         _wikiPopup = _root.Q<VisualElement>("WikiPopup");
         _wikiGrid = _root.Q<ScrollView>("WikiGrid");
         
@@ -39,14 +39,14 @@ public class WikiManager : MonoBehaviour
         _btnOpenWiki = _root.Q<Button>("BtnWiki");
         if (_btnOpenWiki != null) _btnOpenWiki.clicked += OpenWiki;
 
-        // Tabs
+        
         _tabItems = _root.Q<Button>("TabWikiItems");
         _tabMobs = _root.Q<Button>("TabWikiMobs");
 
         if (_tabItems != null) _tabItems.clicked += () => SwitchTab("ITEM");
         if (_tabMobs != null) _tabMobs.clicked += () => SwitchTab("MONSTER");
         
-        // Ẩn mặc định
+        
         if (_wikiPopup != null) _wikiPopup.style.display = DisplayStyle.None;
     }
 
@@ -54,8 +54,8 @@ public class WikiManager : MonoBehaviour
     {
         if (_wikiPopup == null) return;
         
-        // [FIX] Xóa Animation StyleValues/Easing gây lỗi
-        // Chỉ đơn giản là hiện Popup lên
+        
+        
         _wikiPopup.style.display = DisplayStyle.Flex;
         
         StartCoroutine(LoadWikiData());
@@ -69,7 +69,7 @@ public class WikiManager : MonoBehaviour
     void SwitchTab(string type)
     {
         _currentTab = type;
-        // Update UI Tabs (Highlight active tab)
+        
         if (_tabItems != null) _tabItems.EnableInClassList("active-tab", type == "ITEM");
         if (_tabMobs != null) _tabMobs.EnableInClassList("active-tab", type == "MONSTER");
 
@@ -84,12 +84,12 @@ public class WikiManager : MonoBehaviour
             _wikiGrid.Add(new Label("Đang tải dữ liệu...") { style = { color = Color.white, alignSelf = Align.Center, marginTop = 50 } });
         }
 
-        // Gọi API lấy toàn bộ dữ liệu Wiki
-        // Sử dụng WikiEntryDto đã định nghĩa trong GameModels.cs
+        
+        
         yield return NetworkManager.Instance.SendRequest<List<WikiEntryDto>>("game/wiki", "GET", null,
             (data) => {
                 _allEntries = data;
-                SwitchTab("ITEM"); // Mặc định hiển thị Item trước
+                SwitchTab("ITEM"); 
             },
             (err) => {
                 if (_wikiGrid != null)
@@ -106,7 +106,7 @@ public class WikiManager : MonoBehaviour
         if (_wikiGrid == null) return;
         _wikiGrid.Clear();
 
-        // Lọc dữ liệu theo Tab
+        
         var filteredList = _currentTab == "MONSTER" 
             ? _allEntries.Where(x => x.Type == "MONSTER" || x.Type == "Monster").ToList()
             : _allEntries.Where(x => x.Type != "MONSTER" && x.Type != "Monster").ToList();
@@ -119,7 +119,7 @@ public class WikiManager : MonoBehaviour
 
         foreach (var entry in filteredList)
         {
-            // Tạo Card UI
+            
             var card = new VisualElement();
             card.style.width = 100;
             card.style.height = 130;
@@ -127,7 +127,7 @@ public class WikiManager : MonoBehaviour
             card.style.marginBottom = 10;
             card.style.backgroundColor = new Color(0, 0, 0, 0.5f);
             
-            // [FIX] Sửa lỗi CS1061: Set border từng cạnh thay vì set gộp
+            
             card.style.borderTopWidth = 1;
             card.style.borderBottomWidth = 1;
             card.style.borderLeftWidth = 1;
@@ -146,26 +146,26 @@ public class WikiManager : MonoBehaviour
             card.style.alignItems = Align.Center;
             card.style.paddingTop = 10;
 
-            // Ảnh Item
+            
             var img = new Image();
             img.style.width = 64; 
             img.style.height = 64;
             img.style.marginBottom = 5;
 
-            // Tên Item
+            
             var lbl = new Label(entry.Name);
             lbl.style.fontSize = 10;
             lbl.style.whiteSpace = WhiteSpace.Normal;
             lbl.style.unityTextAlign = TextAnchor.MiddleCenter;
             lbl.style.color = Color.white;
 
-            // Logic Mở khóa
+            
             if (entry.IsUnlocked)
             {
-                // Đã mở khóa: Load ảnh màu, viền xanh
+                
                 StartCoroutine(img.LoadImage(entry.ProductImage));
                 
-                // Highlight viền xanh
+                
                 card.style.borderTopColor = new Color(0, 0.8f, 1f);
                 card.style.borderBottomColor = new Color(0, 0.8f, 1f);
                 card.style.borderLeftColor = new Color(0, 0.8f, 1f);
@@ -173,7 +173,7 @@ public class WikiManager : MonoBehaviour
             }
             else
             {
-                // Chưa mở khóa: Load ảnh nhưng tint đen, tên ???
+                
                 StartCoroutine(img.LoadImage(entry.ProductImage));
                 img.style.unityBackgroundImageTintColor = Color.black; 
                 lbl.text = "???";
@@ -183,7 +183,7 @@ public class WikiManager : MonoBehaviour
             card.Add(img);
             card.Add(lbl);
 
-            // Tooltip khi hover (nếu đã mở khóa)
+            
             if (entry.IsUnlocked)
             {
                 card.RegisterCallback<MouseEnterEvent>(e => {

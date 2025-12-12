@@ -5,7 +5,7 @@ public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance;
 
-    // Lưu vị trí gốc của Camera để trả về sau khi rung xong
+    
     private Vector3 _originalPos;
     private Transform _transform;
 
@@ -18,14 +18,14 @@ public class CameraShake : MonoBehaviour
         _originalPos = _transform.localPosition;
     }
 
-    /// <summary>
-    /// Kích hoạt hiệu ứng rung
-    /// </summary>
-    /// <param name="duration">Thời gian rung (giây)</param>
-    /// <param name="magnitude">Độ mạnh (0.1 - 1.0)</param>
+    
+    
+    
+    
+    
     public void Shake(float duration, float magnitude)
     {
-        StopAllCoroutines(); // Dừng rung cũ nếu có
+        StopAllCoroutines(); 
         StartCoroutine(ShakeRoutine(duration, magnitude));
     }
 
@@ -35,8 +35,8 @@ public class CameraShake : MonoBehaviour
 
         while (elapsed < duration)
         {
-            // Tạo vị trí ngẫu nhiên trong hình cầu bán kính = magnitude
-            // Chỉ rung trục X và Y để giữ Z (độ sâu) ổn định cho game 2D/UI
+            
+            
             float x = Random.Range(-1f, 1f) * magnitude;
             float y = Random.Range(-1f, 1f) * magnitude;
 
@@ -44,10 +44,10 @@ public class CameraShake : MonoBehaviour
 
             elapsed += Time.deltaTime;
 
-            yield return null; // Chờ frame tiếp theo
+            yield return null; 
         }
 
-        // Trả về vị trí cũ
+        
         _transform.localPosition = _originalPos;
     }
 }
