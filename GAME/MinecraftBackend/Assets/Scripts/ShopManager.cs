@@ -12,8 +12,6 @@ public class ShopManager : MonoBehaviour
     public VisualTreeAsset PopupTemplate;
     public VisualTreeAsset ContextMenuTemplate;
     
-    [Header("Effects")]
-    public GameObject ConfettiPrefab;
 
     private UIDocument _uiDoc;
     private VisualElement _root;
