@@ -17,7 +17,6 @@ public class ShopManager : MonoBehaviour
 
     private UIDocument _uiDoc;
     private VisualElement _root;
-    
     private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer;
     private ScrollView _shopScroll, _invScroll, _craftScroll;
     private Label _goldLabel, _gemLabel, _playerLevelLabel;
@@ -61,7 +60,6 @@ public class ShopManager : MonoBehaviour
         SetupTabButton("TabCraft", "Craft");
         SetupTabButton("TabBattle", "Battle");
 
-        
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
@@ -99,7 +97,8 @@ public class ShopManager : MonoBehaviour
         if (_inventoryContainer != null && _inventoryContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadInventory());
     }
 
-    void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId)); }
+    void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId));
+    }
 
     public void UseItemFromHotbar(string itemId)
     {
@@ -139,10 +138,14 @@ public class ShopManager : MonoBehaviour
         UpdateTabVisual("TabCraft", tabName == "Craft");
         UpdateTabVisual("TabBattle", tabName == "Battle");
 
-        if (tabName == "Shop") { _shopContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadShopItems(_currentPage)); }
-        else if (tabName == "Inventory") { _inventoryContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadInventory()); }
-        else if (tabName == "Craft") { _craftContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadRecipes()); }
-        else if (tabName == "Battle") { _battleContainer.style.display = DisplayStyle.Flex; StartCoroutine(SpawnMonster()); }
+        if (tabName == "Shop") { _shopContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadShopItems(_currentPage));
+        }
+        else if (tabName == "Inventory") { _inventoryContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadInventory());
+        }
+        else if (tabName == "Craft") { _craftContainer.style.display = DisplayStyle.Flex; StartCoroutine(LoadRecipes());
+        }
+        else if (tabName == "Battle") { _battleContainer.style.display = DisplayStyle.Flex; StartCoroutine(SpawnMonster());
+        }
         
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
     }
@@ -168,6 +171,7 @@ public class ShopManager : MonoBehaviour
                 if (_staminaBar != null) _staminaBar.value = res.Hunger;
                 if (_playerLevelLabel != null) _playerLevelLabel.text = $"Lv.{res.Level}";
             }, null
+        
         );
     }
 
@@ -193,6 +197,7 @@ public class ShopManager : MonoBehaviour
                 foreach (var item in items) {
                     var card = CreateItemCard(item);
                     _shopScroll.Add(card);
+              
                 }
             },
             (err) => ToastManager.Instance.Show("Lỗi tải Shop: " + err, false)
@@ -227,19 +232,19 @@ public class ShopManager : MonoBehaviour
 
     void ShowDetailPopup(ShopItemDto item)
     {
-        if (PopupTemplate == null) { Debug.LogError("Chưa gán Popup Template!"); return; }
+        if (PopupTemplate == null) { Debug.LogError("Chưa gán Popup Template!");
+        return; }
 
         var popup = PopupTemplate.Instantiate();
         var overlay = popup.Q<VisualElement>("DetailOverlay");
-        
-        if (overlay == null) { Debug.LogError("Không tìm thấy 'DetailOverlay'!"); return; }
+        if (overlay == null) { Debug.LogError("Không tìm thấy 'DetailOverlay'!"); return;
+        }
 
         overlay.style.position = Position.Absolute;
         overlay.style.width = Length.Percent(100);
         overlay.style.height = Length.Percent(100);
         
         _root.Add(overlay);
-
         var lblName = overlay.Q<Label>("DetailName");
         if (lblName != null) lblName.text = item.Name;
 
@@ -260,7 +265,6 @@ public class ShopManager : MonoBehaviour
                 lblTotal.text = $"Total: {total:N0} {(item.PriceCurrency == "RES_GOLD" ? "G" : "💎")}";
             }
         };
-
         var btnPlus = overlay.Q<Button>("BtnPlus");
         if (btnPlus != null) btnPlus.clicked += () => { qty++; UpdatePrice(); };
 
@@ -294,7 +298,8 @@ public class ShopManager : MonoBehaviour
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("success");
                 GameEvents.TriggerCurrencyChanged();
             },
-            (err) => ToastManager.Instance.Show(err, false)
+            (err) => ToastManager.Instance.Show(err, 
+            false)
         );
     }
 
@@ -303,14 +308,14 @@ public class ShopManager : MonoBehaviour
         if (_invScroll == null) yield break;
         _invScroll.Clear();
         _invScroll.Add(new Label("Loading Inventory...") { style = { color = Color.gray, alignSelf = Align.Center } });
-
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
             (items) => { 
                 _fullInventory = items; 
                 FilterInventory("All"); 
             }, 
             (err) => {
-                if (_invScroll != null) {
+                if (_invScroll 
+                    != null) {
                     _invScroll.Clear();
                     _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red } });
                 }
@@ -323,7 +328,6 @@ public class ShopManager : MonoBehaviour
         if (_invScroll == null) return;
         _invScroll.Clear();
         var list = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
-        
         if (list.Count == 0)
         {
             _invScroll.Add(new Label("Túi đồ trống.") { style = { color = Color.white, marginTop = 20, alignSelf = Align.Center } });
@@ -338,7 +342,12 @@ public class ShopManager : MonoBehaviour
             StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(inv.ImageUrl));
             
             if (!string.IsNullOrEmpty(inv.Rarity)) root.AddToClassList($"rarity-{inv.Rarity.ToLower()}");
-            ui.Q<VisualElement>("price-row").style.display = DisplayStyle.None;
+            
+            // --- FIX TÊN ELEMENT TẠI ĐÂY ---
+            var priceRow = ui.Q<VisualElement>("PriceRow"); // Đã sửa từ "price-row" thành "PriceRow"
+            if (priceRow != null) priceRow.style.display = DisplayStyle.None;
+            // -------------------------------
+
             root.Add(new Label($"x{inv.Quantity}") { style = { position = Position.Absolute, bottom = 2, right = 5, fontSize = 12 } });
             if (inv.IsEquipped) root.Add(new Label("E") { style = { position = Position.Absolute, top = 2, left = 2, backgroundColor = Color.green, fontSize = 10 } });
             root.userData = inv.ItemId;
@@ -367,7 +376,6 @@ public class ShopManager : MonoBehaviour
         menuRoot.style.left = x;
         menuRoot.style.top = y;
         menuRoot.style.display = DisplayStyle.Flex;
-
         menu.Q<Button>("BtnCtxUse").clicked += () => { 
             if (inv.Type == "Consumable") StartCoroutine(UseItem(inv.ItemId));
             else StartCoroutine(EquipItem(inv.ItemId));
@@ -397,7 +405,8 @@ public class ShopManager : MonoBehaviour
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("coins");
                 GameEvents.TriggerCurrencyChanged();
             },
-            (err) => ToastManager.Instance.Show("Lỗi bán hàng: " + err, false)
+            (err) => 
+            ToastManager.Instance.Show("Lỗi bán hàng: " + err, false)
         );
     }
 
@@ -431,23 +440,25 @@ public class ShopManager : MonoBehaviour
                 list.Clear();
                 if (logs.Count == 0) list.Add(new Label("Chưa có giao dịch nào.") { style = { color = Color.white } });
                 
+                
                 foreach(var log in logs) {
                     string currencySymbol = (log.Currency == "RES_GEM") ? "💎" : "G";
                     var row = new Label($"[{log.Date}] {log.Action} ({log.Amount} {currencySymbol})");
                     row.style.color = log.Amount >= 0 ? Color.green : new Color(1f, 0.4f, 0.4f);
+         
                     row.style.borderBottomWidth = 1;
                     row.style.borderBottomColor = new Color(1,1,1,0.1f);
                     list.Add(row);
                 }
             },
-            (err) => { list.Clear(); list.Add(new Label("Lỗi tải: " + err)); }
+            (err) => { list.Clear(); 
+            list.Add(new Label("Lỗi tải: " + err)); }
         );
     }
 
     IEnumerator LoadRecipes() { 
         _craftScroll.Clear();
         _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray } });
-
         yield return NetworkManager.Instance.SendRequest<List<RecipeDto>>("game/recipes", "GET", null, (recipes) => {
              _craftScroll.Clear();
              if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white } });
@@ -460,7 +471,12 @@ public class ShopManager : MonoBehaviour
                  var btn = new Button { text = $"CRAFT ({r.CraftingTime}s)" };
                  btn.AddToClassList("btn-buy");
                  btn.clicked += () => StartCoroutine(CraftProcess(r));
-                 ui.Q<VisualElement>("price-row").style.display = DisplayStyle.None;
+                 
+                 // --- FIX TÊN ELEMENT TẠI ĐÂY ---
+                 var priceRow = ui.Q<VisualElement>("PriceRow"); // Đã sửa từ "price-row" thành "PriceRow"
+                 if(priceRow != null) priceRow.style.display = DisplayStyle.None;
+                 // -------------------------------
+
                  root.Add(btn);
                  _craftScroll.Add(ui);
              }
@@ -487,9 +503,7 @@ public class ShopManager : MonoBehaviour
     
     IEnumerator AttackProcess() {
         if (_currentMonster != null) {
-            if (_monsterHpBar != null) _monsterHpBar.value -= 10; 
-            
-            
+            if (_monsterHpBar != null) _monsterHpBar.value -= 10;
             if (EffectsManager.Instance != null)
             {
                 EffectsManager.Instance.ShowDamage(_btnAttack.worldBound.center, 10, false);
@@ -501,6 +515,7 @@ public class ShopManager : MonoBehaviour
                 ToastManager.Instance.Show($"Damage dealt! +{res.GoldEarned}G", true);
                 if(res.LevelUp) ToastManager.Instance.Show("LEVEL UP!", true);
                 GameEvents.TriggerCurrencyChanged();
+            
             }, null
         );
     }
