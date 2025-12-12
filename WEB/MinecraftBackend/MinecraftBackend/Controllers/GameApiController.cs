@@ -395,21 +395,22 @@ namespace MinecraftBackend.Controllers
         [HttpGet("recipes")]
         public IActionResult GetRecipes() => Ok(new List<object> { new { RecipeId = "R1", ResultItemName = "Iron Sword", ResultItemImage = "/images/weapons/iron_sword.png", CraftingTime = 3 } });
 
-        // [QUAN TRỌNG] Đã sửa logic: Thêm item vào Database thật sự
         [HttpPost("craft/{recipeId}")]
         public async Task<IActionResult> CraftItem(string recipeId)
         {
-            // 1. Xác định vật phẩm đích (Hiện tại Hardcode cho demo)
+            // 1. Xác định vật phẩm cần chế tạo (Hardcode logic cho R1 = Kiếm Sắt)
             string targetItemId = "";
+
             if (recipeId == "R1") targetItemId = "WEP_IRON_SWORD";
 
-            if (string.IsNullOrEmpty(targetItemId)) return BadRequest(new { message = "Recipe not found" });
+            if (string.IsNullOrEmpty(targetItemId))
+                return BadRequest(new { message = "Không tìm thấy công thức này!" });
 
             var profile = await GetCurrentProfile();
             if (profile == null) return Unauthorized();
 
-            // 2. Thêm vật phẩm vào kho (Inventories Table)
-            // Lưu ý: Ở đây chưa check nguyên liệu đầu vào để test cho dễ
+            // 2. Thêm vật phẩm vào kho đồ (Database)
+            // Lưu ý: Code này chưa trừ nguyên liệu để bạn test cho dễ
             _context.Inventories.Add(new GameInventory
             {
                 InventoryId = Guid.NewGuid().ToString(),
@@ -418,16 +419,16 @@ namespace MinecraftBackend.Controllers
                 Quantity = 1,
                 AcquiredDate = DateTime.Now,
                 IsEquipped = false,
-                CurrentDurability = 100, // Durability mặc định
+                CurrentDurability = 100,
                 UpgradeLevel = 0
             });
 
-            // 3. Ghi log giao dịch
+            // 3. Ghi lại lịch sử giao dịch để kiểm tra
             _context.Transactions.Add(new Transaction
             {
                 UserId = profile.UserId,
                 ActionType = "CRAFT",
-                Details = $"Crafted item {targetItemId}",
+                Details = $"Chế tạo thành công: {targetItemId}",
                 Amount = 0,
                 CurrencyType = "NONE",
                 CreatedAt = DateTime.Now
@@ -436,7 +437,7 @@ namespace MinecraftBackend.Controllers
             // 4. Lưu thay đổi xuống Database
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Crafted successfully!" });
+            return Ok(new { message = "Chế tạo thành công!" });
         }
 
         [HttpGet("transactions/my")]
