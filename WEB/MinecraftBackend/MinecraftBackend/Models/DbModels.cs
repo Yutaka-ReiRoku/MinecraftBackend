@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MinecraftBackend.Models
 {
-    // 1. Bảng Users
     public class User
     {
         [Key]
@@ -16,7 +15,6 @@ namespace MinecraftBackend.Models
         public DateTime CreatedAt { get; set; }
     }
 
-    // 2. Bảng Profile
     public class PlayerProfile
     {
         [Key]
@@ -42,8 +40,6 @@ namespace MinecraftBackend.Models
         public int LoginStreak { get; set; } = 0;
         public DateTime? LastLoginDate { get; set; }
     }
-
-    // 3. Bảng Shop
     public class ShopItem
     {
         [Key]
@@ -59,7 +55,6 @@ namespace MinecraftBackend.Models
         public bool IsShow { get; set; } = true;
     }
 
-    // 4. Bảng Inventory
     public class GameInventory
     {
         [Key]
@@ -75,20 +70,14 @@ namespace MinecraftBackend.Models
         public DateTime AcquiredDate { get; set; }
     }
 
-    // 5. Bảng Transactions
     public class Transaction
     {
         [Key]
         public int Id { get; set; }
-        
         public string UserId { get; set; }
         public string ActionType { get; set; }
         public string Details { get; set; }
-        
-        // [FIXED] Thêm dấu '?' để cho phép Null
-        // Vì giao dịch nạp tiền/tặng vàng sẽ không có ItemId
-        public string? ItemId { get; set; } 
-        
+        public string? ItemId { get; set; }
         public string CurrencyType { get; set; }
         public int Amount { get; set; }
         public DateTime CreatedAt { get; set; }

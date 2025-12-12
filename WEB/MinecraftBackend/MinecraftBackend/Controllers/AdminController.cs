@@ -16,7 +16,7 @@ namespace MinecraftBackend.Controllers
             _env = env;
         }
 
-        // ==================== 1. DASHBOARD ====================
+        
         public async Task<IActionResult> Dashboard()
         {
             ViewBag.TotalItems = await _context.ShopItems.CountAsync();
@@ -30,53 +30,53 @@ namespace MinecraftBackend.Controllers
         .Select(i => DateTime.Today.AddDays(-6 + i))
         .ToList();
 
-            // 2. Lấy dữ liệu từ DB: Nhóm theo ngày và đếm số giao dịch
+            
             var transactionCounts = new List<int>();
 
             foreach (var date in last7Days)
             {
-                // Đếm số transaction trong ngày đó
+                
                 int count = await _context.Transactions
                     .Where(t => t.CreatedAt.Date == date)
                     .CountAsync();
                 transactionCounts.Add(count);
             }
 
-            // 3. Ép kiểu dữ liệu để gửi sang View
+            
             ViewBag.ChartLabels = string.Join(",", last7Days.Select(d => d.ToString("dd/MM")));
             ViewBag.ChartData = string.Join(",", transactionCounts);
 
             return View();
         }
 
-        // ==================== 2. SHOP ITEMS (CRUD) ====================
+        
 
-        // [CẬP NHẬT] Thêm phân trang (Pagination) để đạt điểm tối đa
-        // [CẬP NHẬT] Thêm tham số sortOrder
+        
+        
         public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "")
         {
             int pageSize = 10;
 
-            // 1. Thiết lập tham số sắp xếp cho View (Logic: Bấm lần đầu -> Tăng dần, Bấm lần nữa -> Giảm dần)
+            
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
             ViewBag.StatusSortParm = sortOrder == "Status" ? "status_desc" : "Status";
 
-            // Lưu trạng thái hiện tại để giữ nguyên khi chuyển trang
+            
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
 
             var query = _context.ShopItems.AsQueryable();
 
-            // 2. Logic Tìm kiếm (Giữ nguyên bản đã fix chữ hoa/thường)
+            
             if (!string.IsNullOrEmpty(search))
             {
                 string term = search.ToLower();
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            // 3. Logic Sắp xếp (Mới)
+            
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
@@ -86,10 +86,10 @@ namespace MinecraftBackend.Controllers
                 "price_desc" => query.OrderByDescending(s => s.PriceAmount),
                 "Status" => query.OrderBy(s => s.IsShow),
                 "status_desc" => query.OrderByDescending(s => s.IsShow),
-                _ => query.OrderBy(s => s.Name), // Mặc định sắp xếp theo tên A-Z
+                _ => query.OrderBy(s => s.Name), 
             };
 
-            // 4. Phân trang (Giữ nguyên)
+            
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
@@ -107,7 +107,7 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateItem(ShopItem item, IFormFile? imageFile)
         {
-            // Security: Chặn giá âm
+            
             if (item.PriceAmount < 0)
             {
                 ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
@@ -148,28 +148,28 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> EditItem(ShopItem item, IFormFile? imageFile)
         {
-            // 1. Xóa các lỗi Validation không cần thiết để tránh việc Form bị chặn lại
-            // (Vì ImageURL có thể null lúc submit, ta sẽ xử lý gán lại ở dưới)
+            
+            
             ModelState.Remove("ImageURL");
             ModelState.Remove("TargetItemID");
 
-            // 2. Validate nghiệp vụ: Chặn giá tiền âm
+            
             if (item.PriceAmount < 0)
             {
                 ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
                 return View(item);
             }
 
-            // 3. Tìm sản phẩm cũ trong DB để lấy thông tin ảnh cũ
-            // Dùng AsNoTracking() để tránh lỗi conflict khi Update entity
+            
+            
             var existing = await _context.ShopItems.AsNoTracking()
                                          .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
             
             if (existing == null) return NotFound();
 
-            // 4. Xử lý ảnh: 
-            // - Nếu có file mới -> Lưu file mới
-            // - Nếu không có file -> Giữ nguyên URL ảnh cũ
+            
+            
+            
             if (imageFile != null) 
             {
                 item.ImageURL = await SaveImage(imageFile, item.ItemType);
@@ -179,13 +179,13 @@ namespace MinecraftBackend.Controllers
                 item.ImageURL = existing.ImageURL;
             }
 
-            // 5. Xử lý TargetItemID (Nếu bỏ trống thì lấy luôn ProductID)
+            
             if (string.IsNullOrEmpty(item.TargetItemID)) 
             {
                 item.TargetItemID = item.ProductID;
             }
 
-            // 6. Lưu vào Database
+            
             if (ModelState.IsValid)
             {
                 _context.ShopItems.Update(item);
@@ -193,7 +193,7 @@ namespace MinecraftBackend.Controllers
                 return RedirectToAction("Items");
             }
 
-            // Nếu vẫn còn lỗi khác thì trả về View để sửa
+            
             return View(item);
         }
 
@@ -208,52 +208,52 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("Items");
         }
 
-        // ==================== 3. USERS & GM TOOLS ====================
+        
         public async Task<IActionResult> Users()
         {
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
             return View(users);
         }
 		
-		// --- 1. Hiển thị form tạo User ---
+		
         [HttpGet]
         public IActionResult CreateUser()
         {
             return View();
         }
 
-        // --- 2. Xử lý tạo User & Profile mặc định ---
+        
         [HttpPost]
         public async Task<IActionResult> CreateUser(string username, string email, string password)
         {
-            // Validate cơ bản
+            
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 ModelState.AddModelError("", "Vui lòng nhập đủ thông tin!");
                 return View();
             }
 
-            // Kiểm tra trùng lặp
+            
             if (await _context.Users.AnyAsync(u => u.Email == email || u.Username == username))
             {
                 ModelState.AddModelError("", "Email hoặc Username đã tồn tại!");
                 return View();
             }
 
-            // A. Tạo User
+            
             var newUser = new User
             {
                 Id = Guid.NewGuid().ToString(),
                 Username = username,
                 Email = email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), // Mã hóa pass
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), 
                 Role = "User",
                 Status = "Active",
                 CreatedAt = DateTime.Now
             };
             _context.Users.Add(newUser);
 
-            // B. Tạo Profile Game mặc định (Level 1, có tiền khởi nghiệp)
+            
             var newProfile = new PlayerProfile
             {
                 CharacterID = Guid.NewGuid().ToString(),
@@ -261,7 +261,7 @@ namespace MinecraftBackend.Controllers
                 DisplayName = username,
                 Level = 1,
                 Exp = 0,
-                Gold = 2000, // Admin tạo thì ưu đãi cho 2000 vàng
+                Gold = 2000, 
                 Gem = 50,
                 Health = 100,
                 MaxHealth = 100,
@@ -271,7 +271,7 @@ namespace MinecraftBackend.Controllers
             };
             _context.PlayerProfiles.Add(newProfile);
 
-            // C. Lưu Database
+            
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Users");
@@ -295,7 +295,7 @@ namespace MinecraftBackend.Controllers
 
         public async Task<IActionResult> EditUser(string id)
         {
-            // Tìm theo UserId vì id truyền vào từ Users/UserDetails là UserId
+            
             var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == id);
             if (profile == null) return NotFound();
             return View(profile);
@@ -307,31 +307,31 @@ namespace MinecraftBackend.Controllers
             var existing = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == profile.CharacterID);
             if (existing == null) return NotFound();
 
-            // --- 1. XỬ LÝ UPLOAD ẢNH AVATAR ---
+            
             if (avatarFile != null)
             {
-                // Tạo đường dẫn lưu vào thư mục /images/avatars/
+                
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
 
-                // Đảm bảo thư mục tồn tại
+                
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-                // Tạo tên file độc nhất để tránh trùng
+                
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + avatarFile.FileName;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                // Lưu file vật lý
+                
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await avatarFile.CopyToAsync(fileStream);
                 }
 
-                // Cập nhật URL mới vào Database
+                
                 existing.AvatarUrl = $"/images/avatars/{uniqueFileName}";
             }
-            // Nếu không upload ảnh mới thì giữ nguyên URL cũ
+            
 
-            // --- 2. CẬP NHẬT THÔNG TIN KHÁC ---
+            
             existing.DisplayName = profile.DisplayName;
             existing.Level = profile.Level;
             existing.Gold = profile.Gold;
@@ -365,7 +365,7 @@ namespace MinecraftBackend.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user != null)
             {
-                // Mã hóa mật khẩu mới và lưu đè lên mật khẩu cũ
+                
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = $"Đã đổi mật khẩu cho user: {user.Username}";
@@ -426,7 +426,7 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        // ==================== 4. SYSTEM LOGS ====================
+        
         public async Task<IActionResult> Logs(string type = "All", string userId = "", string date = "")
         {
             var query = _context.Transactions.AsQueryable();
@@ -441,7 +441,7 @@ namespace MinecraftBackend.Controllers
             return View(await query.OrderByDescending(l => l.CreatedAt).Take(100).ToListAsync());
         }
 
-        // ==================== 5. TOOLS ====================
+        
         public IActionResult Simulator() => View(_context.PlayerProfiles.Include(p => p.User).ToList());
         public IActionResult TestApi() => View();
 
@@ -454,16 +454,16 @@ namespace MinecraftBackend.Controllers
         }
 		
 		
-		// --- BỔ SUNG CÁC HÀM CÒN THIẾU ---
+		
 
         [HttpPost]
         public async Task<IActionResult> FactoryReset()
         {
-            // Xóa sạch dữ liệu chơi để reset server
+            
             _context.Inventories.RemoveRange(_context.Inventories);
             _context.Transactions.RemoveRange(_context.Transactions);
             
-            // Reset chỉ số người chơi về mặc định
+            
             var profiles = await _context.PlayerProfiles.ToListAsync();
             foreach (var p in profiles)
             {
@@ -472,7 +472,7 @@ namespace MinecraftBackend.Controllers
                 p.Level = 1;
                 p.Exp = 0;
                 p.Health = 100;
-                // Không xóa User để tránh lỗi đăng nhập
+                
             }
 
             await _context.SaveChangesAsync();
@@ -483,7 +483,7 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public IActionResult UpdateMOTD(string msg)
         {
-            // Demo: Thông báo Server (Thực tế nên lưu vào DB)
+            
             TempData["Message"] = $"Đã cập nhật thông báo Server: {msg}";
             return RedirectToAction("Dashboard");
         }

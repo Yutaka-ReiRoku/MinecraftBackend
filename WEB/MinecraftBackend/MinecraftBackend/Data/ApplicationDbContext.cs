@@ -8,8 +8,6 @@ namespace MinecraftBackend.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-
-        // --- BỘ 5 BẢNG CHUẨN ---
         public DbSet<User> Users { get; set; }
         public DbSet<PlayerProfile> PlayerProfiles { get; set; }
         public DbSet<ShopItem> ShopItems { get; set; }
