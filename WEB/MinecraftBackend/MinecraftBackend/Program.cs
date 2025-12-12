@@ -6,14 +6,10 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ==================== 1. SERVICES CONFIGURATION ====================
-
-// A. Kết nối Database (SQLite)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=minecraft.db";
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
-// B. Cấu hình JWT Authentication
 var tokenKey = builder.Configuration.GetSection("AppSettings:Token").Value;
 if (string.IsNullOrEmpty(tokenKey))
 {
@@ -31,8 +27,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = false
         };
     });
-
-// C. Cấu hình CORS (Cho phép mọi nguồn kết nối - Quan trọng cho Unity WebGL/Editor)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -46,19 +40,16 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllersWithViews();
 
-// ==================== 2. APP BUILD ====================
-
 var app = builder.Build();
 
-// D. SEED DATA (Tự động nạp dữ liệu mẫu)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate(); // Tạo DB tự động
-        SeedData.Initialize(services); // Nạp Item mẫu
+        context.Database.Migrate();
+        SeedData.Initialize(services);
         Console.WriteLine(">>> Database Initialized & Seeded Successfully!");
     }
     catch (Exception ex)
@@ -67,23 +58,16 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ==================== 3. MIDDLEWARE PIPELINE ====================
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // Chỉ bật HSTS khi deploy thật
-    // app.UseHsts(); 
 }
 
-// [FIX] TẮT HTTPS REDIRECTION ĐỂ TRÁNH LỖI SSL TRONG UNITY EDITOR
-// app.UseHttpsRedirection(); 
-
-app.UseStaticFiles(); // Cho phép tải ảnh từ wwwroot
+app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("AllowAll"); // Phải đặt giữa Routing và Auth
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

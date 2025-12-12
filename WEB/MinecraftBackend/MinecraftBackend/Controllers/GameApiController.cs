@@ -16,7 +16,7 @@ namespace MinecraftBackend.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // --- MOCK DATA ---
+  
         private static List<ChatMessageDto> _globalChat = new List<ChatMessageDto>();
         private static List<MailDto> _mockMails = new List<MailDto>();
         private static Dictionary<string, DateTime> _lastCheckin = new Dictionary<string, DateTime>();
@@ -25,7 +25,7 @@ namespace MinecraftBackend.Controllers
         {
             _context = context;
 
-            // Mock mail mẫu nếu chưa có
+      
             if (_mockMails.Count == 0)
             {
                 _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEP_IRON_SWORD", AttachedItemName = "Iron Sword", AttachedAmount = 1 });
@@ -37,16 +37,16 @@ namespace MinecraftBackend.Controllers
         {
             string userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             
-            // Hỗ trợ header X-Character-ID để xác định nhân vật đang chơi
+      
             if (Request.Headers.TryGetValue("X-Character-ID", out var charIdStr))
             {
                 return await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId && p.CharacterID == charIdStr.ToString());
             }
-            // Mặc định lấy profile đầu tiên nếu không truyền header
+      
             return await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
         }
 
-        // ==================== 1. CORE GAMEPLAY APIs ====================
+  
 
         [HttpGet("profile/me")]
         public async Task<IActionResult> GetProfile()
@@ -125,7 +125,7 @@ namespace MinecraftBackend.Controllers
                 profile.Gem -= totalCost;
             }
 
-            // Logic cộng dồn item vào kho
+      
             var existingItem = await _context.Inventories.FirstOrDefaultAsync(i => i.UserId == profile.UserId && i.ItemID == product.TargetItemID);
             if (existingItem != null) 
             {
@@ -143,7 +143,7 @@ namespace MinecraftBackend.Controllers
                 });
             }
 
-            // Ghi Log giao dịch
+      
             _context.Transactions.Add(new Transaction 
             { 
                 UserId = profile.UserId, 
@@ -159,25 +159,25 @@ namespace MinecraftBackend.Controllers
             return Ok(new { message = "Purchase successful", newBalance = (product.PriceCurrency == "RES_GOLD" ? profile.Gold : profile.Gem) });
         }
 
-        // [MỚI] API Bán vật phẩm
+  
         [HttpPost("sell")]
         public async Task<IActionResult> SellItem([FromBody] BuyRequestDto req) 
         {
-            // Tái sử dụng BuyRequestDto: ProductId ở đây sẽ là ItemId trong kho
+      
             if (req.Quantity <= 0) return BadRequest("Invalid quantity.");
 
             var profile = await GetCurrentProfile();
             if (profile == null) return Unauthorized();
 
-            // Tìm item trong kho
+      
             var inventoryItem = await _context.Inventories.FirstOrDefaultAsync(i => i.UserId == profile.UserId && i.ItemID == req.ProductId);
             if (inventoryItem == null || inventoryItem.Quantity < req.Quantity) 
             {
                 return BadRequest("Not enough item quantity to sell.");
             }
 
-            // Tìm thông tin giá gốc từ Shop (dùng TargetItemID để map ngược lại)
-            // Nếu item không có trong shop, mặc định giá bán là 10 Gold
+      
+      
             var shopInfo = await _context.ShopItems.FirstOrDefaultAsync(s => s.TargetItemID == req.ProductId);
             
             int unitPrice = 10; 
@@ -185,25 +185,25 @@ namespace MinecraftBackend.Controllers
 
             if (shopInfo != null)
             {
-                // Giá bán lại = 50% giá mua
+          
                 unitPrice = Math.Max(1, shopInfo.PriceAmount / 2);
                 currency = shopInfo.PriceCurrency;
             }
 
             int totalEarn = unitPrice * req.Quantity;
 
-            // Cộng tiền
+      
             if (currency == "RES_GOLD") profile.Gold += totalEarn;
             else profile.Gem += totalEarn;
 
-            // Trừ kho
+      
             inventoryItem.Quantity -= req.Quantity;
             if (inventoryItem.Quantity <= 0)
             {
                 _context.Inventories.Remove(inventoryItem);
             }
 
-            // Ghi log
+      
              _context.Transactions.Add(new Transaction 
             { 
                 UserId = profile.UserId, 
@@ -230,7 +230,7 @@ namespace MinecraftBackend.Controllers
 
             foreach (var inv in invItems)
             {
-                // Join thủ công với ShopItem để lấy ảnh và tên đẹp
+          
                 var meta = await _context.ShopItems.FirstOrDefaultAsync(s => s.TargetItemID == inv.ItemID);
                 
                 result.Add(new InventoryDto
@@ -259,11 +259,11 @@ namespace MinecraftBackend.Controllers
             
             if (inv == null || inv.Quantity < 1) return BadRequest("Item not found");
             
-            // Logic tiêu thụ
+      
             inv.Quantity--;
             if (inv.Quantity <= 0) _context.Inventories.Remove(inv);
 
-            // Logic hồi phục (Hardcode demo)
+      
             profile.Health = Math.Min(profile.Health + 20, profile.MaxHealth);
             
             await _context.SaveChangesAsync();
@@ -278,15 +278,15 @@ namespace MinecraftBackend.Controllers
             
             if (inv == null) return BadRequest("Item not found");
 
-            // Nếu đang trang bị -> Tháo ra
+      
             if (inv.IsEquipped)
             {
                 inv.IsEquipped = false;
             }
             else
             {
-                // Nếu chưa trang bị -> Tìm các món cùng loại đang trang bị để tháo ra trước (nếu muốn logic xịn)
-                // Ở đây cho phép đơn giản: Toggle trạng thái
+          
+          
                 inv.IsEquipped = true;
             }
             
@@ -294,14 +294,14 @@ namespace MinecraftBackend.Controllers
             return Ok(new { message = inv.IsEquipped ? "Equipped" : "Unequipped" });
         }
 
-        // --- SOCIAL & FEATURES ---
+  
 
         [HttpGet("leaderboard")]
         public async Task<IActionResult> GetLeaderboard() 
         {
             var list = await _context.PlayerProfiles
                 .OrderByDescending(p => p.Level)
-                .ThenByDescending(p => p.Gold) // Xếp theo Level rồi đến Vàng
+                .ThenByDescending(p => p.
                 .Take(10)
                 .Select(p => new LeaderboardEntryDto 
                 { 
@@ -327,9 +327,9 @@ namespace MinecraftBackend.Controllers
             
             var profile = await GetCurrentProfile();
             
-            // Nhận quà
+      
             if (mail.AttachedItemId == "RES_GOLD") profile.Gold += mail.AttachedAmount;
-            // (Mở rộng thêm logic nhận item vào kho ở đây nếu cần)
+      
 
             mail.IsClaimed = true; 
             mail.IsRead = true;
@@ -348,7 +348,7 @@ namespace MinecraftBackend.Controllers
             var msg = new ChatMessageDto { Sender = profile.DisplayName, Content = dto.Msg, Time = DateTime.Now.ToString("HH:mm") };
             _globalChat.Add(msg);
             
-            // Giữ lại 100 tin nhắn gần nhất để không tốn RAM server
+      
             if (_globalChat.Count > 100) _globalChat.RemoveAt(0);
             
             return Ok(msg);
@@ -371,7 +371,7 @@ namespace MinecraftBackend.Controllers
         { 
             var p = await GetCurrentProfile();
             p.Gold += 500; 
-            // Logic Streak có thể thêm vào DB sau
+      
             await _context.SaveChangesAsync(); 
             return Ok(new DailyCheckinResponse { Message = "+500G", Gold = 500, Streak = 1 });
         }
@@ -401,7 +401,7 @@ namespace MinecraftBackend.Controllers
         [HttpPost("craft/{recipeId}")]
         public async Task<IActionResult> CraftItem(string recipeId) 
         { 
-            await Task.Delay(100); // Giả lập thời gian
+            await Task.Delay(
             return Ok(new { message = "Crafted" }); 
         }
 
@@ -427,7 +427,7 @@ namespace MinecraftBackend.Controllers
             return Ok(logs);
         }
 
-        // ==================== 2. ADMIN SIMULATOR APIs (Cho công cụ Admin Test) ====================
+  
         [AllowAnonymous] 
         [HttpPost("sim/buy")] 
         public async Task<IActionResult> SimBuy(string charId, string prodId) 

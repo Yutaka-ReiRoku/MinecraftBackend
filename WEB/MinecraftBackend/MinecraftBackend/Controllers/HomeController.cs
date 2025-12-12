@@ -15,7 +15,6 @@ namespace MinecraftBackend.Controllers
 
         public IActionResult Index()
         {
-            // Mặc định chuyển hướng người dùng vào trang Admin Dashboard
             return RedirectToAction("Dashboard", "Admin");
         }
 
@@ -23,8 +22,6 @@ namespace MinecraftBackend.Controllers
         {
             return View();
         }
-
-        // Action xử lý lỗi hệ thống
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
