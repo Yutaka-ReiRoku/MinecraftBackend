@@ -82,7 +82,7 @@
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="HotbarContainer" class="flex-row justify-content-center align-items-center" style="position: absolute; bottom: 20px; left: 0; right: 0; height: 80px;">
+        <ui:VisualElement name="HotbarContainer" class="flex-row justify-content-center align-items-center" style="position: absolute; bottom: 20px; left: 0; right: 0; height: 80px; display: none; visibility: hidden; overflow: hidden;">
             <ui:VisualElement class="glass-card flex-row p-2 mb-0" style="background-color: rgba(0, 0, 0, 0.8); border-radius: 15px; display: none; visibility: hidden; overflow: hidden;">
                 <ui:Button name="Hotbar1" text="1" class="btn btn-outline-secondary me-1" style="width: 60px; height: 60px; font-size: 20px;" />
                 <ui:Button name="Hotbar2" text="2" class="btn btn-outline-secondary me-1" style="width: 60px; height: 60px; font-size: 20px;" />
