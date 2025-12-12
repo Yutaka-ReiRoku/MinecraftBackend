@@ -164,7 +164,7 @@
                         <a asp-action="Items" 
                            asp-route-page="@i" 
                            asp-route-search="@ViewBag.CurrentSearch"
-                           asp-route-sortOrder="@ViewBag.CurrentSort" @* <-- THÊM DÒNG NÀY *@
+                           asp-route-sortOrder="@ViewBag.CurrentSort" 
                            class="btn btn-sm @(i == ViewBag.CurrentPage ? "btn-info fw-bold" : "btn-outline-secondary text-white-50")">
                            @i
                         </a>
@@ -178,7 +178,7 @@
                 <a asp-action="Items" 
                    asp-route-page="@(ViewBag.CurrentPage + 1)" 
                    asp-route-search="@ViewBag.CurrentSearch"
-                   asp-route-sortOrder="@ViewBag.CurrentSort" @* <-- THÊM DÒNG NÀY *@
+                   asp-route-sortOrder="@ViewBag.CurrentSort" 
                    class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
                     Next <i class="fas fa-chevron-right ms-1"></i>
                 </a>
