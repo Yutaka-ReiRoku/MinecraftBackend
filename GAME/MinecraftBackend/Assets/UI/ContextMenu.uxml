@@ -8,19 +8,18 @@
         </ui:Button>
         
         <ui:Button name="BtnCtxSell" class="btn btn-outline-secondary mb-1" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
-            <ui:Label text="$ Sell One" style="font-size: 12px; color: var(--secondary-color);" />
+            <ui:Label text="$ Sell One" style="font-size: 12px; color: rgb(255, 193, 7);" />
         </ui:Button>
         
         <ui:Button name="BtnCtxSellAll" class="btn btn-outline-secondary mb-1" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
-            <ui:Label text="$$ Sell Stack" style="font-size: 12px; color: var(--secondary-color);" />
+            <ui:Label text="$$ Sell Stack" style="font-size: 12px; color: rgb(255, 193, 7);" />
         </ui:Button>
         
         <ui:VisualElement style="height: 1px; background-color: rgba(255,255,255,0.1); margin: 4px 2px;" />
         
         <ui:Button name="BtnCtxCancel" class="btn btn-outline-secondary" style="border-width: 0; text-align: left; height: 35px; justify-content: flex-start; padding-left: 10px; border-radius: 4px;">
-             <ui:Label text="✕ Cancel" style="font-size: 12px; color: var(--danger-color);" />
+             <ui:Label text="✕ Cancel" style="font-size: 12px; color: rgb(220, 53, 69);" />
         </ui:Button>
         
     </ui:VisualElement>
-
 </ui:UXML>

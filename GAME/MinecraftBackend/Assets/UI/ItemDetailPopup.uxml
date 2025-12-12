@@ -11,8 +11,7 @@
             </ui:VisualElement>
 
             <ui:ScrollView class="flex-grow-1 p-3">
-                
-                <ui:VisualElement class="align-items-center justify-content-center mb-3 p-3" style="background-color: rgba(0,0,0,0.3); border-radius: 10px; border-width: 1px; border-color: var(--glass-border);">
+                <ui:VisualElement class="align-items-center justify-content-center mb-3 p-3" style="background-color: rgba(0,0,0,0.3); border-radius: 10px; border-width: 1px; border-color: rgba(255, 255, 255, 0.1);">
                     <ui:Image name="DetailImage" style="width: 120px; height: 120px; -unity-background-scale-mode: scale-to-fit;" />
                 </ui:VisualElement>
 
@@ -31,14 +30,11 @@
                         <ui:Label text="1500 / 1500" class="h5 text-success" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-
             </ui:ScrollView>
 
-            <ui:VisualElement class="p-3" style="background-color: rgba(0,0,0,0.4); border-top-width: 1px; border-top-color: var(--glass-border);">
-                
+            <ui:VisualElement class="p-3" style="background-color: rgba(0,0,0,0.4); border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.1);">
                 <ui:VisualElement class="flex-row justify-content-between align-items-center mb-3">
                     <ui:Label text="QUANTITY" class="small text-white-50 fw-bold" />
-                    
                     <ui:VisualElement class="flex-row align-items-center" style="background-color: rgba(0,0,0,0.5); border-radius: 5px; border-width: 1px; border-color: #555;">
                         <ui:Button name="BtnMinus" text="-" class="btn btn-outline-secondary" style="width: 35px; height: 30px; border-width: 0;" />
                         <ui:Label name="LblQuantity" text="1" class="h5 text-white" style="width: 40px; -unity-text-align: middle-center;" />
@@ -55,7 +51,6 @@
                     <ui:Button name="BtnCloseDetail" text="Cancel" class="btn btn-outline-secondary flex-grow-1 me-2" />
                     <ui:Button name="BtnConfirmBuy" text="CONFIRM PURCHASE" class="btn btn-success flex-grow-1" style="flex-grow: 2;" />
                 </ui:VisualElement>
-            
             </ui:VisualElement>
 
         </ui:VisualElement>

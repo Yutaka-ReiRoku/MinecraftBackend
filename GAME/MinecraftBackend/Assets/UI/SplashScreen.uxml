@@ -4,8 +4,8 @@
     <ui:VisualElement name="ScreenContainer" class="screen-container align-items-center justify-content-center" style="background-color: #0f1012;">
         
         <ui:VisualElement class="align-items-center mb-4">
-             <ui:VisualElement style="width: 80px; height: 80px; background-color: transparent; border-width: 4px; border-color: var(--primary-color); transform-origin: center; rotate: 45deg; margin-bottom: 30px;">
-                <ui:VisualElement style="width: 50%; height: 50%; background-color: var(--primary-color); margin: 25%;" />
+             <ui:VisualElement style="width: 80px; height: 80px; background-color: transparent; border-width: 4px; border-color: rgb(0, 210, 255); transform-origin: center; rotate: 45deg; margin-bottom: 30px;">
+                <ui:VisualElement style="width: 50%; height: 50%; background-color: rgb(0, 210, 255); margin: 25%;" />
             </ui:VisualElement>
 
             <ui:Label text="MINECRAFT RPG" class="h3 text-white" style="font-size: 40px; letter-spacing: 5px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);" />
@@ -16,7 +16,7 @@
             <ui:Label text="LOADING RESOURCES..." class="small text-white-50 mb-2" style="-unity-text-align: middle-center;" />
             
             <ui:VisualElement style="height: 4px; width: 100%; background-color: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
-                <ui:VisualElement name="LoadingBar" style="height: 100%; width: 50%; background-color: var(--primary-color); border-radius: 2px;" />
+                <ui:VisualElement name="LoadingBar" style="height: 100%; width: 50%; background-color: rgb(0, 210, 255); border-radius: 2px;" />
             </ui:VisualElement>
             
             <ui:Label name="LoadingTipLabel" text="Tip: You can craft items in the Crafting tab." class="small text-white-50 mt-3" style="-unity-text-align: middle-center; font-style: italic;" />
