@@ -3,10 +3,17 @@
 @{
     ViewData["Title"] = "System Logs";
     var activityTypes = ViewBag.Types as List<string>;
+    
+    // Lấy giá trị filter hiện tại
+    string currentType = ViewBag.CurrentType as string ?? "";
+    string currentUserId = ViewBag.CurrentUserId as string ?? "";
+    string currentDate = ViewBag.CurrentDate as string ?? "";
+    string currentSearch = ViewBag.CurrentSearch as string ?? "";
+    string currentCurrency = ViewBag.CurrentCurrency as string ?? "";
 }
 
 <div class="glass-card">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="text-white mb-0"><i class="fas fa-history text-info me-2"></i>Transaction History</h2>
             <p class="text-white-50 small mb-0">Monitor server economy and player activities.</p>
@@ -14,114 +21,217 @@
         <a asp-action="Logs" class="btn btn-outline-light btn-sm"><i class="fas fa-sync me-1"></i> Refresh</a>
     </div>
 
-    <form method="get" class="row g-3 mb-4 p-3 bg-black bg-opacity-25 rounded border border-secondary">
-        <div class="col-md-3">
-            <label class="form-label small text-info fw-bold">Action Type</label>
-            <select name="type" class="form-select bg-dark text-white border-secondary">
-                <option value="All">All Actions</option>
-                @if (activityTypes != null)
-                {
-                    foreach (var t in activityTypes)
-                    {
-                        <option value="@t" selected="@(Context.Request.Query["type"] == t)">@t</option>
-                    }
-                }
-            </select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-info fw-bold">User ID</label>
-            <input type="text" name="userId" class="form-control bg-dark text-white border-secondary" placeholder="Filter by User ID..." value="@Context.Request.Query["userId"]" />
-        </div>
-        <div class="col-md-3">
-            <label class="form-label small text-info fw-bold">Date</label>
-            <input type="date" name="date" class="form-control bg-dark text-white border-secondary" value="@Context.Request.Query["date"]" />
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <button type="submit" class="btn btn-info w-100 fw-bold"><i class="fas fa-filter me-2"></i> Apply Filters</button>
-        </div>
-    </form>
+    <form method="get" id="filterForm" action="@Url.Action("Logs")">
+        <input type="hidden" name="sortOrder" value="@ViewBag.CurrentSort" />
 
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 text-white font-monospace small">
-            <thead class="bg-white bg-opacity-10 text-uppercase text-info border-bottom border-info">
-                <tr>
-                    <th style="width: 15%;">Created At</th> <th style="width: 20%;">User / Character</th>
-                    <th style="width: 10%;">Action</th>
-                    <th style="width: 30%;">Details & Item</th>
-                    <th style="width: 15%;">Amount & Currency</th> </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
-                {
-                    foreach (var log in Model)
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-white font-monospace small">
+                <thead class="bg-white bg-opacity-10 text-uppercase text-info border-bottom border-info">
+                    <tr>
+                        <th style="width: 15%;">
+                            <a href="#" onclick="setSort('@ViewBag.DateSortParm'); return false;" class="text-decoration-none text-info">
+                                Created At <i class="fas fa-sort ms-1"></i>
+                            </a>
+                        </th>
+                        <th style="width: 20%;">
+                            <a href="#" onclick="setSort('@ViewBag.UserSortParm'); return false;" class="text-decoration-none text-info">
+                                User / Char <i class="fas fa-sort ms-1"></i>
+                            </a>
+                        </th>
+                        <th style="width: 12%;">
+                            <a href="#" onclick="setSort('@ViewBag.ActionSortParm'); return false;" class="text-decoration-none text-info">
+                                Action <i class="fas fa-sort ms-1"></i>
+                            </a>
+                        </th>
+                        <th style="width: 33%;">Details & Item Ref</th>
+                        <th style="width: 20%;">
+                            <a href="#" onclick="setSort('@ViewBag.AmountSortParm'); return false;" class="text-decoration-none text-info">
+                                Amount <i class="fas fa-sort ms-1"></i>
+                            </a>
+                        </th>
+                    </tr>
+
+                    <tr class="bg-dark bg-opacity-25">
+                        <td class="py-2">
+                            <input type="date" name="date" class="form-control form-control-sm bg-light text-dark border-0" 
+                                   value="@currentDate" onchange="this.form.submit()">
+                        </td>
+                        <td class="py-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-secondary border-0"><i class="fas fa-user"></i></span>
+                                <input type="text" name="userId" class="form-control bg-light text-dark border-0" 
+                                       placeholder="User ID..." value="@currentUserId" onkeydown="if(event.keyCode==13) this.form.submit()">
+                            </div>
+                        </td>
+                        <td class="py-2">
+                            <select name="type" class="form-select form-select-sm bg-light text-dark border-0" onchange="this.form.submit()">
+                                <option value="">- All -</option>
+                                @if (activityTypes != null)
+                                {
+                                    foreach (var t in activityTypes)
+                                    {
+                                        <!option value="@t" @(currentType == t ? "selected" : "")>@t</!option>
+                                    }
+                                }
+                            </select>
+                        </td>
+                        <td class="py-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light text-secondary border-0"><i class="fas fa-search"></i></span>
+                                <input type="text" name="search" class="form-control bg-light text-dark border-0" 
+                                       placeholder="Search details / item..." value="@currentSearch" onkeydown="if(event.keyCode==13) this.form.submit()">
+                            </div>
+                        </td>
+                        <td class="py-2">
+                            <div class="d-flex gap-1">
+                                <select name="currency" class="form-select form-select-sm bg-light text-dark border-0" onchange="this.form.submit()">
+                                    <option value="">All</option>
+                                    <!option value="RES_GOLD" @(currentCurrency == "RES_GOLD" ? "selected" : "")>Gold</!option>
+                                    <!option value="RES_GEM" @(currentCurrency == "RES_GEM" ? "selected" : "")>Gem</!option>
+                                </select>
+                                
+                                <button type="submit" class="btn btn-sm btn-info text-white" title="Apply">
+                                    <i class="fas fa-filter"></i>
+                                </button>
+                                <a asp-action="Logs" class="btn btn-sm btn-secondary" title="Reset">
+                                    <i class="fas fa-undo"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var log in Model)
+                        {
+                            <tr>
+                                <td class="text-white-50">@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <a asp-action="UserDetails" asp-route-id="@log.UserId" class="text-decoration-none text-warning fw-bold">
+                                        <i class="fas fa-user-circle me-1"></i> 
+                                        @{
+                                            var displayUser = log.UserId.Length > 8 ? log.UserId.Substring(0, 8) + "..." : log.UserId;
+                                        }
+                                        @displayUser
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (log.ActionType == "TRANSACTION" || log.ActionType == "BUY") 
+                                    { <span class="badge bg-success bg-opacity-75 w-100">SALE</span> }
+                                    else if (log.ActionType == "CRAFT" || log.ActionType == "BUILD") 
+                                    { <span class="badge bg-primary bg-opacity-75 w-100">@log.ActionType</span> }
+                                    else if (log.ActionType == "GIFT") 
+                                    { <span class="badge bg-warning text-dark w-100">ADMIN GIFT</span> }
+                                    else if (log.ActionType == "LOGIN" || log.ActionType == "REGISTER")
+                                    { <span class="badge bg-secondary bg-opacity-50 w-100">AUTH</span> }
+                                    else 
+                                    { <span class="badge bg-secondary bg-opacity-75 w-100">@log.ActionType</span> }
+                                </td>
+                                <td>
+                                    <div class="text-white text-wrap" style="max-width: 350px;">@log.Details</div>
+                                    @if (!string.IsNullOrEmpty(log.ItemId))
+                                    {
+                                        <div class="text-info small mt-1 opacity-75">
+                                            <i class="fas fa-tag me-1"></i>Ref: @log.ItemId
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (log.Amount != 0)
+                                    {
+                                        bool isPositive = log.Amount > 0;
+                                        string colorClass = isPositive ? "text-success" : "text-danger";
+                                        string icon = log.CurrencyType == "RES_GEM" ? "far fa-gem" : "fas fa-coins";
+                                        string currColor = log.CurrencyType == "RES_GEM" ? "text-info" : "text-warning";
+
+                                        <div class="@colorClass fw-bold d-flex align-items-center">
+                                            <span class="me-1">@(isPositive ? "+" : "")@log.Amount.ToString("N0")</span>
+                                            <span class="@currColor small">
+                                                <i class="@icon"></i> @(log.CurrencyType == "RES_GEM" ? "Gem" : "Gold")
+                                            </span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">- No Value -</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
                     {
                         <tr>
-                            <td class="text-white-50">@log.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>
-                                <a asp-action="UserDetails" asp-route-id="@log.UserId" class="text-decoration-none text-warning">
-                                    <i class="fas fa-user-circle me-1"></i> @log.UserId.Substring(0, Math.Min(8, log.UserId.Length))...
-                                </a>
-                            </td>
-                            <td>
-                                @if (log.ActionType == "TRANSACTION" || log.ActionType == "BUY") 
-                                { 
-                                    <span class="badge bg-success bg-opacity-75 w-100">TRANSACTION</span> 
-                                }
-                                else if (log.ActionType == "CRAFT" || log.ActionType == "BUILD") 
-                                { 
-                                    <span class="badge bg-primary bg-opacity-75 w-100">@log.ActionType</span> 
-                                }
-                                else if (log.ActionType == "GIFT") 
-                                { 
-                                    <span class="badge bg-warning text-dark w-100">GM GIFT</span> 
-                                }
-                                else 
-                                { 
-                                    <span class="badge bg-secondary bg-opacity-75 w-100">@log.ActionType</span> 
-                                }
-                            </td>
-                            <td>
-                                <div class="text-white">@log.Details</div>
-                                @if (!string.IsNullOrEmpty(log.ItemId))
-                                {
-                                    <div class="text-info small mt-1 opacity-75">
-                                        <i class="fas fa-tag me-1"></i>Ref: @log.ItemId
-                                    </div>
-                                }
-                            </td>
-                            <td>
-                                @if (log.Amount != 0)
-                                {
-                                    bool isPositive = log.Amount > 0;
-                                    string colorClass = isPositive ? "text-success" : "text-danger";
-                                    string icon = log.CurrencyType == "RES_GEM" ? "far fa-gem" : "fas fa-coins";
-                                    string currColor = log.CurrencyType == "RES_GEM" ? "text-info" : "text-warning";
-
-                                    <div class="@colorClass fw-bold">
-                                        @(isPositive ? "+" : "")@log.Amount
-                                        <span class="@currColor ms-1" style="font-size: 0.9em;">
-                                            <i class="@icon"></i> @(log.CurrencyType == "RES_GEM" ? "Gem" : "Gold")
-                                        </span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">-</span>
-                                }
+                            <td colspan="5" class="text-center py-5 text-black-50">
+                                <i class="fas fa-search-dollar fa-3x mb-3 opacity-25"></i>
+                                <p>No transactions match your criteria.</p>
                             </td>
                         </tr>
                     }
+                </tbody>
+            </table>
+        </div>
+    </form>
+
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary">
+            <div class="text-white-50 small">
+                Showing page <span class="text-info fw-bold">@ViewBag.CurrentPage</span> of @ViewBag.TotalPages
+            </div>
+
+            <div class="btn-group shadow-sm">
+                @{
+                    string GetPageLink(int pageNum)
+                    {
+                        return Url.Action("Logs", new { 
+                            page = pageNum, 
+                            search = currentSearch,
+                            sortOrder = ViewBag.CurrentSort,
+                            type = currentType,
+                            userId = currentUserId,
+                            date = currentDate,
+                            currency = currentCurrency
+                        });
+                    }
                 }
-                else
+
+                <a href="@GetPageLink(ViewBag.CurrentPage - 1)" 
+                   class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+                    <i class="fas fa-chevron-left me-1"></i>
+                </a>
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
                 {
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-black-50">
-                            <i class="fas fa-search-dollar fa-3x mb-3 opacity-25"></i>
-                            <p>No transactions found.</p>
-                        </td>
-                    </tr>
+                    if (ViewBag.TotalPages <= 10 || (i >= ViewBag.CurrentPage - 2 && i <= ViewBag.CurrentPage + 2) || i == 1 || i == ViewBag.TotalPages)
+                    {
+                        <a href="@GetPageLink(i)" 
+                           class="btn btn-sm @(i == ViewBag.CurrentPage ? "btn-info fw-bold" : "btn-outline-secondary text-white-50")">
+                           @i
+                        </a>
+                    }
+                    else if (i == ViewBag.CurrentPage - 3 || i == ViewBag.CurrentPage + 3)
+                    {
+                        <span class="btn btn-sm btn-outline-secondary disabled border-0">...</span>
+                    }
                 }
-            </tbody>
-        </table>
-    </div>
+
+                <a href="@GetPageLink(ViewBag.CurrentPage + 1)" 
+                   class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
+                    <i class="fas fa-chevron-right me-1"></i>
+                </a>
+            </div>
+        </div>
+    }
 </div>
+
+<script>
+    function setSort(order) {
+        var input = document.querySelector('input[name="sortOrder"]');
+        if(input) {
+            input.value = order;
+            document.getElementById('filterForm').submit();
+        }
+    }
+</script>
