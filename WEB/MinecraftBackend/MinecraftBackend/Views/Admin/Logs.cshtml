@@ -4,10 +4,10 @@
     ViewData["Title"] = "System Logs";
     var activityTypes = ViewBag.Types as List<string>;
     
-    // Lấy giá trị filter hiện tại
     string currentType = ViewBag.CurrentType as string ?? "";
     string currentUserId = ViewBag.CurrentUserId as string ?? "";
-    string currentDate = ViewBag.CurrentDate as string ?? "";
+    string currentStartDate = ViewBag.CurrentStartDate as string ?? "";
+    string currentEndDate = ViewBag.CurrentEndDate as string ?? "";
     string currentSearch = ViewBag.CurrentSearch as string ?? "";
     string currentCurrency = ViewBag.CurrentCurrency as string ?? "";
 }
@@ -53,8 +53,12 @@
 
                     <tr class="bg-dark bg-opacity-25">
                         <td class="py-2">
-                            <input type="date" name="date" class="form-control form-control-sm bg-light text-dark border-0" 
-                                   value="@currentDate" onchange="this.form.submit()">
+                            <div class="d-flex flex-column gap-1">
+                                <input type="date" name="startDate" class="form-control form-control-sm bg-light text-dark border-0" 
+                                       placeholder="From" value="@currentStartDate" onchange="this.form.submit()">
+                                <input type="date" name="endDate" class="form-control form-control-sm bg-light text-dark border-0" 
+                                       placeholder="To" value="@currentEndDate" onchange="this.form.submit()">
+                            </div>
                         </td>
                         <td class="py-2">
                             <div class="input-group input-group-sm">
@@ -79,7 +83,7 @@
                             <div class="input-group input-group-sm">
                                 <span class="input-group-text bg-light text-secondary border-0"><i class="fas fa-search"></i></span>
                                 <input type="text" name="search" class="form-control bg-light text-dark border-0" 
-                                       placeholder="Search details / item..." value="@currentSearch" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                       placeholder="Search details..." value="@currentSearch" onkeydown="if(event.keyCode==13) this.form.submit()">
                             </div>
                         </td>
                         <td class="py-2">
@@ -90,7 +94,7 @@
                                     <!option value="RES_GEM" @(currentCurrency == "RES_GEM" ? "selected" : "")>Gem</!option>
                                 </select>
                                 
-                                <button type="submit" class="btn btn-sm btn-info text-white" title="Apply">
+                                <button type="submit" class="btn btn-sm btn-info text-white" title="Apply Filters">
                                     <i class="fas fa-filter"></i>
                                 </button>
                                 <a asp-action="Logs" class="btn btn-sm btn-secondary" title="Reset">
@@ -106,13 +110,14 @@
                         foreach (var log in Model)
                         {
                             <tr>
-                                <td class="text-white-50">@log.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td class="text-white-50">
+                                    <div>@log.CreatedAt.ToString("yyyy-MM-dd")</div>
+                                    <small class="text-secondary">@log.CreatedAt.ToString("HH:mm:ss")</small>
+                                </td>
                                 <td>
                                     <a asp-action="UserDetails" asp-route-id="@log.UserId" class="text-decoration-none text-warning fw-bold">
                                         <i class="fas fa-user-circle me-1"></i> 
-                                        @{
-                                            var displayUser = log.UserId.Length > 8 ? log.UserId.Substring(0, 8) + "..." : log.UserId;
-                                        }
+                                        @{ var displayUser = log.UserId.Length > 8 ? log.UserId.Substring(0, 8) + "..." : log.UserId; }
                                         @displayUser
                                     </a>
                                 </td>
@@ -191,7 +196,8 @@
                             sortOrder = ViewBag.CurrentSort,
                             type = currentType,
                             userId = currentUserId,
-                            date = currentDate,
+                            startDate = currentStartDate, // Truyền tham số Date Range
+                            endDate = currentEndDate,     // Truyền tham số Date Range
                             currency = currentCurrency
                         });
                     }
