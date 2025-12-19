@@ -82,4 +82,28 @@ namespace MinecraftBackend.Models
         public int Amount { get; set; }
         public DateTime CreatedAt { get; set; }
     }
+
+    public class Monster
+    {
+        [Key]
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int HP { get; set; }
+        public int Damage { get; set; }
+        public int ExpReward { get; set; }
+        public int GoldReward { get; set; }
+        public string ImageUrl { get; set; } = "/images/mobs/zombie.png";
+    }
+
+    public class Recipe
+    {
+        [Key]
+        public int Id { get; set; }
+        public string RecipeId { get; set; } = string.Empty; 
+        public string ResultItemId { get; set; } = string.Empty; 
+        public string ResultItemName { get; set; } = string.Empty;
+        public string ResultItemImage { get; set; } = string.Empty;
+        public int CraftingTime { get; set; } 
+        public string Ingredients { get; set; } = string.Empty; 
+    }
 }

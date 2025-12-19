@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MinecraftBackend.Models;
+using System.Threading;
 
 namespace MinecraftBackend.Data
 {
@@ -13,7 +14,8 @@ namespace MinecraftBackend.Data
         public DbSet<ShopItem> ShopItems { get; set; }
         public DbSet<GameInventory> Inventories { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
-
+        public DbSet<Monster> Monsters { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
