@@ -2,90 +2,104 @@
 // for details on configuring this project to bundle and minify static web assets.
 
 $(document).ready(function () {
-    /* ==========================================
-       1. XỬ LÝ NHẠC NỀN (BGM) LIÊN TỤC
-       ========================================== */
+    /* =================================================================
+       1. GLOBAL CLICK SOUND (XỬ LÝ TIẾNG CLICK BẤT CỨ ĐÂU)
+       ================================================================= */
+    const clickSource = document.getElementById('clickAudio');
+
+    // Bắt sự kiện click trên toàn bộ tài liệu (document)
+    // Sử dụng 'mousedown' để âm thanh phản hồi nhanh hơn ngay khi nhấn xuống
+    $(document).on('mousedown', function (e) {
+        // Nếu cloneNode không được hỗ trợ, fallback về play thường
+        if (clickSource) {
+            // Tạo một bản sao của thẻ audio để có thể phát nhiều tiếng cùng lúc
+            // (tránh trường hợp click nhanh quá tiếng cũ bị ngắt)
+            const soundClone = clickSource.cloneNode();
+            soundClone.volume = 0.6; // Chỉnh âm lượng tiếng click (0.0 đến 1.0)
+            soundClone.play().catch(() => { 
+                // Bỏ qua lỗi nếu trình duyệt chưa cho phép phát
+            });
+        }
+    });
+
+    /* =================================================================
+       2. BACKGROUND MUSIC (BGM) - GIỮ TRẠNG THÁI KHI CHUYỂN TRANG
+       ================================================================= */
     const bgm = document.getElementById('bgmAudio');
     const musicBtn = document.getElementById('musicToggleBtn');
-    
-    // Key để lưu trữ trong LocalStorage
-    const STORAGE_KEY_TIME = 'mc_bgm_time';
-    const STORAGE_KEY_PLAYING = 'mc_bgm_playing';
 
-    // Hàm cập nhật giao diện nút bấm
-    function updateButtonVisual(isPlaying) {
+    const KEY_TIME = 'mc_bgm_time';
+    const KEY_PLAYING = 'mc_bgm_playing';
+
+    // Cấu hình âm lượng nhạc nền
+    bgm.volume = 0.4; 
+
+    // Hàm cập nhật giao diện nút
+    function updateBtnState(isPlaying) {
         if (isPlaying) {
             musicBtn.innerHTML = "🔊 Music On";
-            musicBtn.classList.remove('btn-outline-secondary');
-            musicBtn.classList.add('btn-success');
+            musicBtn.classList.replace('btn-outline-secondary', 'btn-success');
         } else {
             musicBtn.innerHTML = "🔇 Music Off";
-            musicBtn.classList.remove('btn-success');
-            musicBtn.classList.add('btn-outline-secondary');
+            musicBtn.classList.replace('btn-success', 'btn-outline-secondary');
         }
     }
 
-    // Khôi phục trạng thái nhạc khi tải trang
-    const savedTime = localStorage.getItem(STORAGE_KEY_TIME);
-    const shouldPlay = localStorage.getItem(STORAGE_KEY_PLAYING) === 'true';
+    // --- LOGIC KHÔI PHỤC NHẠC ---
+    const savedTime = localStorage.getItem(KEY_TIME);
+    const shouldPlay = localStorage.getItem(KEY_PLAYING) === 'true';
 
+    // Khôi phục vị trí thời gian
     if (savedTime) {
         bgm.currentTime = parseFloat(savedTime);
     }
 
-    // Cố gắng phát nhạc nếu trạng thái cũ là đang phát
     if (shouldPlay) {
-        // Lưu ý: Trình duyệt có thể chặn autoplay nếu chưa có tương tác người dùng
-        let playPromise = bgm.play();
+        // Cố gắng phát nhạc ngay lập tức
+        const playPromise = bgm.play();
+
         if (playPromise !== undefined) {
-            playPromise.then(_ => {
-                updateButtonVisual(true);
+            playPromise.then(() => {
+                // Thành công: nhạc chạy
+                updateBtnState(true);
             }).catch(error => {
-                console.log("Autoplay bị chặn, cần tương tác người dùng để phát nhạc.");
-                updateButtonVisual(false); // Chuyển về tắt nếu bị chặn
+                // THẤT BẠI: Do trình duyệt chặn Autoplay khi mới load trang
+                console.log("Browser blocked autoplay. Waiting for user interaction...");
+                updateBtnState(false); // Tạm thời hiển thị tắt
+                
+                // GIẢI PHÁP: Chờ cú click đầu tiên bất kỳ đâu để kích hoạt lại nhạc
+                $(document).one('click', function () {
+                    bgm.play().then(() => {
+                        updateBtnState(true);
+                        localStorage.setItem(KEY_PLAYING, 'true'); // Đảm bảo trạng thái đúng
+                    });
+                });
             });
         }
     } else {
-        updateButtonVisual(false);
+        updateBtnState(false);
     }
 
-    // Sự kiện click nút bật/tắt nhạc
-    musicBtn.addEventListener('click', function () {
+    // --- LOGIC NÚT BẬT/TẮT ---
+    musicBtn.addEventListener('click', function (e) {
+        // Ngăn sự kiện này lan ra document để không bị kích hoạt tiếng click 2 lần (nếu muốn)
+        // e.stopPropagation(); 
+        
         if (bgm.paused) {
             bgm.play();
-            localStorage.setItem(STORAGE_KEY_PLAYING, 'true');
-            updateButtonVisual(true);
+            localStorage.setItem(KEY_PLAYING, 'true');
+            updateBtnState(true);
         } else {
             bgm.pause();
-            localStorage.setItem(STORAGE_KEY_PLAYING, 'false');
-            updateButtonVisual(false);
+            localStorage.setItem(KEY_PLAYING, 'false');
+            updateBtnState(false);
         }
     });
 
-    // Lưu vị trí nhạc liên tục mỗi khi chuyển trang (beforeunload)
+    // --- LƯU TRẠNG THÁI KHI RỜI TRANG ---
     window.addEventListener('beforeunload', function () {
-        localStorage.setItem(STORAGE_KEY_TIME, bgm.currentTime);
-        // Lưu trạng thái play/pause hiện tại
-        localStorage.setItem(STORAGE_KEY_PLAYING, !bgm.paused);
-    });
-
-    /* ==========================================
-       2. XỬ LÝ ÂM THANH CLICK (GLOBAL)
-       ========================================== */
-    const clickSound = document.getElementById('clickAudio');
-
-    // Hàm phát tiếng click
-    function playClickSound() {
-        // Reset về 0 để có thể click liên tục nhanh chóng
-        clickSound.currentTime = 0;
-        clickSound.play().catch(e => console.error("Click sound error:", e));
-    }
-
-    // Tự động gắn tiếng click cho tất cả thẻ a, button, và class .btn
-    $(document).on('click', 'a, button, .btn, input[type="submit"], input[type="button"]', function (e) {
-        // Không phát tiếng nếu nút đó bị disable hoặc là nút Music (tránh lặp âm)
-        if ($(this).prop('disabled') || this.id === 'musicToggleBtn') return;
-        
-        playClickSound();
+        localStorage.setItem(KEY_TIME, bgm.currentTime);
+        // Lưu trạng thái thực tế (đang chạy hay đang dừng)
+        localStorage.setItem(KEY_PLAYING, !bgm.paused);
     });
 });
