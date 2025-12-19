@@ -5,9 +5,11 @@
     string currentTab = ViewBag.CurrentTab as string ?? "shop";
     string currentType = ViewBag.CurrentType as string ?? "";
     string currentRarity = ViewBag.CurrentRarity as string ?? "";
+    string currentCurrency = ViewBag.CurrentCurrency as string ?? "";
     
     var types = ViewBag.AvailableTypes as List<string>;
     var rarities = ViewBag.AvailableRarities as List<string>;
+    var currencies = ViewBag.AvailableCurrencies as List<string>;
 }
 
 <div class="glass-card">
@@ -67,7 +69,7 @@
                         {
                             <th style="width: 25%;">
                                 <a href="#" onclick="setSort('@ViewBag.PriceSortParm'); return false;" class="text-decoration-none text-info">
-                                    Price Range <i class="fas fa-sort ms-1"></i>
+                                    Currency & Price <i class="fas fa-sort ms-1"></i>
                                 </a>
                             </th>
                         }
@@ -115,12 +117,26 @@
                         @if(currentTab == "shop")
                         {
                             <td class="py-2">
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="minPrice" class="form-control bg-dark text-white border-secondary" 
-                                           placeholder="Min" value="@ViewBag.CurrentMinPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
-                                    <span class="input-group-text bg-secondary border-secondary text-white">-</span>
-                                    <input type="number" name="maxPrice" class="form-control bg-dark text-white border-secondary" 
-                                           placeholder="Max" value="@ViewBag.CurrentMaxPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                <div class="d-flex flex-column gap-1">
+                                    <select name="currencyFilter" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="this.form.submit()">
+                                        <option value="">- All Currencies -</option>
+                                        @if (currencies != null)
+                                        {
+                                            foreach (var c in currencies)
+                                            {
+                                                string displayC = c == "RES_GOLD" ? "Gold" : (c == "RES_GEM" ? "Gem" : c);
+                                                <!option value="@c" @(currentCurrency == c ? "selected" : "")>@displayC</!option>
+                                            }
+                                        }
+                                    </select>
+                                    
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" name="minPrice" class="form-control bg-dark text-white border-secondary" 
+                                               placeholder="Min" value="@ViewBag.CurrentMinPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                        <span class="input-group-text bg-secondary border-secondary text-white py-0">-</span>
+                                        <input type="number" name="maxPrice" class="form-control bg-dark text-white border-secondary" 
+                                               placeholder="Max" value="@ViewBag.CurrentMaxPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                    </div>
                                 </div>
                             </td>
                         }
@@ -129,12 +145,9 @@
                              <td class="py-2"></td>
                         }
                         <td class="text-end pe-4 py-2">
-                            <button type="submit" class="btn btn-sm btn-outline-info" title="Apply Filters">
-                                <i class="fas fa-filter"></i>
+                            <button type="submit" class="btn btn-sm btn-outline-info w-100" title="Apply Filters">
+                                <i class="fas fa-filter"></i> Apply
                             </button>
-                             <a asp-action="Items" asp-route-tab="@currentTab" class="btn btn-sm btn-outline-secondary" title="Clear">
-                                <i class="fas fa-times"></i>
-                            </a>
                         </td>
                     </tr>
                 </thead>
@@ -223,6 +236,10 @@
                                         </button>
                                     </form>
                                 }
+                                else 
+                                {
+                                    <a asp-action="Items" asp-route-tab="@currentTab" class="btn btn-outline-info btn-sm">Clear Filters</a>
+                                }
                             </td>
                         </tr>
                     }
@@ -249,6 +266,7 @@
                             tab = currentTab,
                             typeFilter = currentType,
                             rarityFilter = currentRarity,
+                            currencyFilter = currentCurrency,
                             minPrice = ViewBag.CurrentMinPrice,
                             maxPrice = ViewBag.CurrentMaxPrice
                         });
@@ -285,7 +303,6 @@
 </div>
 
 <script>
-    // JS Helper to submit form with sort order
     function setSort(order) {
         var input = document.querySelector('input[name="sortOrder"]');
         if(input) {
