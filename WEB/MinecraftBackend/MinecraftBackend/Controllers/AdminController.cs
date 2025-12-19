@@ -16,7 +16,7 @@ namespace MinecraftBackend.Controllers
             _env = env;
         }
 
-        
+        // --- DASHBOARD ---
         public async Task<IActionResult> Dashboard()
         {
             ViewBag.TotalItems = await _context.ShopItems.CountAsync();
@@ -27,56 +27,76 @@ namespace MinecraftBackend.Controllers
             ViewBag.TotalRevenue = totalGold.ToString("N0");
 
             var last7Days = Enumerable.Range(0, 7)
-        .Select(i => DateTime.Today.AddDays(-6 + i))
-        .ToList();
+                .Select(i => DateTime.Today.AddDays(-6 + i))
+                .ToList();
 
-            
             var transactionCounts = new List<int>();
 
             foreach (var date in last7Days)
             {
-                
                 int count = await _context.Transactions
                     .Where(t => t.CreatedAt.Date == date)
                     .CountAsync();
                 transactionCounts.Add(count);
             }
 
-            
             ViewBag.ChartLabels = string.Join(",", last7Days.Select(d => d.ToString("dd/MM")));
             ViewBag.ChartData = string.Join(",", transactionCounts);
 
             return View();
         }
 
-        
-
-        
-        
-        public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "")
+        // --- ITEMS MANAGEMENT (REFACTORED) ---
+        // Thêm tham số: tab (shop/data), typeFilter (lọc theo loại cụ thể)
+        public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "", string tab = "shop", string typeFilter = "")
         {
             int pageSize = 10;
 
-            
+            // Lưu trạng thái sắp xếp
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
-            ViewBag.StatusSortParm = sortOrder == "Status" ? "status_desc" : "Status";
-
             
+            // Lưu trạng thái hiện tại để giữ nguyên khi chuyển trang
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
+            ViewBag.CurrentTab = tab;
+            ViewBag.CurrentType = typeFilter;
 
             var query = _context.ShopItems.AsQueryable();
 
-            
+            // 1. Lọc theo Tab (Shop vs Data)
+            if (tab == "data")
+            {
+                // Tab Data: Chỉ lấy item ẩn (IsShow = false)
+                query = query.Where(i => !i.IsShow);
+                ViewBag.Title = "Game Database Assets";
+            }
+            else
+            {
+                // Tab Shop (Mặc định): Chỉ lấy item đang bán (IsShow = true)
+                query = query.Where(i => i.IsShow);
+                ViewBag.Title = "Shop Merchandise";
+            }
+
+            // 2. Tìm kiếm (Chung cho cả 2 tab)
             if (!string.IsNullOrEmpty(search))
             {
                 string term = search.ToLower();
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            
+            // 3. Lọc theo Category (Dropdown)
+            if (!string.IsNullOrEmpty(typeFilter))
+            {
+                query = query.Where(i => i.ItemType == typeFilter);
+            }
+
+            // 4. Lấy danh sách các loại ItemType hiện có trong Tab này để đổ vào Dropdown lọc
+            // Lưu ý: Phải lấy Distinct trước khi phân trang
+            ViewBag.AvailableTypes = await query.Select(i => i.ItemType).Distinct().ToListAsync();
+
+            // 5. Sắp xếp
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
@@ -84,12 +104,11 @@ namespace MinecraftBackend.Controllers
                 "type_desc" => query.OrderByDescending(s => s.ItemType),
                 "Price" => query.OrderBy(s => s.PriceAmount),
                 "price_desc" => query.OrderByDescending(s => s.PriceAmount),
-                "Status" => query.OrderBy(s => s.IsShow),
-                "status_desc" => query.OrderByDescending(s => s.IsShow),
-                _ => query.OrderBy(s => s.Name), 
+                _ => tab == "data" ? query.OrderBy(s => s.ItemType).ThenBy(s => s.Name) : query.OrderBy(s => s.Name), 
+                // Mẹo: Tab Data mặc định sort theo Type để gom nhóm Mob, Building lại với nhau
             };
 
-            
+            // 6. Phân trang
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
@@ -107,7 +126,6 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateItem(ShopItem item, IFormFile? imageFile)
         {
-            
             if (item.PriceAmount < 0)
             {
                 ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
@@ -118,12 +136,10 @@ namespace MinecraftBackend.Controllers
             else item.ImageURL = "/images/others/default.png";
 
             if (string.IsNullOrEmpty(item.TargetItemID)) item.TargetItemID = item.ProductID;
-			
-			
-			ModelState.Remove("ImageURL");
+            
+            ModelState.Remove("ImageURL");
             ModelState.Remove("TargetItemID");
-			
-			
+            
             if (ModelState.IsValid)
             {
                 if (await _context.ShopItems.AnyAsync(i => i.ProductID == item.ProductID))
@@ -133,7 +149,7 @@ namespace MinecraftBackend.Controllers
                 }
                 _context.ShopItems.Add(item);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Items");
+                return RedirectToAction("Items", new { tab = item.IsShow ? "shop" : "data" });
             }
             return View(item);
         }
@@ -148,28 +164,18 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> EditItem(ShopItem item, IFormFile? imageFile)
         {
-            
-            
             ModelState.Remove("ImageURL");
             ModelState.Remove("TargetItemID");
 
-            
             if (item.PriceAmount < 0)
             {
                 ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
                 return View(item);
             }
 
-            
-            
-            var existing = await _context.ShopItems.AsNoTracking()
-                                         .FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
-            
+            var existing = await _context.ShopItems.AsNoTracking().FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
             if (existing == null) return NotFound();
 
-            
-            
-            
             if (imageFile != null) 
             {
                 item.ImageURL = await SaveImage(imageFile, item.ItemType);
@@ -179,68 +185,59 @@ namespace MinecraftBackend.Controllers
                 item.ImageURL = existing.ImageURL;
             }
 
-            
             if (string.IsNullOrEmpty(item.TargetItemID)) 
             {
                 item.TargetItemID = item.ProductID;
             }
 
-            
             if (ModelState.IsValid)
             {
                 _context.ShopItems.Update(item);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Items");
+                return RedirectToAction("Items", new { tab = item.IsShow ? "shop" : "data" });
             }
 
-            
             return View(item);
         }
 
         public async Task<IActionResult> DeleteItem(string id)
         {
             var item = await _context.ShopItems.FindAsync(id);
+            string returnTab = "shop";
             if (item != null)
             {
+                returnTab = item.IsShow ? "shop" : "data";
                 _context.ShopItems.Remove(item);
                 await _context.SaveChangesAsync();
             }
-            return RedirectToAction("Items");
+            return RedirectToAction("Items", new { tab = returnTab });
         }
 
-        
+        // --- USER MANAGEMENT ---
         public async Task<IActionResult> Users()
         {
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
             return View(users);
         }
-		
-		
-        [HttpGet]
-        public IActionResult CreateUser()
-        {
-            return View();
-        }
-
         
+        [HttpGet]
+        public IActionResult CreateUser() => View();
+
         [HttpPost]
         public async Task<IActionResult> CreateUser(string username, string email, string password)
         {
-            
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 ModelState.AddModelError("", "Vui lòng nhập đủ thông tin!");
                 return View();
             }
 
-            
             if (await _context.Users.AnyAsync(u => u.Email == email || u.Username == username))
             {
                 ModelState.AddModelError("", "Email hoặc Username đã tồn tại!");
                 return View();
             }
 
-            
             var newUser = new User
             {
                 Id = Guid.NewGuid().ToString(),
@@ -253,7 +250,6 @@ namespace MinecraftBackend.Controllers
             };
             _context.Users.Add(newUser);
 
-            
             var newProfile = new PlayerProfile
             {
                 CharacterID = Guid.NewGuid().ToString(),
@@ -270,8 +266,6 @@ namespace MinecraftBackend.Controllers
                 GameMode = "Survival"
             };
             _context.PlayerProfiles.Add(newProfile);
-
-            
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Users");
@@ -295,7 +289,6 @@ namespace MinecraftBackend.Controllers
 
         public async Task<IActionResult> EditUser(string id)
         {
-            
             var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == id);
             if (profile == null) return NotFound();
             return View(profile);
@@ -307,30 +300,20 @@ namespace MinecraftBackend.Controllers
             var existing = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == profile.CharacterID);
             if (existing == null) return NotFound();
 
-            
             if (avatarFile != null)
             {
-                
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
-
-                
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-                
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + avatarFile.FileName;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await avatarFile.CopyToAsync(fileStream);
                 }
-
-                
                 existing.AvatarUrl = $"/images/avatars/{uniqueFileName}";
             }
-            
-
             
             existing.DisplayName = profile.DisplayName;
             existing.Level = profile.Level;
@@ -352,8 +335,8 @@ namespace MinecraftBackend.Controllers
             }
             return RedirectToAction("Users");
         }
-		
-		[HttpPost]
+        
+        [HttpPost]
         public async Task<IActionResult> ResetUserPassword(string userId, string newPassword)
         {
             if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
@@ -365,7 +348,6 @@ namespace MinecraftBackend.Controllers
             var user = await _context.Users.FindAsync(userId);
             if (user != null)
             {
-                
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
                 await _context.SaveChangesAsync();
                 TempData["Message"] = $"Đã đổi mật khẩu cho user: {user.Username}";
@@ -374,7 +356,6 @@ namespace MinecraftBackend.Controllers
             {
                 TempData["Error"] = "Không tìm thấy người chơi!";
             }
-
             return RedirectToAction("Users");
         }
 
@@ -426,7 +407,7 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        
+        // --- SYSTEM ---
         public async Task<IActionResult> Logs(string type = "All", string userId = "", string date = "")
         {
             var query = _context.Transactions.AsQueryable();
@@ -441,7 +422,6 @@ namespace MinecraftBackend.Controllers
             return View(await query.OrderByDescending(l => l.CreatedAt).Take(100).ToListAsync());
         }
 
-        
         public IActionResult Simulator() => View(_context.PlayerProfiles.Include(p => p.User).ToList());
         public IActionResult TestApi() => View();
 
@@ -452,17 +432,12 @@ namespace MinecraftBackend.Controllers
             TempData["Message"] = "Data Seeded Successfully!";
             return RedirectToAction("Dashboard");
         }
-		
-		
-		
 
         [HttpPost]
         public async Task<IActionResult> FactoryReset()
         {
-            
             _context.Inventories.RemoveRange(_context.Inventories);
             _context.Transactions.RemoveRange(_context.Transactions);
-            
             
             var profiles = await _context.PlayerProfiles.ToListAsync();
             foreach (var p in profiles)
@@ -472,7 +447,6 @@ namespace MinecraftBackend.Controllers
                 p.Level = 1;
                 p.Exp = 0;
                 p.Health = 100;
-                
             }
 
             await _context.SaveChangesAsync();
@@ -483,7 +457,6 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public IActionResult UpdateMOTD(string msg)
         {
-            
             TempData["Message"] = $"Đã cập nhật thông báo Server: {msg}";
             return RedirectToAction("Dashboard");
         }
