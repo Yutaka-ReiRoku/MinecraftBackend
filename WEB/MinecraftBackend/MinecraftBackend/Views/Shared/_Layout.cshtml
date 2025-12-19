@@ -26,6 +26,11 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+                    <div class="d-flex align-items-center">
+                        <button id="musicToggleBtn" class="btn btn-outline-secondary btn-sm">
+                            🔇 Music Off
+                        </button>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -41,6 +46,15 @@
             &copy; 2025 - MinecraftBackend - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    <audio id="bgmAudio" loop>
+        <source src="~/audio/bgm.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="clickAudio" preload="auto">
+        <source src="~/audio/click.mp3" type="audio/mpeg">
+    </audio>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
