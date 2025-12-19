@@ -1,53 +1,106 @@
 @model IEnumerable<MinecraftBackend.Models.ShopItem>
 
 @{
-    ViewData["Title"] = "Shop Items";
+    ViewData["Title"] = ViewBag.Title;
+    string currentTab = ViewBag.CurrentTab as string ?? "shop";
+    string currentType = ViewBag.CurrentType as string ?? "";
+    var types = ViewBag.AvailableTypes as List<string>;
 }
 
 <div class="glass-card">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="text-white mb-0"><i class="fas fa-box-open text-info me-2"></i>Shop Management</h2>
-            <p class="text-white-50 small mb-0">Manage game items, pricing, and visibility.</p>
+            <h2 class="text-white mb-0">
+                @if (currentTab == "shop") { <i class="fas fa-store text-warning me-2"></i><span>Shop Listings</span> }
+                else { <i class="fas fa-database text-info me-2"></i><span>Game Assets Database</span> }
+            </h2>
+            <p class="text-white-50 small mb-0">Manage items, prices, and internal game data assets.</p>
         </div>
         <a asp-action="CreateItem" class="btn btn-info text-white rounded-pill px-4 shadow-lg fw-bold">
-            <i class="fas fa-plus me-2"></i> Add New Item
+            <i class="fas fa-plus me-2"></i> Create New
         </a>
     </div>
 
-    <form method="get" class="input-group mb-4 shadow-sm">
-        <span class="input-group-text bg-black border-secondary text-info"><i class="fas fa-search"></i></span>
-        <input type="text" name="search" class="form-control bg-dark text-white border-secondary" placeholder="Search by Name or ID..." value="@ViewBag.CurrentSearch">
-        <button class="btn btn-outline-info">Search</button>
+    <ul class="nav nav-pills mb-4 border-bottom border-secondary pb-3">
+        <li class="nav-item me-2">
+            <a class="nav-link @(currentTab == "shop" ? "active bg-warning text-dark fw-bold" : "text-white")" 
+               asp-action="Items" asp-route-tab="shop">
+                <i class="fas fa-shopping-cart me-2"></i> Merchandise (On Sale)
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(currentTab == "data" ? "active bg-info text-dark fw-bold" : "text-white")" 
+               asp-action="Items" asp-route-tab="data">
+                <i class="fas fa-cube me-2"></i> Internal Game Data (Assets)
+            </a>
+        </li>
+    </ul>
+
+    <form method="get" class="row g-2 mb-4 align-items-center">
+        <input type="hidden" name="tab" value="@currentTab" />
+        
+        <div class="col-md-5">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-black border-secondary text-info"><i class="fas fa-search"></i></span>
+                <input type="text" name="search" class="form-control bg-dark text-white border-secondary" 
+                       placeholder="Search by Name or ID..." value="@ViewBag.CurrentSearch">
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-black border-secondary text-info"><i class="fas fa-filter"></i></span>
+                <select name="typeFilter" class="form-select bg-dark text-white border-secondary" onchange="this.form.submit()">
+                    <option value="">-- All Categories --</option>
+                    @if (types != null)
+                    {
+                        foreach (var t in types)
+                        {
+                            <!option value="@t" @(currentType == t ? "selected" : "")>@t</!option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <button class="btn btn-outline-info w-100">Apply Filter</button>
+        </div>
     </form>
 
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0 text-white">
             <thead class="bg-white bg-opacity-10 text-uppercase text-info small border-bottom border-info">
                 <tr>
-                    <th class="ps-4" style="width: 30%;">
-                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.NameSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
-                            Item Detail <i class="fas fa-sort ms-1"></i>
+                    <th class="ps-4" style="width: 35%;">
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.NameSortParm" 
+                           asp-route-search="@ViewBag.CurrentSearch" asp-route-tab="@currentTab" asp-route-typeFilter="@currentType"
+                           class="text-decoration-none text-info">
+                            Name & Details <i class="fas fa-sort ms-1"></i>
+                        </a>
+                    </th>
+                    <th>
+                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.TypeSortParm" 
+                           asp-route-search="@ViewBag.CurrentSearch" asp-route-tab="@currentTab" asp-route-typeFilter="@currentType"
+                           class="text-decoration-none text-info">
+                            Category <i class="fas fa-sort ms-1"></i>
                         </a>
                     </th>
                     
-                    <th>
-                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.TypeSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
-                            Type <i class="fas fa-sort ms-1"></i>
-                        </a>
-                    </th>
-                    
-                    <th>
-                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.PriceSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
-                            Price <i class="fas fa-sort ms-1"></i>
-                        </a>
-                    </th>
-                    
-                    <th>
-                        <a asp-action="Items" asp-route-sortOrder="@ViewBag.StatusSortParm" asp-route-search="@ViewBag.CurrentSearch" class="text-decoration-none text-info">
-                            Status <i class="fas fa-sort ms-1"></i>
-                        </a>
-                    </th>
+                    @if(currentTab == "shop")
+                    {
+                        <th>
+                            <a asp-action="Items" asp-route-sortOrder="@ViewBag.PriceSortParm" 
+                               asp-route-search="@ViewBag.CurrentSearch" asp-route-tab="@currentTab" asp-route-typeFilter="@currentType"
+                               class="text-decoration-none text-info">
+                                Price <i class="fas fa-sort ms-1"></i>
+                            </a>
+                        </th>
+                    }
+                    else
+                    {
+                         <th>Asset Path</th>
+                    }
                     
                     <th class="text-end pe-4">Actions</th>
                 </tr>
@@ -63,18 +116,17 @@
                                     <div class="position-relative me-3">
                                         <img src="@(item.ImageURL ?? "/images/others/default.png")" 
                                              class="rounded-3 border border-secondary shadow-sm" 
-                                             width="50" height="50" 
+                                             width="48" height="48" 
                                              style="object-fit: contain; background-color: rgba(0,0,0,0.3);"
                                              onerror="this.src='/images/others/default.png'">
                                     </div>
                                     <div>
-                                        <div class="fw-bold text-black">@item.Name</div>
-                                        <small class="text-black-50 text-truncate d-block" style="max-width: 200px;">@item.Description</small>
+                                        <div class="fw-bold text-white">@item.Name</div>
+                                        <div class="font-monospace text-secondary small" style="font-size: 0.75rem;">ID: @item.ProductID</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div class="font-monospace text-warning small mb-1">@item.ProductID</div>
                                 <span class="badge rounded-pill border border-info text-info bg-info bg-opacity-10">@item.ItemType</span>
                                 
                                 @{
@@ -88,28 +140,29 @@
                                 }
                                 <span class="badge @badgeClass bg-opacity-75 ms-1">@item.Rarity</span>
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    @if(item.PriceCurrency == "RES_GOLD")
-                                    {
-                                        <i class="fas fa-coins text-warning me-2"></i> <span class="text-warning fw-bold">@item.PriceAmount G</span>
-                                    }
-                                    else
-                                    {
-                                        <i class="far fa-gem text-info me-2"></i> <span class="text-info fw-bold">@item.PriceAmount Gem</span>
-                                    }
-                                </div>
-                            </td>
-                            <td>
-                                @if (item.IsShow)
-                                {
-                                    <span class="badge bg-success bg-opacity-75"><i class="fas fa-eye me-1"></i> On Sale</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary bg-opacity-50"><i class="fas fa-eye-slash me-1"></i> Hidden</span>
-                                }
-                            </td>
+                            
+                            @if(currentTab == "shop")
+                            {
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if(item.PriceCurrency == "RES_GOLD")
+                                        {
+                                            <i class="fas fa-coins text-warning me-2"></i> <span class="text-warning fw-bold">@item.PriceAmount G</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-gem text-info me-2"></i> <span class="text-info fw-bold">@item.PriceAmount Gem</span>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <small class="text-white-50 text-truncate d-block" style="max-width: 150px;">@item.ImageURL</small>
+                                </td>
+                            }
+
                             <td class="text-end pe-4">
                                 <div class="btn-group">
                                     <a asp-action="EditItem" asp-route-id="@item.ProductID" class="btn btn-sm btn-outline-warning" title="Edit">
@@ -128,12 +181,16 @@
                     <tr>
                         <td colspan="5" class="text-center py-5 text-white-50">
                             <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
-                            <p>No items found.</p>
-                            <form asp-action="SeedDataStrict" method="post">
-                                <button type="submit" class="btn btn-outline-success btn-sm">
-                                    <i class="fas fa-magic me-2"></i> Initialize Sample Data
-                                </button>
-                            </form>
+                            <p>No items found in <strong>@currentTab</strong> tab.</p>
+                            
+                            @if(currentTab == "data")
+                            {
+                                <form asp-action="SeedDataStrict" method="post">
+                                    <button type="submit" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-magic me-2"></i> Seed Assets from wwwroot
+                                    </button>
+                                </form>
+                            }
                         </td>
                     </tr>
                 }
@@ -153,6 +210,8 @@
                    asp-route-page="@(ViewBag.CurrentPage - 1)" 
                    asp-route-search="@ViewBag.CurrentSearch"
                    asp-route-sortOrder="@ViewBag.CurrentSort"
+                   asp-route-tab="@currentTab"
+                   asp-route-typeFilter="@currentType"
                    class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage <= 1 ? "disabled" : "")">
                     <i class="fas fa-chevron-left me-1"></i> Prev
                 </a>
@@ -165,6 +224,8 @@
                            asp-route-page="@i" 
                            asp-route-search="@ViewBag.CurrentSearch"
                            asp-route-sortOrder="@ViewBag.CurrentSort" 
+                           asp-route-tab="@currentTab"
+                           asp-route-typeFilter="@currentType"
                            class="btn btn-sm @(i == ViewBag.CurrentPage ? "btn-info fw-bold" : "btn-outline-secondary text-white-50")">
                            @i
                         </a>
@@ -179,6 +240,8 @@
                    asp-route-page="@(ViewBag.CurrentPage + 1)" 
                    asp-route-search="@ViewBag.CurrentSearch"
                    asp-route-sortOrder="@ViewBag.CurrentSort" 
+                   asp-route-tab="@currentTab"
+                   asp-route-typeFilter="@currentType"
                    class="btn btn-outline-secondary btn-sm @(ViewBag.CurrentPage >= ViewBag.TotalPages ? "disabled" : "")">
                     Next <i class="fas fa-chevron-right ms-1"></i>
                 </a>
