@@ -7,7 +7,6 @@ using UnityEngine.UIElements;
 
 public class ShopManager : MonoBehaviour
 {
-    // Singleton để các script khác như HotbarManager gọi được
     public static ShopManager Instance { get; private set; }
 
     [Header("UI Templates")]
@@ -21,6 +20,10 @@ public class ShopManager : MonoBehaviour
     private UIDocument _uiDoc;
     private VisualElement _root;
     private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer;
+
+    // [QUAN TRỌNG] Biến lưu Wrapper để đo kích thước chuẩn
+    private VisualElement _shopWrapper;
+
     private ScrollView _shopScroll, _invScroll, _craftScroll;
     private Label _goldLabel, _gemLabel, _playerLevelLabel;
     private ProgressBar _hpBar, _staminaBar;
@@ -30,10 +33,11 @@ public class ShopManager : MonoBehaviour
     private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
     private int _currentPage = 1;
+    private int _pageSize = 10;
 
-    // [KHÔI PHỤC] Đặt cố định số lượng để đảm bảo luôn hiển thị dữ liệu
-    // Số 12 là số đẹp cho layout dạng bảng hiện tại
-    private int _pageSize = 12;
+    // Chiều cao item trong CSS (.table-row) là 70px + 1px border = 71px. 
+    // Ta để 72px cho dư dả, đảm bảo làm tròn xuống an toàn.
+    private const float ITEM_HEIGHT = 72f;
 
     private ProgressBar _monsterHpBar;
     private Button _btnAttack;
@@ -53,15 +57,30 @@ public class ShopManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // --- Lấy các Container ---
+        // --- Lấy các Container chính ---
         _shopContainer = _root.Q<VisualElement>("ShopContainer");
         _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
         _battleContainer = _root.Q<VisualElement>("BattleContainer");
 
+        // --- Lấy ScrollViews ---
         _shopScroll = _root.Q<ScrollView>("ShopScrollView");
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
+
+        // --- [QUAN TRỌNG] Lấy Wrapper của Shop để đo chiều cao ---
+        // Class "list-wrapper" là cái khung cha có flex-grow: 1 mà ta đã thêm trong UXML
+        if (_shopContainer != null)
+        {
+            _shopWrapper = _shopContainer.Q(className: "list-wrapper");
+
+            // Đăng ký sự kiện thay đổi kích thước trên Wrapper (thay vì ScrollView)
+            // Điều này tránh lỗi deadlock vì Wrapper luôn có chiều cao cố định
+            if (_shopWrapper != null)
+            {
+                _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
+            }
+        }
 
         // --- Lấy Stats UI ---
         _goldLabel = _root.Q<Label>("ShopGold");
@@ -110,9 +129,40 @@ public class ShopManager : MonoBehaviour
     {
         GameEvents.OnCurrencyChanged -= RefreshAllData;
         GameEvents.OnEquipRequest -= HandleEquipRequest;
+
+        // Hủy đăng ký sự kiện để tránh lỗi bộ nhớ
+        if (_shopWrapper != null)
+            _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // [QUAN TRỌNG] Hàm này được giữ lại để HotbarManager không bị lỗi
+    // --- [THUẬT TOÁN MỚI] TÍNH TOÁN SỐ LƯỢNG ITEM ---
+    private void OnShopWrapperLayoutChange(GeometryChangedEvent evt)
+    {
+        float wrapperHeight = evt.newRect.height;
+
+        // Nếu khung quá nhỏ (chưa load xong), bỏ qua
+        if (wrapperHeight < ITEM_HEIGHT) return;
+
+        // Tính số lượng item nhét vừa
+        // Mathf.FloorToInt: Tự động làm tròn xuống (ví dụ 10.9 -> 10)
+        // Điều này đảm bảo tổng chiều cao items luôn < chiều cao khung -> Không hiện Scrollbar
+        int fitCount = Mathf.FloorToInt(wrapperHeight / ITEM_HEIGHT);
+
+        // Giới hạn tối thiểu là 1 item
+        if (fitCount < 1) fitCount = 1;
+
+        // Chỉ load lại nếu số lượng thay đổi để tối ưu hiệu năng
+        if (fitCount != _pageSize)
+        {
+            _pageSize = fitCount;
+            // Gọi load lại dữ liệu ngay
+            if (_shopContainer.style.display == DisplayStyle.Flex)
+            {
+                StartCoroutine(LoadShopItems(_currentPage));
+            }
+        }
+    }
+
     public void UseItemFromHotbar(string itemId)
     {
         var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
@@ -169,7 +219,8 @@ public class ShopManager : MonoBehaviour
         if (tabName == "Shop")
         {
             _shopContainer.style.display = DisplayStyle.Flex;
-            StartCoroutine(LoadShopItems(_currentPage));
+            // Chỉ load nếu pageSize đã được tính toán hợp lý
+            if (_pageSize > 0) StartCoroutine(LoadShopItems(_currentPage));
         }
         else if (tabName == "Inventory")
         {
@@ -333,6 +384,7 @@ public class ShopManager : MonoBehaviour
         var template = ItemTemplate.Instantiate();
         var root = template.Q<VisualElement>("ItemContainer");
 
+        // CSS Zebra Striping
         if (index % 2 == 0) root.AddToClassList("row-even");
         else root.AddToClassList("row-odd");
 
@@ -346,7 +398,6 @@ public class ShopManager : MonoBehaviour
         var priceRow = template.Q<VisualElement>("PriceRow");
         priceRow.Clear();
 
-        // Tạo nút mua với style fix lỗi compile
         var btn = new Button();
         btn.AddToClassList("btn");
         btn.AddToClassList("btn-outline-secondary");
