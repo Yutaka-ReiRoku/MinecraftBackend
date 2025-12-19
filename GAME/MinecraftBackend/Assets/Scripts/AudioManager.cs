@@ -45,8 +45,8 @@ public class AudioManager : MonoBehaviour
         SetSFXVolume(sfxVol);
 
         // Load nhạc nền và âm thanh click
-        StartCoroutine(LoadAudioFromWeb("bgm.mp3", AudioType.MPEG, true));
-        StartCoroutine(LoadAudioFromWeb("click.mp3", AudioType.MPEG, false));
+        StartCoroutine(LoadAudioFromWeb("bgm.mp3", AudioType.UNKNOWN, true));
+        StartCoroutine(LoadAudioFromWeb("click.mp3", AudioType.UNKNOWN, false));
     }
 
     public void PlayMusic(string resourcePath)
@@ -88,7 +88,7 @@ public class AudioManager : MonoBehaviour
         string url = BASE_URL + filename;
         Debug.Log($"[AudioManager] Đang tải audio từ: {url}");
 
-        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(url, type))
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(url, AudioType.UNKNOWN))
         {
             yield return www.SendWebRequest();
 
