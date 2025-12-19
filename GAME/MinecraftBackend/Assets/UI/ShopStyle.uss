@@ -1,4 +1,4 @@
-/* ShopStyle.uss - Cleaned (No Variables) */
+﻿/* ShopStyle.uss - Fixed Layout */
 
 * {
     color: rgb(224, 224, 224);
@@ -35,6 +35,7 @@
 .flex-row { flex-direction: row; }
 .flex-col { flex-direction: column; }
 
+/* FIX LỖI: Trả lại class row bình thường, không can thiệp sâu vào container */
 .row {
     display: flex;
     flex-direction: row;
@@ -43,6 +44,16 @@
     margin-right: -10px;
 }
 
+/* QUAN TRỌNG: Ép các danh sách vật phẩm phải xếp dọc (List View) */
+#ShopScrollView #unity-content-container,
+#InventoryScrollView #unity-content-container,
+#CraftScrollView #unity-content-container {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch; /* Kéo giãn item ra toàn chiều ngang */
+}
+
+/* Các class tiện ích khác giữ nguyên */
 .col-12 { width: 100%; padding: 5px 10px; }
 .col-6 { width: 50%; padding: 5px 10px; }
 .col-4 { width: 33.33%; padding: 5px 10px; }
@@ -83,10 +94,7 @@
     -unity-font-style: bold;
 }
 
-.form-control {
-    margin-bottom: 10px;
-}
-
+.form-control { margin-bottom: 10px; }
 .form-control > .unity-base-field__input {
     background-color: rgba(0, 0, 0, 0.3);
     border-width: 1px;
@@ -97,11 +105,7 @@
     height: 40px;
     -unity-text-align: middle-left;
 }
-
-.form-control:hover > .unity-base-field__input {
-    border-color: rgb(0, 210, 255);
-}
-
+.form-control:hover > .unity-base-field__input { border-color: rgb(0, 210, 255); }
 .form-control:focus > .unity-base-field__input {
     border-color: rgb(0, 210, 255);
     background-color: rgba(0, 0, 0, 0.5);
@@ -117,36 +121,12 @@
     transition: 0.2s;
     cursor: url('link-cursor.png');
 }
-
-.btn-primary {
-    background-color: rgba(0, 210, 255, 0.2);
-    border-color: rgb(0, 210, 255);
-    color: rgb(0, 210, 255);
-}
-.btn-primary:hover {
-    background-color: rgb(0, 210, 255);
-    color: black;
-}
-
-.btn-success {
-    background-color: rgba(40, 167, 69, 0.2);
-    border-color: rgb(40, 167, 69);
-    color: rgb(40, 167, 69);
-}
-.btn-success:hover {
-    background-color: rgb(40, 167, 69);
-    color: white;
-}
-
-.btn-outline-secondary {
-    background-color: transparent;
-    border-color: rgba(255, 255, 255, 0.3);
-    color: rgb(200, 200, 200);
-}
-.btn-outline-secondary:hover {
-    border-color: white;
-    color: white;
-}
+.btn-primary { background-color: rgba(0, 210, 255, 0.2); border-color: rgb(0, 210, 255); color: rgb(0, 210, 255); }
+.btn-primary:hover { background-color: rgb(0, 210, 255); color: black; }
+.btn-success { background-color: rgba(40, 167, 69, 0.2); border-color: rgb(40, 167, 69); color: rgb(40, 167, 69); }
+.btn-success:hover { background-color: rgb(40, 167, 69); color: white; }
+.btn-outline-secondary { background-color: transparent; border-color: rgba(255, 255, 255, 0.3); color: rgb(200, 200, 200); }
+.btn-outline-secondary:hover { border-color: white; color: white; }
 
 .badge {
     padding: 4px 8px;
@@ -158,6 +138,7 @@
 .bg-dark { background-color: rgba(0,0,0,0.5); }
 .border-secondary { border-color: rgba(255, 255, 255, 0.1); border-width: 1px; }
 
+/* Scrollbar */
 .unity-scroller { width: 8px; }
-.unity-scroller__slider { min-width: 8px; width: 8px; }
+.unity-scroller__slider { min-width: 8px; width: 8px; border-radius: 4px; background-color: rgba(255,255,255,0.2); }
 .unity-scroller__high-button, .unity-scroller__low-button { display: none; }
