@@ -16,7 +16,7 @@ namespace MinecraftBackend.Controllers
             _env = env;
         }
 
-        // --- DASHBOARD ---
+        // --- DASHBOARD (Giữ nguyên) ---
         public async Task<IActionResult> Dashboard()
         {
             ViewBag.TotalItems = await _context.ShopItems.CountAsync();
@@ -26,77 +26,75 @@ namespace MinecraftBackend.Controllers
             var totalGold = await _context.PlayerProfiles.SumAsync(p => p.Gold);
             ViewBag.TotalRevenue = totalGold.ToString("N0");
 
-            var last7Days = Enumerable.Range(0, 7)
-                .Select(i => DateTime.Today.AddDays(-6 + i))
-                .ToList();
-
+            var last7Days = Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).ToList();
             var transactionCounts = new List<int>();
 
             foreach (var date in last7Days)
             {
-                int count = await _context.Transactions
-                    .Where(t => t.CreatedAt.Date == date)
-                    .CountAsync();
+                int count = await _context.Transactions.Where(t => t.CreatedAt.Date == date).CountAsync();
                 transactionCounts.Add(count);
             }
 
             ViewBag.ChartLabels = string.Join(",", last7Days.Select(d => d.ToString("dd/MM")));
             ViewBag.ChartData = string.Join(",", transactionCounts);
-
             return View();
         }
 
-        // --- ITEMS MANAGEMENT (REFACTORED) ---
-        // Thêm tham số: tab (shop/data), typeFilter (lọc theo loại cụ thể)
+        // --- ITEMS MANAGEMENT (FIXED FILTER LOGIC) ---
         public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "", string tab = "shop", string typeFilter = "")
         {
             int pageSize = 10;
 
-            // Lưu trạng thái sắp xếp
+            // Lưu trạng thái
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
             
-            // Lưu trạng thái hiện tại để giữ nguyên khi chuyển trang
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
             ViewBag.CurrentTab = tab;
             ViewBag.CurrentType = typeFilter;
 
-            var query = _context.ShopItems.AsQueryable();
+            // 1. QUERY GỐC (Base Query)
+            var baseQuery = _context.ShopItems.AsQueryable();
 
-            // 1. Lọc theo Tab (Shop vs Data)
+            // Lọc theo Tab trước (Shop hoặc Data)
             if (tab == "data")
             {
-                // Tab Data: Chỉ lấy item ẩn (IsShow = false)
-                query = query.Where(i => !i.IsShow);
+                baseQuery = baseQuery.Where(i => !i.IsShow);
                 ViewBag.Title = "Game Database Assets";
             }
             else
             {
-                // Tab Shop (Mặc định): Chỉ lấy item đang bán (IsShow = true)
-                query = query.Where(i => i.IsShow);
+                baseQuery = baseQuery.Where(i => i.IsShow);
                 ViewBag.Title = "Shop Merchandise";
             }
 
-            // 2. Tìm kiếm (Chung cho cả 2 tab)
+            // [FIX QUAN TRỌNG]: Lấy danh sách Category DỰA TRÊN BASE QUERY (Chưa bị filter bởi typeFilter)
+            // Điều này đảm bảo khi chọn "Weapon", các lựa chọn "Armor", "Tool" vẫn còn trong Dropdown
+            ViewBag.AvailableTypes = await baseQuery
+                                            .Select(i => i.ItemType)
+                                            .Distinct()
+                                            .OrderBy(t => t) // Sắp xếp A-Z cho đẹp
+                                            .ToListAsync();
+
+            // 2. QUERY HIỂN THỊ (Table Query) - Bắt đầu áp dụng filter cho bảng
+            var query = baseQuery;
+
+            // Tìm kiếm
             if (!string.IsNullOrEmpty(search))
             {
                 string term = search.ToLower();
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            // 3. Lọc theo Category (Dropdown)
+            // Lọc theo Category (Chỉ ảnh hưởng đến danh sách hiển thị, không ảnh hưởng dropdown ở trên)
             if (!string.IsNullOrEmpty(typeFilter))
             {
                 query = query.Where(i => i.ItemType == typeFilter);
             }
 
-            // 4. Lấy danh sách các loại ItemType hiện có trong Tab này để đổ vào Dropdown lọc
-            // Lưu ý: Phải lấy Distinct trước khi phân trang
-            ViewBag.AvailableTypes = await query.Select(i => i.ItemType).Distinct().ToListAsync();
-
-            // 5. Sắp xếp
+            // Sắp xếp
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
@@ -105,10 +103,9 @@ namespace MinecraftBackend.Controllers
                 "Price" => query.OrderBy(s => s.PriceAmount),
                 "price_desc" => query.OrderByDescending(s => s.PriceAmount),
                 _ => tab == "data" ? query.OrderBy(s => s.ItemType).ThenBy(s => s.Name) : query.OrderBy(s => s.Name), 
-                // Mẹo: Tab Data mặc định sort theo Type để gom nhóm Mob, Building lại với nhau
             };
 
-            // 6. Phân trang
+            // Phân trang
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
@@ -121,6 +118,7 @@ namespace MinecraftBackend.Controllers
             return View(items);
         }
 
+        // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
         public IActionResult CreateItem() => View();
 
         [HttpPost]
@@ -176,19 +174,10 @@ namespace MinecraftBackend.Controllers
             var existing = await _context.ShopItems.AsNoTracking().FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
             if (existing == null) return NotFound();
 
-            if (imageFile != null) 
-            {
-                item.ImageURL = await SaveImage(imageFile, item.ItemType);
-            }
-            else 
-            {
-                item.ImageURL = existing.ImageURL;
-            }
+            if (imageFile != null) item.ImageURL = await SaveImage(imageFile, item.ItemType);
+            else item.ImageURL = existing.ImageURL;
 
-            if (string.IsNullOrEmpty(item.TargetItemID)) 
-            {
-                item.TargetItemID = item.ProductID;
-            }
+            if (string.IsNullOrEmpty(item.TargetItemID)) item.TargetItemID = item.ProductID;
 
             if (ModelState.IsValid)
             {
@@ -196,7 +185,6 @@ namespace MinecraftBackend.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction("Items", new { tab = item.IsShow ? "shop" : "data" });
             }
-
             return View(item);
         }
 
@@ -213,7 +201,7 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("Items", new { tab = returnTab });
         }
 
-        // --- USER MANAGEMENT ---
+        // --- USER MANAGEMENT (Giữ nguyên) ---
         public async Task<IActionResult> Users()
         {
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
@@ -273,17 +261,11 @@ namespace MinecraftBackend.Controllers
 
         public async Task<IActionResult> UserDetails(string id)
         {
-            var profile = await _context.PlayerProfiles
-                .Include(p => p.User)
-                .FirstOrDefaultAsync(p => p.UserId == id);
+            var profile = await _context.PlayerProfiles.Include(p => p.User).FirstOrDefaultAsync(p => p.UserId == id);
             if (profile == null) return NotFound();
 
             ViewBag.Inventory = await _context.Inventories.Where(i => i.UserId == profile.UserId).ToListAsync();
-            ViewBag.Logs = await _context.Transactions
-                .Where(l => l.UserId == id)
-                .OrderByDescending(l => l.CreatedAt)
-                .Take(20)
-                .ToListAsync();
+            ViewBag.Logs = await _context.Transactions.Where(l => l.UserId == id).OrderByDescending(l => l.CreatedAt).Take(20).ToListAsync();
             return View(profile);
         }
 
@@ -304,17 +286,14 @@ namespace MinecraftBackend.Controllers
             {
                 string uploadsFolder = Path.Combine(_env.WebRootPath, "images", "avatars");
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + avatarFile.FileName;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
                 using (var fileStream = new FileStream(filePath, FileMode.Create))
                 {
                     await avatarFile.CopyToAsync(fileStream);
                 }
                 existing.AvatarUrl = $"/images/avatars/{uniqueFileName}";
             }
-            
             existing.DisplayName = profile.DisplayName;
             existing.Level = profile.Level;
             existing.Gold = profile.Gold;
@@ -368,56 +347,33 @@ namespace MinecraftBackend.Controllers
                 string logCurrency = "NONE";
                 int logAmount = 0;
 
-                if (type == "Gold") 
-                {
-                    profile.Gold += amount;
-                    logCurrency = "RES_GOLD";
-                    logAmount = amount;
-                }
-                else if (type == "Gem") 
-                {
-                    profile.Gem += amount;
-                    logCurrency = "RES_GEM";
-                    logAmount = amount;
-                }
+                if (type == "Gold") { profile.Gold += amount; logCurrency = "RES_GOLD"; logAmount = amount; }
+                else if (type == "Gem") { profile.Gem += amount; logCurrency = "RES_GEM"; logAmount = amount; }
                 else if (type == "Item" && !string.IsNullOrEmpty(itemId))
                 {
                     _context.Inventories.Add(new GameInventory
                     {
-                        InventoryId = Guid.NewGuid().ToString(),
-                        UserId = profile.UserId,
-                        ItemID = itemId,
-                        Quantity = amount,
-                        AcquiredDate = DateTime.Now
+                        InventoryId = Guid.NewGuid().ToString(), UserId = profile.UserId, ItemID = itemId, Quantity = amount, AcquiredDate = DateTime.Now
                     });
                 }
 
                 _context.Transactions.Add(new Transaction
                 {
-                    UserId = userId,
-                    ActionType = "GIFT",
-                    Details = $"Admin sent {amount}x {type} {(type == "Item" ? itemId : "")}",
-                    CreatedAt = DateTime.Now,
-                    CurrencyType = logCurrency,
-                    Amount = logAmount,
-                    ItemId = (type == "Item" ? itemId : null)
+                    UserId = userId, ActionType = "GIFT", Details = $"Admin sent {amount}x {type} {(type == "Item" ? itemId : "")}",
+                    CreatedAt = DateTime.Now, CurrencyType = logCurrency, Amount = logAmount, ItemId = (type == "Item" ? itemId : null)
                 });
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        // --- SYSTEM ---
+        // --- SYSTEM (Giữ nguyên) ---
         public async Task<IActionResult> Logs(string type = "All", string userId = "", string date = "")
         {
             var query = _context.Transactions.AsQueryable();
             if (type != "All") query = query.Where(l => l.ActionType == type);
             if (!string.IsNullOrEmpty(userId)) query = query.Where(l => l.UserId.Contains(userId));
-            if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime dt))
-            {
-                query = query.Where(l => l.CreatedAt.Date == dt.Date);
-            }
-
+            if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime dt)) query = query.Where(l => l.CreatedAt.Date == dt.Date);
             ViewBag.Types = new List<string> { "LOGIN", "REGISTER", "TRANSACTION", "GIFT", "CRAFT", "BUY" };
             return View(await query.OrderByDescending(l => l.CreatedAt).Take(100).ToListAsync());
         }
@@ -438,17 +394,11 @@ namespace MinecraftBackend.Controllers
         {
             _context.Inventories.RemoveRange(_context.Inventories);
             _context.Transactions.RemoveRange(_context.Transactions);
-            
             var profiles = await _context.PlayerProfiles.ToListAsync();
             foreach (var p in profiles)
             {
-                p.Gold = 1000;
-                p.Gem = 0;
-                p.Level = 1;
-                p.Exp = 0;
-                p.Health = 100;
+                p.Gold = 1000; p.Gem = 0; p.Level = 1; p.Exp = 0; p.Health = 100;
             }
-
             await _context.SaveChangesAsync();
             TempData["Message"] = "Đã Reset toàn bộ dữ liệu Game!";
             return RedirectToAction("Dashboard");
@@ -465,23 +415,13 @@ namespace MinecraftBackend.Controllers
         {
             string folder = type?.ToLower() switch
             {
-                "weapon" => "weapons",
-                "armor" => "armor",
-                "consumable" => "resources",
-                "resource" => "resources",
-                "bundle" => "others",
-                _ => "others"
+                "weapon" => "weapons", "armor" => "armor", "consumable" => "resources", "resource" => "resources", "bundle" => "others", _ => "others"
             };
             string uploadsFolder = Path.Combine(_env.WebRootPath, "images", folder);
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
             string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await image.CopyToAsync(fileStream);
-            }
+            using (var fileStream = new FileStream(filePath, FileMode.Create)) { await image.CopyToAsync(fileStream); }
             return $"/images/{folder}/{uniqueFileName}";
         }
     }
