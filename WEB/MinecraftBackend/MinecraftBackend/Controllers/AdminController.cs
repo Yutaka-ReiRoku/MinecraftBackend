@@ -40,98 +40,87 @@ namespace MinecraftBackend.Controllers
             return View();
         }
 
-        // --- ITEMS MANAGEMENT (UPGRADED COMPLEX FILTER) ---
+        // --- ITEMS MANAGEMENT (UPDATED COMPLEX FILTER) ---
         public async Task<IActionResult> Items(
             string search = "", 
             int page = 1, 
             string sortOrder = "", 
             string tab = "shop", 
             string typeFilter = "",
-            string rarityFilter = "",
-            string currencyFilter = "",
-            int? minPrice = null,
-            int? maxPrice = null
-            )
+            string rarityFilter = "",   // Mới: Lọc theo độ hiếm
+            int? minPrice = null,       // Mới: Giá thấp nhất
+            int? maxPrice = null        // Mới: Giá cao nhất
+        )
         {
             int pageSize = 10;
 
-            // 1. CHUẨN BỊ DỮ LIỆU CHO DROPDOWN (Lấy từ DB để đảm bảo chính xác)
-            // Lấy danh sách Type, Rarity, Currency duy nhất đang có trong DB
-            var allItems = _context.ShopItems.AsNoTracking(); // Dùng AsNoTracking để tối ưu query metadata
-
-            ViewBag.AvailableTypes = await allItems.Select(i => i.ItemType).Distinct().OrderBy(t => t).ToListAsync();
-            ViewBag.AvailableRarities = await allItems.Select(i => i.Rarity).Distinct().OrderBy(t => t).ToListAsync();
-            ViewBag.AvailableCurrencies = await allItems.Select(i => i.PriceCurrency).Distinct().OrderBy(t => t).ToListAsync();
-
-            // 2. LƯU TRẠNG THÁI FILTER & SORT (Để View tái sử dụng)
+            // 1. Lưu trạng thái sắp xếp
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
+            ViewBag.RaritySortParm = sortOrder == "Rarity" ? "rarity_desc" : "Rarity"; // Mới
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
-            ViewBag.RaritySortParm = sortOrder == "Rarity" ? "rarity_desc" : "Rarity";
             
+            // 2. Lưu giá trị bộ lọc hiện tại để View hiển thị lại
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
             ViewBag.CurrentTab = tab;
             ViewBag.CurrentType = typeFilter;
             ViewBag.CurrentRarity = rarityFilter;
-            ViewBag.CurrentCurrency = currencyFilter;
             ViewBag.CurrentMinPrice = minPrice;
             ViewBag.CurrentMaxPrice = maxPrice;
 
-            // 3. QUERY CHÍNH
-            var query = _context.ShopItems.AsQueryable();
+            // 3. Chuẩn bị dữ liệu cho các Dropdown
+            var baseQuery = _context.ShopItems.AsQueryable();
 
-            // Lọc theo Tab (Shop / Data)
             if (tab == "data")
             {
-                query = query.Where(i => !i.IsShow);
+                baseQuery = baseQuery.Where(i => !i.IsShow);
                 ViewBag.Title = "Game Database Assets";
             }
             else
             {
-                query = query.Where(i => i.IsShow);
+                baseQuery = baseQuery.Where(i => i.IsShow);
                 ViewBag.Title = "Shop Merchandise";
             }
 
-            // --- ÁP DỤNG CÁC BỘ LỌC (FILTER) ---
+            // Lấy danh sách Category (Distinct)
+            ViewBag.AvailableTypes = await baseQuery.Select(i => i.ItemType).Distinct().OrderBy(t => t).ToListAsync();
+            // Lấy danh sách Rarity (Distinct)
+            ViewBag.AvailableRarities = await baseQuery.Select(i => i.Rarity).Distinct().OrderBy(r => r).ToListAsync();
 
-            // 1. Tìm kiếm theo Tên hoặc ID
+            // 4. ÁP DỤNG BỘ LỌC (FILTERING)
+            var query = baseQuery;
+
+            // Lọc theo Tên hoặc ID
             if (!string.IsNullOrEmpty(search))
             {
                 string term = search.ToLower();
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            // 2. Lọc theo Category (Type)
+            // Lọc theo Category
             if (!string.IsNullOrEmpty(typeFilter))
             {
                 query = query.Where(i => i.ItemType == typeFilter);
             }
 
-            // 3. Lọc theo Rarity (Mới)
+            // Lọc theo Rarity (Mới)
             if (!string.IsNullOrEmpty(rarityFilter))
             {
                 query = query.Where(i => i.Rarity == rarityFilter);
             }
 
-            // 4. Lọc theo Currency & Price Range (Mới - Chỉ áp dụng cho Tab Shop)
-            if (tab == "shop")
+            // Lọc theo Price Range (Mới)
+            if (minPrice.HasValue)
             {
-                if (!string.IsNullOrEmpty(currencyFilter))
-                {
-                    query = query.Where(i => i.PriceCurrency == currencyFilter);
-                }
-                if (minPrice.HasValue)
-                {
-                    query = query.Where(i => i.PriceAmount >= minPrice.Value);
-                }
-                if (maxPrice.HasValue)
-                {
-                    query = query.Where(i => i.PriceAmount <= maxPrice.Value);
-                }
+                query = query.Where(i => i.PriceAmount >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(i => i.PriceAmount <= maxPrice.Value);
             }
 
-            // --- SẮP XẾP (SORT) ---
+            // 5. SẮP XẾP (SORTING)
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
@@ -144,7 +133,7 @@ namespace MinecraftBackend.Controllers
                 _ => tab == "data" ? query.OrderBy(s => s.ItemType).ThenBy(s => s.Name) : query.OrderBy(s => s.Name), 
             };
 
-            // --- PHÂN TRANG (PAGINATION) ---
+            // 6. PHÂN TRANG
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
@@ -157,25 +146,20 @@ namespace MinecraftBackend.Controllers
             return View(items);
         }
 
-        // --- CÁC HÀM KHÁC GIỮ NGUYÊN ---
+        // --- CÁC HÀM CRUD ITEM (Giữ nguyên logic) ---
         public IActionResult CreateItem() => View();
 
         [HttpPost]
         public async Task<IActionResult> CreateItem(ShopItem item, IFormFile? imageFile)
         {
-            if (item.PriceAmount < 0)
-            {
-                ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
-                return View(item);
-            }
+            if (item.PriceAmount < 0) { ModelState.AddModelError("PriceAmount", "Price cannot be negative!"); return View(item); }
 
             if (imageFile != null) item.ImageURL = await SaveImage(imageFile, item.ItemType);
             else item.ImageURL = "/images/others/default.png";
 
             if (string.IsNullOrEmpty(item.TargetItemID)) item.TargetItemID = item.ProductID;
             
-            ModelState.Remove("ImageURL");
-            ModelState.Remove("TargetItemID");
+            ModelState.Remove("ImageURL"); ModelState.Remove("TargetItemID");
             
             if (ModelState.IsValid)
             {
@@ -201,14 +185,8 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> EditItem(ShopItem item, IFormFile? imageFile)
         {
-            ModelState.Remove("ImageURL");
-            ModelState.Remove("TargetItemID");
-
-            if (item.PriceAmount < 0)
-            {
-                ModelState.AddModelError("PriceAmount", "Price cannot be negative!");
-                return View(item);
-            }
+            ModelState.Remove("ImageURL"); ModelState.Remove("TargetItemID");
+            if (item.PriceAmount < 0) { ModelState.AddModelError("PriceAmount", "Price cannot be negative!"); return View(item); }
 
             var existing = await _context.ShopItems.AsNoTracking().FirstOrDefaultAsync(i => i.ProductID == item.ProductID);
             if (existing == null) return NotFound();
@@ -240,7 +218,10 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("Items", new { tab = returnTab });
         }
 
-        // --- USER MANAGEMENT (Giữ nguyên) ---
+        // --- USER & SYSTEM MANAGEMENT (Giữ nguyên phần còn lại) ---
+        // (Tôi rút gọn phần này vì bạn không yêu cầu sửa đổi logic User/System, 
+        // nhưng bạn hãy giữ nguyên code cũ của phần User/System ở đây)
+        
         public async Task<IActionResult> Users()
         {
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
@@ -253,7 +234,7 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser(string username, string email, string password)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
                 ModelState.AddModelError("", "Vui lòng nhập đủ thông tin!");
                 return View();
@@ -267,30 +248,16 @@ namespace MinecraftBackend.Controllers
 
             var newUser = new User
             {
-                Id = Guid.NewGuid().ToString(),
-                Username = username,
-                Email = email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), 
-                Role = "User",
-                Status = "Active",
-                CreatedAt = DateTime.Now
+                Id = Guid.NewGuid().ToString(), Username = username, Email = email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(password), Role = "User", Status = "Active", CreatedAt = DateTime.Now
             };
             _context.Users.Add(newUser);
 
             var newProfile = new PlayerProfile
             {
-                CharacterID = Guid.NewGuid().ToString(),
-                UserId = newUser.Id,
-                DisplayName = username,
-                Level = 1,
-                Exp = 0,
-                Gold = 2000, 
-                Gem = 50,
-                Health = 100,
-                MaxHealth = 100,
-                Hunger = 100,
-                AvatarUrl = "/images/avatars/steve.png",
-                GameMode = "Survival"
+                CharacterID = Guid.NewGuid().ToString(), UserId = newUser.Id, DisplayName = username,
+                Level = 1, Exp = 0, Gold = 2000, Gem = 50, Health = 100, MaxHealth = 100, Hunger = 100,
+                AvatarUrl = "/images/avatars/steve.png", GameMode = "Survival"
             };
             _context.PlayerProfiles.Add(newProfile);
             await _context.SaveChangesAsync();
@@ -318,7 +285,7 @@ namespace MinecraftBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> EditUser(PlayerProfile profile, IFormFile? avatarFile)
         {
-            var existing = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == profile.CharacterID);
+             var existing = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == profile.CharacterID);
             if (existing == null) return NotFound();
 
             if (avatarFile != null)
@@ -327,17 +294,11 @@ namespace MinecraftBackend.Controllers
                 if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
                 string uniqueFileName = Guid.NewGuid().ToString() + "_" + avatarFile.FileName;
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await avatarFile.CopyToAsync(fileStream);
-                }
+                using (var fileStream = new FileStream(filePath, FileMode.Create)) { await avatarFile.CopyToAsync(fileStream); }
                 existing.AvatarUrl = $"/images/avatars/{uniqueFileName}";
             }
-            existing.DisplayName = profile.DisplayName;
-            existing.Level = profile.Level;
-            existing.Gold = profile.Gold;
-            existing.Gem = profile.Gem;
-            existing.GameMode = profile.GameMode;
+            existing.DisplayName = profile.DisplayName; existing.Level = profile.Level;
+            existing.Gold = profile.Gold; existing.Gem = profile.Gem; existing.GameMode = profile.GameMode;
 
             await _context.SaveChangesAsync();
             return RedirectToAction("UserDetails", new { id = existing.UserId });
@@ -362,7 +323,6 @@ namespace MinecraftBackend.Controllers
                 TempData["Error"] = "Mật khẩu mới phải dài hơn 6 ký tự!";
                 return RedirectToAction("Users");
             }
-
             var user = await _context.Users.FindAsync(userId);
             if (user != null)
             {
@@ -370,10 +330,7 @@ namespace MinecraftBackend.Controllers
                 await _context.SaveChangesAsync();
                 TempData["Message"] = $"Đã đổi mật khẩu cho user: {user.Username}";
             }
-            else
-            {
-                TempData["Error"] = "Không tìm thấy người chơi!";
-            }
+            else TempData["Error"] = "Không tìm thấy người chơi!";
             return RedirectToAction("Users");
         }
 
@@ -383,30 +340,19 @@ namespace MinecraftBackend.Controllers
             var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
             if (profile != null)
             {
-                string logCurrency = "NONE";
-                int logAmount = 0;
-
+                string logCurrency = "NONE"; int logAmount = 0;
                 if (type == "Gold") { profile.Gold += amount; logCurrency = "RES_GOLD"; logAmount = amount; }
                 else if (type == "Gem") { profile.Gem += amount; logCurrency = "RES_GEM"; logAmount = amount; }
                 else if (type == "Item" && !string.IsNullOrEmpty(itemId))
                 {
-                    _context.Inventories.Add(new GameInventory
-                    {
-                        InventoryId = Guid.NewGuid().ToString(), UserId = profile.UserId, ItemID = itemId, Quantity = amount, AcquiredDate = DateTime.Now
-                    });
+                    _context.Inventories.Add(new GameInventory { InventoryId = Guid.NewGuid().ToString(), UserId = profile.UserId, ItemID = itemId, Quantity = amount, AcquiredDate = DateTime.Now });
                 }
-
-                _context.Transactions.Add(new Transaction
-                {
-                    UserId = userId, ActionType = "GIFT", Details = $"Admin sent {amount}x {type} {(type == "Item" ? itemId : "")}",
-                    CreatedAt = DateTime.Now, CurrencyType = logCurrency, Amount = logAmount, ItemId = (type == "Item" ? itemId : null)
-                });
+                _context.Transactions.Add(new Transaction { UserId = userId, ActionType = "GIFT", Details = $"Admin sent {amount}x {type} {(type == "Item" ? itemId : "")}", CreatedAt = DateTime.Now, CurrencyType = logCurrency, Amount = logAmount, ItemId = (type == "Item" ? itemId : null) });
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        // --- SYSTEM (Giữ nguyên) ---
         public async Task<IActionResult> Logs(string type = "All", string userId = "", string date = "")
         {
             var query = _context.Transactions.AsQueryable();
@@ -434,10 +380,7 @@ namespace MinecraftBackend.Controllers
             _context.Inventories.RemoveRange(_context.Inventories);
             _context.Transactions.RemoveRange(_context.Transactions);
             var profiles = await _context.PlayerProfiles.ToListAsync();
-            foreach (var p in profiles)
-            {
-                p.Gold = 1000; p.Gem = 0; p.Level = 1; p.Exp = 0; p.Health = 100;
-            }
+            foreach (var p in profiles) { p.Gold = 1000; p.Gem = 0; p.Level = 1; p.Exp = 0; p.Health = 100; }
             await _context.SaveChangesAsync();
             TempData["Message"] = "Đã Reset toàn bộ dữ liệu Game!";
             return RedirectToAction("Dashboard");
@@ -452,10 +395,7 @@ namespace MinecraftBackend.Controllers
 
         private async Task<string> SaveImage(IFormFile image, string type)
         {
-            string folder = type?.ToLower() switch
-            {
-                "weapon" => "weapons", "armor" => "armor", "consumable" => "resources", "resource" => "resources", "bundle" => "others", _ => "others"
-            };
+            string folder = type?.ToLower() switch { "weapon" => "weapons", "armor" => "armor", "consumable" => "resources", "resource" => "resources", "bundle" => "others", _ => "others" };
             string uploadsFolder = Path.Combine(_env.WebRootPath, "images", folder);
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
             string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
