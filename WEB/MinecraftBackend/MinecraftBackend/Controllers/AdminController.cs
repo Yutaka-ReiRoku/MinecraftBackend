@@ -40,72 +40,111 @@ namespace MinecraftBackend.Controllers
             return View();
         }
 
-        // --- ITEMS MANAGEMENT (FIXED FILTER LOGIC) ---
-        public async Task<IActionResult> Items(string search = "", int page = 1, string sortOrder = "", string tab = "shop", string typeFilter = "")
+        // --- ITEMS MANAGEMENT (UPGRADED COMPLEX FILTER) ---
+        public async Task<IActionResult> Items(
+            string search = "", 
+            int page = 1, 
+            string sortOrder = "", 
+            string tab = "shop", 
+            string typeFilter = "",
+            string rarityFilter = "",
+            string currencyFilter = "",
+            int? minPrice = null,
+            int? maxPrice = null
+            )
         {
             int pageSize = 10;
 
-            // Lưu trạng thái
+            // 1. CHUẨN BỊ DỮ LIỆU CHO DROPDOWN (Lấy từ DB để đảm bảo chính xác)
+            // Lấy danh sách Type, Rarity, Currency duy nhất đang có trong DB
+            var allItems = _context.ShopItems.AsNoTracking(); // Dùng AsNoTracking để tối ưu query metadata
+
+            ViewBag.AvailableTypes = await allItems.Select(i => i.ItemType).Distinct().OrderBy(t => t).ToListAsync();
+            ViewBag.AvailableRarities = await allItems.Select(i => i.Rarity).Distinct().OrderBy(t => t).ToListAsync();
+            ViewBag.AvailableCurrencies = await allItems.Select(i => i.PriceCurrency).Distinct().OrderBy(t => t).ToListAsync();
+
+            // 2. LƯU TRẠNG THÁI FILTER & SORT (Để View tái sử dụng)
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
+            ViewBag.RaritySortParm = sortOrder == "Rarity" ? "rarity_desc" : "Rarity";
             
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
             ViewBag.CurrentTab = tab;
             ViewBag.CurrentType = typeFilter;
+            ViewBag.CurrentRarity = rarityFilter;
+            ViewBag.CurrentCurrency = currencyFilter;
+            ViewBag.CurrentMinPrice = minPrice;
+            ViewBag.CurrentMaxPrice = maxPrice;
 
-            // 1. QUERY GỐC (Base Query)
-            var baseQuery = _context.ShopItems.AsQueryable();
+            // 3. QUERY CHÍNH
+            var query = _context.ShopItems.AsQueryable();
 
-            // Lọc theo Tab trước (Shop hoặc Data)
+            // Lọc theo Tab (Shop / Data)
             if (tab == "data")
             {
-                baseQuery = baseQuery.Where(i => !i.IsShow);
+                query = query.Where(i => !i.IsShow);
                 ViewBag.Title = "Game Database Assets";
             }
             else
             {
-                baseQuery = baseQuery.Where(i => i.IsShow);
+                query = query.Where(i => i.IsShow);
                 ViewBag.Title = "Shop Merchandise";
             }
 
-            // [FIX QUAN TRỌNG]: Lấy danh sách Category DỰA TRÊN BASE QUERY (Chưa bị filter bởi typeFilter)
-            // Điều này đảm bảo khi chọn "Weapon", các lựa chọn "Armor", "Tool" vẫn còn trong Dropdown
-            ViewBag.AvailableTypes = await baseQuery
-                                            .Select(i => i.ItemType)
-                                            .Distinct()
-                                            .OrderBy(t => t) // Sắp xếp A-Z cho đẹp
-                                            .ToListAsync();
+            // --- ÁP DỤNG CÁC BỘ LỌC (FILTER) ---
 
-            // 2. QUERY HIỂN THỊ (Table Query) - Bắt đầu áp dụng filter cho bảng
-            var query = baseQuery;
-
-            // Tìm kiếm
+            // 1. Tìm kiếm theo Tên hoặc ID
             if (!string.IsNullOrEmpty(search))
             {
                 string term = search.ToLower();
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            // Lọc theo Category (Chỉ ảnh hưởng đến danh sách hiển thị, không ảnh hưởng dropdown ở trên)
+            // 2. Lọc theo Category (Type)
             if (!string.IsNullOrEmpty(typeFilter))
             {
                 query = query.Where(i => i.ItemType == typeFilter);
             }
 
-            // Sắp xếp
+            // 3. Lọc theo Rarity (Mới)
+            if (!string.IsNullOrEmpty(rarityFilter))
+            {
+                query = query.Where(i => i.Rarity == rarityFilter);
+            }
+
+            // 4. Lọc theo Currency & Price Range (Mới - Chỉ áp dụng cho Tab Shop)
+            if (tab == "shop")
+            {
+                if (!string.IsNullOrEmpty(currencyFilter))
+                {
+                    query = query.Where(i => i.PriceCurrency == currencyFilter);
+                }
+                if (minPrice.HasValue)
+                {
+                    query = query.Where(i => i.PriceAmount >= minPrice.Value);
+                }
+                if (maxPrice.HasValue)
+                {
+                    query = query.Where(i => i.PriceAmount <= maxPrice.Value);
+                }
+            }
+
+            // --- SẮP XẾP (SORT) ---
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
                 "Type" => query.OrderBy(s => s.ItemType),
                 "type_desc" => query.OrderByDescending(s => s.ItemType),
+                "Rarity" => query.OrderBy(s => s.Rarity),
+                "rarity_desc" => query.OrderByDescending(s => s.Rarity),
                 "Price" => query.OrderBy(s => s.PriceAmount),
                 "price_desc" => query.OrderByDescending(s => s.PriceAmount),
                 _ => tab == "data" ? query.OrderBy(s => s.ItemType).ThenBy(s => s.Name) : query.OrderBy(s => s.Name), 
             };
 
-            // Phân trang
+            // --- PHÂN TRANG (PAGINATION) ---
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
