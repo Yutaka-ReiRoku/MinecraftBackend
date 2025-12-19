@@ -9,6 +9,7 @@
     --sidebar-width: 260px;
 }
 
+
 body {
     background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
     color: #e0e0e0;
@@ -23,7 +24,7 @@ a {
     transition: 0.3s;
 }
 
-/* --- 2. CUSTOM SCROLLBAR (Thanh cuộn tàng hình) --- */
+/* --- 2. CUSTOM SCROLLBAR --- */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -94,7 +95,7 @@ a {
 .nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
-    padding-left: 20px; /* Hiệu ứng trượt nhẹ */
+    padding-left: 20px;
     border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -118,7 +119,7 @@ a {
     .content { margin-left: 0; width: 100%; padding: 15px; }
 }
 
-/* --- 5. DATA TABLES --- */
+/* --- 5. DATA TABLES (FIXED LAYOUT SHIFT) --- */
 .table {
     color: #fff;
     margin-bottom: 0;
@@ -136,12 +137,17 @@ a {
     vertical-align: middle;
 }
 
+/* FIX QUAN TRỌNG: Thiết lập trạng thái mặc định cho tr để tránh nhảy layout khi hover */
+.table tbody tr {
+    transition: background 0.2s ease, border-left-color 0.2s ease;
+    border-left: 3px solid transparent; /* Giữ chỗ trước 3px */
+}
+
 .table-hover tbody tr:hover {
     background: linear-gradient(90deg, rgba(0, 210, 255, 0.1) 0%, rgba(0,0,0,0) 100%);
     color: #fff;
-    transform: scale(1.01); /* Phóng to nhẹ */
-    transition: 0.2s;
-    border-left: 3px solid var(--primary-color);
+    /* ĐÃ XÓA: transform: scale(1.01); -> Đây là nguyên nhân gây giật */
+    border-left-color: var(--primary-color); /* Chỉ đổi màu, không đổi độ dày */
 }
 
 /* --- 6. FORMS & INPUTS --- */
