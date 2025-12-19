@@ -16,7 +16,7 @@ namespace MinecraftBackend.Controllers
             _env = env;
         }
 
-        // --- DASHBOARD (Giữ nguyên) ---
+        // --- DASHBOARD ---
         public async Task<IActionResult> Dashboard()
         {
             ViewBag.TotalItems = await _context.ShopItems.CountAsync();
@@ -40,7 +40,7 @@ namespace MinecraftBackend.Controllers
             return View();
         }
 
-        // --- ITEMS MANAGEMENT (UPDATED: Added Currency Filter) ---
+        // --- ITEMS MANAGEMENT (FULL FEATURES) ---
         public async Task<IActionResult> Items(
             string search = "", 
             int page = 1, 
@@ -48,30 +48,29 @@ namespace MinecraftBackend.Controllers
             string tab = "shop", 
             string typeFilter = "",
             string rarityFilter = "",
-            string currencyFilter = "", // MỚI: Lọc theo loại tiền
+            string currencyFilter = "", 
             int? minPrice = null,
             int? maxPrice = null
         )
         {
             int pageSize = 10;
 
-            // 1. Lưu trạng thái sắp xếp
+            // 1. Lưu trạng thái
             ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             ViewBag.TypeSortParm = sortOrder == "Type" ? "type_desc" : "Type";
             ViewBag.RaritySortParm = sortOrder == "Rarity" ? "rarity_desc" : "Rarity";
             ViewBag.PriceSortParm = sortOrder == "Price" ? "price_desc" : "Price";
             
-            // 2. Lưu giá trị bộ lọc hiện tại
             ViewBag.CurrentSort = sortOrder;
             ViewBag.CurrentSearch = search;
             ViewBag.CurrentTab = tab;
             ViewBag.CurrentType = typeFilter;
             ViewBag.CurrentRarity = rarityFilter;
-            ViewBag.CurrentCurrency = currencyFilter; // MỚI
+            ViewBag.CurrentCurrency = currencyFilter;
             ViewBag.CurrentMinPrice = minPrice;
             ViewBag.CurrentMaxPrice = maxPrice;
 
-            // 3. Chuẩn bị dữ liệu Dropdown
+            // 2. Query cơ bản
             var baseQuery = _context.ShopItems.AsQueryable();
 
             if (tab == "data")
@@ -88,7 +87,7 @@ namespace MinecraftBackend.Controllers
             ViewBag.AvailableTypes = await baseQuery.Select(i => i.ItemType).Distinct().OrderBy(t => t).ToListAsync();
             ViewBag.AvailableRarities = await baseQuery.Select(i => i.Rarity).Distinct().OrderBy(r => r).ToListAsync();
 
-            // 4. ÁP DỤNG BỘ LỌC
+            // 3. Áp dụng bộ lọc
             var query = baseQuery;
 
             if (!string.IsNullOrEmpty(search))
@@ -97,32 +96,14 @@ namespace MinecraftBackend.Controllers
                 query = query.Where(i => i.Name.ToLower().Contains(term) || i.ProductID.ToLower().Contains(term));
             }
 
-            if (!string.IsNullOrEmpty(typeFilter))
-            {
-                query = query.Where(i => i.ItemType == typeFilter);
-            }
+            if (!string.IsNullOrEmpty(typeFilter)) query = query.Where(i => i.ItemType == typeFilter);
+            if (!string.IsNullOrEmpty(rarityFilter)) query = query.Where(i => i.Rarity == rarityFilter);
+            if (!string.IsNullOrEmpty(currencyFilter)) query = query.Where(i => i.PriceCurrency == currencyFilter);
 
-            if (!string.IsNullOrEmpty(rarityFilter))
-            {
-                query = query.Where(i => i.Rarity == rarityFilter);
-            }
+            if (minPrice.HasValue) query = query.Where(i => i.PriceAmount >= minPrice.Value);
+            if (maxPrice.HasValue) query = query.Where(i => i.PriceAmount <= maxPrice.Value);
 
-            // MỚI: Lọc theo Currency
-            if (!string.IsNullOrEmpty(currencyFilter))
-            {
-                query = query.Where(i => i.PriceCurrency == currencyFilter);
-            }
-
-            if (minPrice.HasValue)
-            {
-                query = query.Where(i => i.PriceAmount >= minPrice.Value);
-            }
-            if (maxPrice.HasValue)
-            {
-                query = query.Where(i => i.PriceAmount <= maxPrice.Value);
-            }
-
-            // 5. SẮP XẾP
+            // 4. Sắp xếp
             query = sortOrder switch
             {
                 "name_desc" => query.OrderByDescending(s => s.Name),
@@ -135,7 +116,7 @@ namespace MinecraftBackend.Controllers
                 _ => tab == "data" ? query.OrderBy(s => s.ItemType).ThenBy(s => s.Name) : query.OrderBy(s => s.Name), 
             };
 
-            // 6. PHÂN TRANG
+            // 5. Phân trang
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
@@ -148,7 +129,6 @@ namespace MinecraftBackend.Controllers
             return View(items);
         }
 
-        // --- CÁC HÀM CRUD GIỮ NGUYÊN ---
         public IActionResult CreateItem() => View();
 
         [HttpPost]
@@ -220,7 +200,7 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("Items", new { tab = returnTab });
         }
 
-        // --- USER & SYSTEM ---
+        // --- USER MANAGEMENT ---
         public async Task<IActionResult> Users()
         {
             var users = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
@@ -352,14 +332,62 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        public async Task<IActionResult> Logs(string type = "All", string userId = "", string date = "")
+        // --- SYSTEM LOGS (FULL FEATURES) ---
+        public async Task<IActionResult> Logs(
+            string search = "", 
+            string userId = "", 
+            string type = "", 
+            string date = "", 
+            string currency = "", 
+            string sortOrder = "", 
+            int page = 1)
         {
+            int pageSize = 15;
+
+            ViewBag.DateSortParm = String.IsNullOrEmpty(sortOrder) ? "date_asc" : "";
+            ViewBag.UserSortParm = sortOrder == "User" ? "user_desc" : "User";
+            ViewBag.ActionSortParm = sortOrder == "Action" ? "action_desc" : "Action";
+            ViewBag.AmountSortParm = sortOrder == "Amount" ? "amount_desc" : "Amount";
+
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentSearch = search;
+            ViewBag.CurrentUserId = userId;
+            ViewBag.CurrentType = type;
+            ViewBag.CurrentDate = date;
+            ViewBag.CurrentCurrency = currency;
+
+            ViewBag.Types = new List<string> { "LOGIN", "REGISTER", "TRANSACTION", "GIFT", "CRAFT", "BUY", "BUILD" };
+
             var query = _context.Transactions.AsQueryable();
-            if (type != "All") query = query.Where(l => l.ActionType == type);
+
+            if (!string.IsNullOrEmpty(type) && type != "All") query = query.Where(l => l.ActionType == type);
             if (!string.IsNullOrEmpty(userId)) query = query.Where(l => l.UserId.Contains(userId));
+            if (!string.IsNullOrEmpty(search)) query = query.Where(l => l.Details.ToLower().Contains(search.ToLower()) || l.ItemId.Contains(search));
             if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out DateTime dt)) query = query.Where(l => l.CreatedAt.Date == dt.Date);
-            ViewBag.Types = new List<string> { "LOGIN", "REGISTER", "TRANSACTION", "GIFT", "CRAFT", "BUY" };
-            return View(await query.OrderByDescending(l => l.CreatedAt).Take(100).ToListAsync());
+            if (!string.IsNullOrEmpty(currency)) query = query.Where(l => l.CurrencyType == currency);
+
+            query = sortOrder switch
+            {
+                "date_asc" => query.OrderBy(l => l.CreatedAt),
+                "User" => query.OrderBy(l => l.UserId),
+                "user_desc" => query.OrderByDescending(l => l.UserId),
+                "Action" => query.OrderBy(l => l.ActionType),
+                "action_desc" => query.OrderByDescending(l => l.ActionType),
+                "Amount" => query.OrderBy(l => l.Amount),
+                "amount_desc" => query.OrderByDescending(l => l.Amount),
+                _ => query.OrderByDescending(l => l.CreatedAt),
+            };
+
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
+
+            var logs = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+
+            return View(logs);
         }
 
         public IActionResult Simulator() => View(_context.PlayerProfiles.Include(p => p.User).ToList());
