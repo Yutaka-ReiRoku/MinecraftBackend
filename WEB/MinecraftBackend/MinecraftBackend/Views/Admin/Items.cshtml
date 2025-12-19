@@ -29,13 +29,13 @@
         <li class="nav-item me-2">
             <a class="nav-link @(currentTab == "shop" ? "active bg-warning text-dark fw-bold" : "text-white")" 
                asp-action="Items" asp-route-tab="shop">
-                <i class="fas fa-shopping-cart me-2"></i> Merchandise (On Sale)
+                <i class="fas fa-shopping-cart me-2"></i> Merchandise
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link @(currentTab == "data" ? "active bg-info text-dark fw-bold" : "text-white")" 
                asp-action="Items" asp-route-tab="data">
-                <i class="fas fa-cube me-2"></i> Internal Game Data (Assets)
+                <i class="fas fa-cube me-2"></i> Internal Assets
             </a>
         </li>
     </ul>
@@ -48,9 +48,9 @@
             <table class="table table-hover align-middle mb-0 text-white">
                 <thead class="bg-white bg-opacity-10 text-uppercase text-info small border-bottom border-info">
                     <tr>
-                        <th class="ps-4" style="width: 30%;">
+                        <th class="ps-4" style="width: 25%;">
                             <a href="#" onclick="setSort('name_desc'); return false;" class="text-decoration-none text-info">
-                                Name & Details <i class="fas fa-sort ms-1"></i>
+                                Name <i class="fas fa-sort ms-1"></i>
                             </a>
                         </th>
                         <th style="width: 15%;">
@@ -66,9 +66,9 @@
                         
                         @if(currentTab == "shop")
                         {
-                            <th style="width: 25%;">
+                            <th style="width: 30%;">
                                 <a href="#" onclick="setSort('@ViewBag.PriceSortParm'); return false;" class="text-decoration-none text-info">
-                                    Price & Currency <i class="fas fa-sort ms-1"></i>
+                                    Price Filter <i class="fas fa-sort ms-1"></i>
                                 </a>
                             </th>
                         }
@@ -79,18 +79,18 @@
                         <th class="text-end pe-4">Actions</th>
                     </tr>
 
-                    <tr class="bg-dark border-secondary">
+                    <tr class="bg-dark bg-opacity-25">
                         <td class="ps-4 py-2">
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text bg-secondary border-secondary text-white"><i class="fas fa-search"></i></span>
-                                <input type="text" name="search" class="form-control bg-dark text-white border-secondary" 
-                                       placeholder="Filter Name/ID..." value="@ViewBag.CurrentSearch" 
+                                <span class="input-group-text bg-light text-secondary border-0"><i class="fas fa-search"></i></span>
+                                <input type="text" name="search" class="form-control form-control-sm bg-light text-dark border-0" 
+                                       placeholder="Name/ID..." value="@ViewBag.CurrentSearch" 
                                        onkeydown="if(event.keyCode==13) this.form.submit()">
                             </div>
                         </td>
                         <td class="py-2">
-                            <select name="typeFilter" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="this.form.submit()">
-                                <option value="">- All -</option>
+                            <select name="typeFilter" class="form-select form-select-sm bg-light text-dark border-0" onchange="this.form.submit()">
+                                <option value="">- All Types -</option>
                                 @if (types != null)
                                 {
                                     foreach (var t in types)
@@ -101,8 +101,8 @@
                             </select>
                         </td>
                          <td class="py-2">
-                             <select name="rarityFilter" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="this.form.submit()">
-                                <option value="">- All -</option>
+                             <select name="rarityFilter" class="form-select form-select-sm bg-light text-dark border-0" onchange="this.form.submit()">
+                                <option value="">- All Rarities -</option>
                                 @if (rarities != null)
                                 {
                                     foreach (var r in rarities)
@@ -116,20 +116,22 @@
                         @if(currentTab == "shop")
                         {
                             <td class="py-2">
-                                <div class="d-flex flex-column gap-1">
-                                    <select name="currencyFilter" class="form-select form-select-sm bg-dark text-white border-secondary mb-1" style="font-size: 0.8rem;" onchange="this.form.submit()">
-                                        <option value="">-- Any Currency --</option>
-                                        <!option value="RES_GOLD" @(currentCurrency == "RES_GOLD" ? "selected" : "")>🪙 Gold Coin</!option>
-                                        <!option value="RES_GEM" @(currentCurrency == "RES_GEM" ? "selected" : "")>💎 Gemstone</!option>
+                                <div class="input-group input-group-sm">
+                                    <select name="currencyFilter" class="form-select bg-light text-dark border-0 border-end" style="max-width: 85px;" onchange="this.form.submit()">
+                                        <option value="">All</option>
+                                        <!option value="RES_GOLD" @(currentCurrency == "RES_GOLD" ? "selected" : "")>Gold</!option>
+                                        <!option value="RES_GEM" @(currentCurrency == "RES_GEM" ? "selected" : "")>Gem</!option>
                                     </select>
-
-                                    <div class="input-group input-group-sm">
-                                        <input type="number" name="minPrice" class="form-control bg-dark text-white border-secondary" 
-                                               placeholder="Min" value="@ViewBag.CurrentMinPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
-                                        <span class="input-group-text bg-secondary border-secondary text-white p-1">-</span>
-                                        <input type="number" name="maxPrice" class="form-control bg-dark text-white border-secondary" 
-                                               placeholder="Max" value="@ViewBag.CurrentMaxPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
-                                    </div>
+                                    
+                                    <input type="number" name="minPrice" class="form-control bg-light text-dark border-0 border-end" 
+                                           placeholder="Min" value="@ViewBag.CurrentMinPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                    
+                                    <input type="number" name="maxPrice" class="form-control bg-light text-dark border-0" 
+                                           placeholder="Max" value="@ViewBag.CurrentMaxPrice" onkeydown="if(event.keyCode==13) this.form.submit()">
+                                    
+                                    <button type="submit" class="btn btn-info text-white" title="Apply">
+                                        <i class="fas fa-check"></i>
+                                    </button>
                                 </div>
                             </td>
                         }
@@ -137,12 +139,10 @@
                         {
                              <td class="py-2"></td>
                         }
+                        
                         <td class="text-end pe-4 py-2 align-middle">
-                            <button type="submit" class="btn btn-sm btn-outline-info" title="Apply Filters">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                             <a asp-action="Items" asp-route-tab="@currentTab" class="btn btn-sm btn-outline-secondary" title="Clear">
-                                <i class="fas fa-times"></i>
+                             <a asp-action="Items" asp-route-tab="@currentTab" class="btn btn-sm btn-secondary" title="Clear All Filters">
+                                <i class="fas fa-undo"></i> Reset
                             </a>
                         </td>
                     </tr>
