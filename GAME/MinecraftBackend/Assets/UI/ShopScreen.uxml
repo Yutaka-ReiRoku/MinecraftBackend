@@ -9,13 +9,11 @@
                     <ui:Label name="LevelLabel" text="1" class="h3 fw-bold text-white" />
                     <ui:Label text="LVL" class="small text-white-50" style="font-size: 8px; margin-top: -5px;" />
                 </ui:VisualElement>
-                
                 <ui:VisualElement style="width: 180px; justify-content: center;">
                     <ui:ProgressBar name="HpBar" title="HEALTH" value="80" high-value="100" class="stat-bar hp-bar mb-1" />
                     <ui:ProgressBar name="StaminaBar" title="STAMINA" value="50" high-value="100" class="stat-bar sta-bar" />
                 </ui:VisualElement>
             </ui:VisualElement>
-            
             <ui:VisualElement class="currency-container">
                 <ui:VisualElement class="currency-item">
                     <ui:Label text="G" class="currency-icon gold-icon" />
@@ -60,10 +58,19 @@
             <ui:VisualElement name="InventoryContainer" class="tab-content" style="display: none;">
                 <ui:VisualElement class="control-bar">
                     <ui:Label text="MY BAG" class="section-title" />
-                    <ui:VisualElement class="filter-group">
-                        <ui:Button name="BtnFilterAll" text="ALL" class="btn-filter active" />
-                        <ui:Button name="BtnFilterWep" text="WEAPON" class="btn-filter" />
-                        <ui:Button name="BtnFilterCon" text="CONSUMABLE" class="btn-filter" />
+                    
+                    <ui:VisualElement class="flex-row">
+                        <ui:VisualElement class="pagination me-2">
+                            <ui:Button name="BtnInvPrev" text="&lt;" class="btn-icon" />
+                            <ui:Label name="InvPageLabel" text="1" class="page-number" />
+                            <ui:Button name="BtnInvNext" text="&gt;" class="btn-icon" />
+                        </ui:VisualElement>
+
+                        <ui:VisualElement class="filter-group">
+                            <ui:Button name="BtnFilterAll" text="ALL" class="btn-filter active" />
+                            <ui:Button name="BtnFilterWep" text="WEAPON" class="btn-filter" />
+                            <ui:Button name="BtnFilterCon" text="CONSUMABLE" class="btn-filter" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
                 </ui:VisualElement>
 
