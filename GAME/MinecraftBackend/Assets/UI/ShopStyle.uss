@@ -1,4 +1,4 @@
-﻿/* ShopStyle.uss - Fixed Layout */
+﻿/* ShopStyle.uss - Admin Table Layout */
 
 * {
     color: rgb(224, 224, 224);
@@ -15,6 +15,7 @@
     flex-direction: column;
 }
 
+/* --- GLASS CARD STYLE (Giữ nguyên cho các khung ngoài) --- */
 .glass-card {
     background-color: rgba(255, 255, 255, 0.05);
     border-width: 1px;
@@ -31,11 +32,12 @@
     margin-bottom: 15px;
 }
 
+/* --- UTILITIES --- */
 .d-flex { display: flex; }
 .flex-row { flex-direction: row; }
 .flex-col { flex-direction: column; }
 
-/* FIX LỖI: Trả lại class row bình thường, không can thiệp sâu vào container */
+/* Giữ class row gốc để không vỡ layout chính của màn hình */
 .row {
     display: flex;
     flex-direction: row;
@@ -44,16 +46,47 @@
     margin-right: -10px;
 }
 
-/* QUAN TRỌNG: Ép các danh sách vật phẩm phải xếp dọc (List View) */
+/* --- TABLE LIST VIEW STYLE (Phần mới quan trọng) --- */
+
+/* 1. Ép các container chứa item phải xếp dọc */
 #ShopScrollView #unity-content-container,
 #InventoryScrollView #unity-content-container,
 #CraftScrollView #unity-content-container {
     flex-direction: column;
     flex-wrap: nowrap;
-    align-items: stretch; /* Kéo giãn item ra toàn chiều ngang */
 }
 
-/* Các class tiện ích khác giữ nguyên */
+/* 2. Style cho từng dòng item (Thay thế thẻ card cũ) */
+.table-row {
+    width: 100%;
+    height: 64px; /* Chiều cao cố định cho mỗi dòng */
+    flex-direction: row;
+    align-items: center;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+    transition: 0.1s;
+}
+
+/* 3. Màu nền xen kẽ (Zebra Striping) - Sẽ được code C# gán class này */
+.row-even {
+    background-color: rgba(255, 255, 255, 0.02); /* Dòng chẵn tối hơn */
+}
+
+.row-odd {
+    background-color: rgba(255, 255, 255, 0.06); /* Dòng lẻ sáng hơn chút */
+}
+
+/* 4. Hiệu ứng Hover giống Web Admin */
+.table-row:hover {
+    background-color: rgba(0, 210, 255, 0.15);
+    border-left-width: 3px;
+    border-left-color: rgb(0, 210, 255);
+}
+
+/* --- END TABLE STYLE --- */
+
 .col-12 { width: 100%; padding: 5px 10px; }
 .col-6 { width: 50%; padding: 5px 10px; }
 .col-4 { width: 33.33%; padding: 5px 10px; }
@@ -112,13 +145,13 @@
 }
 
 .btn {
-    height: 40px;
-    border-radius: 8px;
+    height: 36px;
+    border-radius: 6px;
     -unity-font-style: bold;
     justify-content: center;
     align-items: center;
     border-width: 1px;
-    transition: 0.2s;
+    transition: 0.1s;
     cursor: url('link-cursor.png');
 }
 .btn-primary { background-color: rgba(0, 210, 255, 0.2); border-color: rgb(0, 210, 255); color: rgb(0, 210, 255); }
@@ -129,16 +162,17 @@
 .btn-outline-secondary:hover { border-color: white; color: white; }
 
 .badge {
-    padding: 4px 8px;
-    border-radius: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
     font-size: 10px;
     -unity-font-style: bold;
-    align-self: flex-start;
+    align-self: center;
 }
 .bg-dark { background-color: rgba(0,0,0,0.5); }
 .border-secondary { border-color: rgba(255, 255, 255, 0.1); border-width: 1px; }
 
-/* Scrollbar */
+/* Scrollbar đẹp hơn */
 .unity-scroller { width: 8px; }
-.unity-scroller__slider { min-width: 8px; width: 8px; border-radius: 4px; background-color: rgba(255,255,255,0.2); }
+.unity-scroller__slider { min-width: 8px; width: 8px; border-radius: 4px; background-color: rgba(255,255,255,0.1); }
+.unity-scroller__slider:hover { background-color: rgba(255,255,255,0.3); }
 .unity-scroller__high-button, .unity-scroller__low-button { display: none; }
