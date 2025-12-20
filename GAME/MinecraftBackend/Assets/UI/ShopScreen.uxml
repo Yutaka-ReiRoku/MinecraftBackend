@@ -39,9 +39,9 @@
                     <ui:ScrollView name="ShopScrollView" style="flex-grow: 1;" />
                 </ui:VisualElement>
                 <ui:VisualElement style="flex-direction: row; justify-content: center; align-items: center; height: 60px;">
-                    <ui:Button name="BtnPrev" text="<" style="width: 50px; height: 50px; font-size: 24px;" />
+                    <ui:Button name="BtnPrev" text="&lt;" style="width: 50px; height: 50px; font-size: 24px;" />
                     <ui:Label name="PageLabel" text="1" style="color: white; font-size: 24px; margin: 0 20px;" />
-                    <ui:Button name="BtnNext" text=">" style="width: 50px; height: 50px; font-size: 24px;" />
+                    <ui:Button name="BtnNext" text="&gt;" style="width: 50px; height: 50px; font-size: 24px;" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
@@ -56,9 +56,9 @@
                 <ui:ScrollView name="InventoryScrollView" style="flex-grow: 1;" />
 
                 <ui:VisualElement style="flex-direction: row; justify-content: center; align-items: center; height: 50px;">
-                    <ui:Button name="BtnInvPrev" text="<" style="width: 40px;" />
+                    <ui:Button name="BtnInvPrev" text="&lt;" style="width: 40px;" />
                     <ui:Label name="InvPageLabel" text="1" style="color: white; margin: 0 10px;" />
-                    <ui:Button name="BtnInvNext" text=">" style="width: 40px;" />
+                    <ui:Button name="BtnInvNext" text="&gt;" style="width: 40px;" />
                 </ui:VisualElement>
             </ui:VisualElement>
 

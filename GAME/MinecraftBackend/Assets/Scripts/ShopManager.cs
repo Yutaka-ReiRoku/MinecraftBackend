@@ -96,7 +96,7 @@ public class ShopManager : MonoBehaviour
         var btnSettings = _root.Q<Button>("BtnSettings");
         if (btnSettings != null)
         {
-            btnSettings.clicked -= OnSettingsClicked; // Clear old
+            btnSettings.clicked -= OnSettingsClicked;
             btnSettings.clicked += OnSettingsClicked;
         }
 
@@ -151,7 +151,6 @@ public class ShopManager : MonoBehaviour
         if (_shopWrapper != null) _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // GỌI SETTINGS MANAGER
     private void OnSettingsClicked()
     {
         if (SettingsManager.Instance != null)
@@ -159,17 +158,12 @@ public class ShopManager : MonoBehaviour
             SettingsManager.Instance.ToggleSettings();
             if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
         }
-        else
-        {
-            Debug.LogError("SettingsManager instance not found!");
-        }
     }
 
     // --- LOGIC CHÍNH ---
     private bool CanClick()
     {
         if (_isBusy) return false;
-        // Nếu Settings đang mở thì chặn tương tác shop
         if (SettingsManager.Instance != null && SettingsManager.Instance.IsSettingsOpen) return false;
         if (Time.time - _lastClickTime < CLICK_COOLDOWN) return false;
 
@@ -177,9 +171,25 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
+    // --- SỬA LỖI CS1061: HÀM NÀY ĐÃ ĐƯỢC THÊM LẠI ---
+    public void UseItemFromHotbar(string itemId)
+    {
+        // Hàm này được HotbarManager gọi
+        var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
+        if (item != null)
+        {
+            if (!CanClick()) return;
+            if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
+            else StartCoroutine(EquipItem(itemId));
+        }
+        else
+        {
+            ToastManager.Instance.Show("Item not found/loaded!", false);
+        }
+    }
+
     IEnumerator InitializeLayoutAndLoad()
     {
-        // Tính toán layout cho Shop Grid
         if (ItemTemplate != null && _shopScroll != null)
         {
             var ghostItem = ItemTemplate.Instantiate();
@@ -230,15 +240,6 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // ... PHẦN CÒN LẠI (INVENTORY, BUY, SELL, CRAFT) GIỮ NGUYÊN NHƯ CŨ ...
-    // (Để tiết kiệm không gian, tôi không paste lại các hàm logic nghiệp vụ bên dưới vì chúng không thay đổi)
-    // (BẠN GIỮ LẠI PHẦN LOGIC TRONG SHOPMANAGER.CS CŨ TỪ DÒNG 200 TRỞ ĐI NHÉ, HOẶC COPY LẠI TỪ BƯỚC TRƯỚC)
-    
-    // --- INSERT HERE THE REST OF THE LOGIC (Inventory, Shop Logic etc.) ---
-    // (Nếu bạn cần full file thì báo, tôi sẽ paste lại, nhưng logic không đổi)
-    
-    // ĐỂ TRÁNH LỖI, ĐÂY LÀ CÁC HÀM CẦN THIẾT NHẤT CHO UI:
-    
     void ChangeInventoryPage(int dir) {
         if (_filteredInventory.Count == 0) return;
         int maxPage = Mathf.CeilToInt((float)_filteredInventory.Count / _pageSize);
