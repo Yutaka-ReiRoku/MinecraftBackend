@@ -5,22 +5,26 @@
         
         <ui:VisualElement class="top-bar">
             <ui:VisualElement class="flex-row align-items-center">
+                
                 <ui:VisualElement class="level-badge">
-                    <ui:Label name="LevelLabel" text="1" class="h3 fw-bold text-white" />
-                    <ui:Label text="LVL" class="small text-white-50" style="font-size: 8px; margin-top: -5px;" />
+                    <ui:Label name="LevelLabel" text="1" class="fw-bold text-white" style="font-size: 40px;" />
+                    <ui:Label text="LVL" class="small text-white-50" style="font-size: 12px; margin-top: -5px;" />
                 </ui:VisualElement>
-                <ui:VisualElement style="width: 180px; justify-content: center;">
+                
+                <ui:VisualElement style="width: 350px; justify-content: center;">
                     <ui:ProgressBar name="HpBar" title="HEALTH" value="80" high-value="100" class="stat-bar hp-bar mb-1" />
                     <ui:ProgressBar name="StaminaBar" title="STAMINA" value="50" high-value="100" class="stat-bar sta-bar" />
                 </ui:VisualElement>
+
             </ui:VisualElement>
+
             <ui:VisualElement class="currency-container">
                 <ui:VisualElement class="currency-item">
-                    <ui:Label text="G" class="currency-icon gold-icon" />
+                    <ui:Label text="G" class="currency-icon gold-icon" style="color: #ffc107; font-size: 28px;" />
                     <ui:Label name="ShopGold" text="0" class="currency-text text-warning" />
                 </ui:VisualElement>
                 <ui:VisualElement class="currency-item">
-                    <ui:Label text="💎" class="currency-icon gem-icon" />
+                    <ui:Label text="💎" class="currency-icon gem-icon" style="color: #00d2ff; font-size: 24px;" />
                     <ui:Label name="ShopGem" text="0" class="currency-text text-info" />
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -60,7 +64,7 @@
                     <ui:Label text="MY BAG" class="section-title" />
                     
                     <ui:VisualElement class="flex-row">
-                        <ui:VisualElement class="pagination me-2">
+                        <ui:VisualElement class="pagination me-2" style="margin-right: 20px;">
                             <ui:Button name="BtnInvPrev" text="&lt;" class="btn-icon" />
                             <ui:Label name="InvPageLabel" text="1" class="page-number" />
                             <ui:Button name="BtnInvNext" text="&gt;" class="btn-icon" />
@@ -104,7 +108,7 @@
 
             <ui:VisualElement name="BattleContainer" class="tab-content battle-zone" style="display: none;">
                 <ui:VisualElement class="glass-panel text-center">
-                    <ui:Label name="MonsterName" text="ZOMBIE" class="h3 text-danger mb-3 glow-text" />
+                    <ui:Label name="MonsterName" text="ZOMBIE" class="h3 text-danger mb-3 glow-text" style="font-size: 40px;" />
                     <ui:ProgressBar name="MonsterHpBar" value="100" high-value="100" class="stat-bar hp-bar big-bar mb-4" />
                     <ui:Button name="BtnAttack" text="ATTACK!" class="btn-attack" />
                 </ui:VisualElement>

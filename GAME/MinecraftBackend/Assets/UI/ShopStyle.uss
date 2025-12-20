@@ -1,9 +1,9 @@
-﻿/* ShopStyle.uss - FINAL POLISHED VERSION (Big Size & Perfect Align) */
+﻿/* ShopStyle.uss - FINAL BIG TOP BAR EDITION */
 
 * {
     color: rgb(230, 230, 230);
     -unity-font-definition: resource('Fonts/Minecraft SDF');
-    font-size: 20px; /* Font cơ bản */
+    font-size: 20px;
 }
 
 .screen-container {
@@ -14,7 +14,7 @@
     flex-direction: column;
 }
 
-/* === GRID SYSTEM (MỚI THÊM ĐỂ FIX LAYOUT CHẾ ĐỘ CHƠI) === */
+/* === GRID SYSTEM === */
 .row {
     flex-direction: row;
     flex-wrap: wrap;
@@ -23,56 +23,91 @@
 }
 
 .col-6 {
-    width: 48%; /* Chia đôi nhưng trừ hao khoảng cách */
+    width: 48%;
     margin-bottom: 10px;
 }
 
-/* === 1. TOP BAR === */
+/* === 1. TOP BAR (CỰC TO & RÕ) === */
 .top-bar {
-    height: 110px; 
+    /* Tăng chiều cao lên 150px để chứa badge to */
+    height: 150px; 
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0 30px;
-    background-color: rgba(25, 28, 35, 0.95);
-    border-bottom-width: 2px;
-    border-bottom-color: rgba(255, 255, 255, 0.08);
+    padding: 0 40px; /* Padding rộng hơn */
+    background-color: rgba(25, 28, 35, 0.98); /* Đậm hơn chút để nổi bật */
+    border-bottom-width: 3px;
+    border-bottom-color: rgba(255, 215, 0, 0.2); /* Viền vàng nhẹ sang trọng */
 }
 
+/* LEVEL BADGE TO ĐÙNG */
 .level-badge {
-    width: 70px;
-    height: 70px;
+    width: 100px;
+    height: 100px;
     background-color: #2a2e38;
-    border-radius: 12px;
+    border-radius: 16px;
     align-items: center;
     justify-content: center;
-    border-width: 3px;
+    border-width: 4px;
     border-color: #ffd700;
-    margin-right: 25px;
+    margin-right: 30px;
+    /* Hiệu ứng bóng đổ nhẹ */
+    border-bottom-color: #b8860b; 
+}
+
+/* THANH CHỈ SỐ (HP/STAMINA) */
+.stat-bar {
+    margin-bottom: 8px;
+}
+
+.stat-bar .unity-progress-bar__container {
+    max-height: 35px;
+    min-height: 35px;
 }
 
 .stat-bar .unity-progress-bar__background {
-    background-color: #222;
-    border-radius: 6px;
+    background-color: #111;
+    border-radius: 8px;
     border-width: 0;
-    height: 16px; 
+    /* Chiều cao thanh: 35px (Rất dày) */
+    height: 35px; 
 }
-.stat-bar .unity-progress-bar__fill { border-radius: 6px; }
+
+.stat-bar .unity-progress-bar__fill { 
+    border-radius: 8px; 
+    margin: 2px; /* Tạo viền nhỏ bên trong */
+}
+
 .hp-bar .unity-progress-bar__fill { background-color: #ff4d4d; }
 .sta-bar .unity-progress-bar__fill { background-color: #4da6ff; }
 
+/* QUAN TRỌNG: CHỮ TRÊN THANH PROGRESS (MÀU ĐEN CHO DỄ ĐỌC) */
+.stat-bar .unity-progress-bar__title {
+    color: #000000 !important; /* Chữ ĐEN */
+    font-size: 20px !important; /* Chữ TO */
+    -unity-font-style: bold;
+    text-shadow: 0 0 0 transparent; /* Tắt shadow mặc định nếu có */
+}
+/* Hoặc dùng class này nếu unity version khác */
+.stat-bar .unity-label {
+    color: #000000 !important;
+    font-size: 20px !important;
+    -unity-font-style: bold;
+}
+
+/* CURRENCY TO HƠN */
 .currency-container { flex-direction: row; }
 .currency-item {
     flex-direction: row;
     align-items: center;
-    background-color: rgba(0,0,0,0.3);
-    padding: 8px 25px;
+    background-color: rgba(0,0,0,0.4);
+    padding: 10px 30px; /* To hơn */
     border-radius: 30px;
-    margin-left: 15px;
+    margin-left: 20px;
     border-width: 2px;
-    border-color: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
 }
-.currency-text { font-size: 22px; -unity-font-style: bold; margin-left: 10px; }
+.currency-text { font-size: 26px; -unity-font-style: bold; margin-left: 12px; }
 
 /* === 2. NAVIGATION TABS === */
 .nav-tabs {
@@ -92,10 +127,9 @@
     font-size: 18px;
     -unity-font-style: bold;
     padding: 0 35px;
+    -unity-text-align: middle-center;
     transition: 0.2s;
     cursor: url('link-cursor.png');
-    /* Căn giữa chữ trong tab */
-    -unity-text-align: middle-center;
 }
 
 .nav-tab-btn:hover { color: white; background-color: rgba(255,255,255,0.02); }
@@ -140,41 +174,31 @@
 .btn-filter:hover { color: white; }
 .btn-filter.active { background-color: #00d2ff; color: #121418; -unity-font-style: bold; }
 
-/* === 4. BUTTON STYLES (ĐÃ SỬA LỖI CĂN CHỈNH & SIZE) === */
-
-/* Style chung: Quan trọng nhất là -unity-text-align */
+/* === 4. BUTTON STYLES === */
 .btn {
-    height: 60px; /* Chiều cao chuẩn cho nút to */
+    height: 60px;
     border-radius: 12px;
     border-width: 0;
-    
-    /* FIX LỖI TEXT: Căn giữa tuyệt đối */
     -unity-text-align: middle-center; 
     justify-content: center;
     align-items: center;
-
-    /* FIX LỖI SIZE: Font chữ vừa phải so với nút, không quá to */
     font-size: 18px; 
     -unity-font-style: bold;
-    
     padding: 0 15px;
     transition: 0.1s;
     cursor: url('link-cursor.png');
 }
-
 .btn:active { scale: 0.98; }
 
-/* Nút Primary (Đăng nhập, Tạo nhân vật) - Font to hơn chút */
 .btn-primary {
     background-color: #007bff;
     color: white;
-    font-size: 22px; /* Nút chính thì chữ to hơn */
+    font-size: 22px;
     border-bottom-width: 4px;
     border-bottom-color: #0056b3;
 }
 .btn-primary:hover { background-color: #0069d9; }
 
-/* Nút Success (Mua, Craft) */
 .btn-success {
     background-color: #28a745;
     color: white;
@@ -183,29 +207,21 @@
 }
 .btn-success:hover { background-color: #218838; }
 
-/* Nút Outline (Chế độ chơi, Hủy) */
 .btn-outline-secondary {
     background-color: rgba(255, 255, 255, 0.05);
     border-width: 2px;
     border-color: #6c757d;
     color: #ccc;
-    font-size: 18px; /* Font nhỏ lại để không bị tràn */
+    font-size: 18px;
 }
 .btn-outline-secondary:hover {
     border-color: white;
     color: white;
     background-color: rgba(255,255,255,0.1);
 }
-/* Khi nút outline được chọn (nếu có logic active) */
-.btn-outline-secondary:active {
-    background-color: rgba(255, 255, 255, 0.2);
-}
+.btn-outline-secondary:active { background-color: rgba(255, 255, 255, 0.2); }
 
-/* Nút Đỏ */
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
+.btn-danger { background-color: #dc3545; color: white; }
 
 /* === 5. TABLE LAYOUT === */
 .table-header-row {
@@ -233,7 +249,6 @@
 }
 #unity-content-container { flex-direction: column; }
 
-/* Table Rows */
 .table-row {
     width: 100%;
     height: 100px;
@@ -283,13 +298,12 @@
     background-color: #dc3545;
     border-width: 0; border-radius: 12px;
     color: white; font-size: 24px; -unity-font-style: bold;
-    transition: 0.1s;
-    -unity-text-align: middle-center; /* Căn giữa nút Attack */
+    -unity-text-align: middle-center;
 }
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
 
-/* === FIX INPUT FORM COLOR & SIZE === */
+/* === FORM CONTROL === */
 .form-control .unity-base-text-field__input {
     background-color: rgb(255, 255, 255) !important;
     border-color: rgba(255, 255, 255, 0.2);
