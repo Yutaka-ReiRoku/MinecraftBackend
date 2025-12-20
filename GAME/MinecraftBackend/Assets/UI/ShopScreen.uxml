@@ -1,117 +1,82 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="ShopStyle.uss" />
-
-    <ui:VisualElement name="Screen" class="screen-container">
+    <ui:VisualElement name="ScreenContainer" style="flex-grow: 1; background-color: rgb(32, 32, 40); padding: 0;">
         
-        <ui:VisualElement class="top-bar">
-            <ui:VisualElement class="flex-row align-items-center">
-                
-                <ui:VisualElement class="level-badge">
-                    <ui:Label name="LevelLabel" text="1" class="fw-bold text-white" style="font-size: 40px;" />
-                    <ui:Label text="LVL" class="small text-white-50" style="font-size: 12px; margin-top: -5px;" />
-                </ui:VisualElement>
-                
-                <ui:VisualElement style="width: 350px; justify-content: center;">
-                    <ui:ProgressBar name="HpBar" title="HEALTH" value="80" high-value="100" class="stat-bar hp-bar mb-1" />
-                    <ui:ProgressBar name="StaminaBar" title="STAMINA" value="50" high-value="100" class="stat-bar sta-bar" />
-                </ui:VisualElement>
-
-            </ui:VisualElement>
-
-            <ui:VisualElement class="currency-container">
-                <ui:VisualElement class="currency-item">
-                    <ui:Label text="G" class="currency-icon gold-icon" style="color: #ffc107; font-size: 28px;" />
-                    <ui:Label name="ShopGold" text="0" class="currency-text text-warning" />
-                </ui:VisualElement>
-                <ui:VisualElement class="currency-item">
-                    <ui:Label text="💎" class="currency-icon gem-icon" style="color: #00d2ff; font-size: 24px;" />
-                    <ui:Label name="ShopGem" text="0" class="currency-text text-info" />
-                </ui:VisualElement>
-            </ui:VisualElement>
-        </ui:VisualElement>
-
-        <ui:VisualElement class="nav-tabs">
-            <ui:Button name="TabShop" text="SHOP" class="nav-tab-btn active" />
-            <ui:Button name="TabInventory" text="INVENTORY" class="nav-tab-btn" />
-            <ui:Button name="TabCraft" text="CRAFT" class="nav-tab-btn" />
-            <ui:Button name="TabBattle" text="BATTLE" class="nav-tab-btn" />
-        </ui:VisualElement>
-
-        <ui:VisualElement class="content-body">
+        <ui:VisualElement name="TopBar" style="flex-direction: row; height: 90px; background-color: rgba(0, 0, 0, 0.6); align-items: center; justify-content: space-between; padding-left: 20px; padding-right: 20px; border-bottom-width: 2px; border-bottom-color: rgba(255, 255, 255, 0.1);">
             
-            <ui:VisualElement name="ShopContainer" class="tab-content">
-                <ui:VisualElement class="control-bar">
-                    <ui:Label text="MARKETPLACE" class="section-title" />
-                    <ui:VisualElement class="pagination">
-                        <ui:Button name="BtnPrev" text="&lt;" class="btn-icon" />
-                        <ui:Label name="PageLabel" text="1" class="page-number" />
-                        <ui:Button name="BtnNext" text="&gt;" class="btn-icon" />
-                    </ui:VisualElement>
+            <ui:VisualElement style="width: 300px;">
+                <ui:Label name="LevelLabel" text="LV. 1" style="color: white; font-size: 20px; -unity-font-style: bold; margin-bottom: 5px;" />
+                <ui:ProgressBar name="HpBar" title="HP" high-value="100" style="height: 20px; margin-bottom: 5px; color: white;" />
+                <ui:ProgressBar name="StaminaBar" title="STM" high-value="100" style="height: 15px; color: white;" />
+            </ui:VisualElement>
+
+            <ui:VisualElement style="flex-direction: row; align-items: center;">
+                <ui:VisualElement style="flex-direction: row; align-items: center; margin-right: 30px; background-color: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px;">
+                    <ui:Label text="G" style="color: gold; font-size: 24px; -unity-font-style: bold; margin-right: 10px;" />
+                    <ui:Label name="ShopGold" text="999,999" style="color: white; font-size: 24px;" />
+                </ui:VisualElement>
+
+                <ui:VisualElement style="flex-direction: row; align-items: center; background-color: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 20px;">
+                    <ui:Label text="💎" style="font-size: 24px; margin-right: 10px;" />
+                    <ui:Label name="ShopGem" text="500" style="color: cyan; font-size: 24px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:Button name="BtnSettings" text="⚙" style="width: 60px; height: 60px; font-size: 40px; color: rgba(255,255,255,0.8); background-color: rgba(255,255,255,0.1); border-width: 0; border-radius: 10px; -unity-font-style: bold;" />
+        
+        </ui:VisualElement>
+        <ui:VisualElement name="TabContainer" style="flex-direction: row; height: 60px; margin-top: 10px; justify-content: center;">
+            <ui:Button name="TabShop" text="SHOP" style="flex-grow: 1; margin: 0 5px; background-color: rgb(60, 60, 70); color: white; font-size: 18px; border-width: 0;" />
+            <ui:Button name="TabInventory" text="INVENTORY" style="flex-grow: 1; margin: 0 5px; background-color: rgb(60, 60, 70); color: white; font-size: 18px; border-width: 0;" />
+            <ui:Button name="TabCraft" text="CRAFT" style="flex-grow: 1; margin: 0 5px; background-color: rgb(60, 60, 70); color: white; font-size: 18px; border-width: 0;" />
+            <ui:Button name="TabBattle" text="BATTLE" style="flex-grow: 1; margin: 0 5px; background-color: rgb(100, 40, 40); color: white; font-size: 18px; border-width: 0;" />
+        </ui:VisualElement>
+
+
+        <ui:VisualElement style="flex-grow: 1; padding: 20px;">
+
+            <ui:VisualElement name="ShopContainer" style="flex-grow: 1; display: flex;">
+                <ui:VisualElement class="list-wrapper" style="flex-grow: 1; overflow: hidden;">
+                    <ui:ScrollView name="ShopScrollView" style="flex-grow: 1;" />
+                </ui:VisualElement>
+                <ui:VisualElement style="flex-direction: row; justify-content: center; align-items: center; height: 60px;">
+                    <ui:Button name="BtnPrev" text="<" style="width: 50px; height: 50px; font-size: 24px;" />
+                    <ui:Label name="PageLabel" text="1" style="color: white; font-size: 24px; margin: 0 20px;" />
+                    <ui:Button name="BtnNext" text=">" style="width: 50px; height: 50px; font-size: 24px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="InventoryContainer" style="flex-grow: 1; display: none;">
+                <ui:VisualElement style="flex-direction: row; height: 50px; margin-bottom: 10px;">
+                    <ui:Button name="BtnFilterAll" text="ALL" style="flex-grow: 1;" />
+                    <ui:Button name="BtnFilterWep" text="WEAPONS" style="flex-grow: 1;" />
+                    <ui:Button name="BtnFilterCon" text="CONSUMABLES" style="flex-grow: 1;" />
+                    <ui:Button name="BtnNotiLog" text="LOGS" style="width: 80px; background-color: #555;" />
                 </ui:VisualElement>
                 
-                <ui:VisualElement class="table-header-row">
-                    <ui:Label text="ITEM INFO" class="col-header col-grow" />
-                    <ui:Label text="PRICE / ACTION" class="col-header col-fixed-right" />
-                </ui:VisualElement>
+                <ui:ScrollView name="InventoryScrollView" style="flex-grow: 1;" />
 
-                <ui:VisualElement class="list-wrapper">
-                    <ui:ScrollView name="ShopScrollView" />
+                <ui:VisualElement style="flex-direction: row; justify-content: center; align-items: center; height: 50px;">
+                    <ui:Button name="BtnInvPrev" text="<" style="width: 40px;" />
+                    <ui:Label name="InvPageLabel" text="1" style="color: white; margin: 0 10px;" />
+                    <ui:Button name="BtnInvNext" text=">" style="width: 40px;" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
-            <ui:VisualElement name="InventoryContainer" class="tab-content" style="display: none;">
-                <ui:VisualElement class="control-bar">
-                    <ui:Label text="MY BAG" class="section-title" />
-                    
-                    <ui:VisualElement class="flex-row">
-                        <ui:VisualElement class="pagination me-2" style="margin-right: 20px;">
-                            <ui:Button name="BtnInvPrev" text="&lt;" class="btn-icon" />
-                            <ui:Label name="InvPageLabel" text="1" class="page-number" />
-                            <ui:Button name="BtnInvNext" text="&gt;" class="btn-icon" />
-                        </ui:VisualElement>
-
-                        <ui:VisualElement class="filter-group">
-                            <ui:Button name="BtnFilterAll" text="ALL" class="btn-filter active" />
-                            <ui:Button name="BtnFilterWep" text="WEAPON" class="btn-filter" />
-                            <ui:Button name="BtnFilterCon" text="CONSUMABLE" class="btn-filter" />
-                        </ui:VisualElement>
-                    </ui:VisualElement>
-                </ui:VisualElement>
-
-                <ui:VisualElement class="table-header-row">
-                    <ui:Label text="ITEM INFO" class="col-header col-grow" />
-                    <ui:Label text="QTY / STATUS" class="col-header col-fixed-right" />
-                </ui:VisualElement>
-
-                <ui:VisualElement class="list-wrapper">
-                    <ui:ScrollView name="InventoryScrollView" />
-                </ui:VisualElement>
-                
-                <ui:VisualElement name="NotiLogPanel" class="log-panel" style="display: none;">
-                    <ui:Label text="Transaction History" class="small text-white-50 mb-1" />
-                    <ui:ScrollView name="NotiLogList" />
-                </ui:VisualElement>
+            <ui:VisualElement name="CraftContainer" style="flex-grow: 1; display: none;">
+                <ui:Label text="CRAFTING STATION" style="color: orange; font-size: 30px; align-self: center; margin-bottom: 20px;" />
+                <ui:ScrollView name="CraftScrollView" style="flex-grow: 1;" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="CraftContainer" class="tab-content" style="display: none;">
-                <ui:VisualElement class="control-bar">
-                    <ui:Label text="WORKBENCH" class="section-title" />
-                </ui:VisualElement>
-                 <ui:VisualElement class="table-header-row">
-                    <ui:Label text="RECIPE" class="col-header col-grow" />
-                    <ui:Label text="CRAFT" class="col-header col-fixed-right" />
-                </ui:VisualElement>
-                <ui:VisualElement class="list-wrapper">
-                    <ui:ScrollView name="CraftScrollView" />
-                </ui:VisualElement>
+            <ui:VisualElement name="BattleContainer" style="flex-grow: 1; display: none; align-items: center; justify-content: center;">
+                <ui:Label text="WILD ZONE" style="color: red; font-size: 40px; margin-bottom: 50px;" />
+                <ui:Label name="MonsterName" text="Monster" style="color: white; font-size: 30px;" />
+                <ui:ProgressBar name="MonsterHpBar" style="width: 400px; height: 30px; margin-bottom: 50px;" />
+                <ui:Button name="BtnAttack" text="ATTACK!" style="width: 200px; height: 80px; font-size: 30px; background-color: rgb(150, 0, 0); color: white;" />
             </ui:VisualElement>
 
-            <ui:VisualElement name="BattleContainer" class="tab-content battle-zone" style="display: none;">
-                <ui:VisualElement class="glass-panel text-center">
-                    <ui:Label name="MonsterName" text="ZOMBIE" class="h3 text-danger mb-3 glow-text" style="font-size: 40px;" />
-                    <ui:ProgressBar name="MonsterHpBar" value="100" high-value="100" class="stat-bar hp-bar big-bar mb-4" />
-                    <ui:Button name="BtnAttack" text="ATTACK!" class="btn-attack" />
-                </ui:VisualElement>
+            <ui:VisualElement name="NotiLogPanel" style="position: absolute; top: 60px; right: 0; width: 300px; height: 400px; background-color: rgba(0,0,0,0.9); display: none; border-width: 1px; border-color: white;">
+                <ui:Label text="HISTORY" style="color: white; align-self: center; font-size: 18px; padding: 10px;" />
+                <ui:ScrollView name="NotiLogList" style="flex-grow: 1; padding: 10px;" />
             </ui:VisualElement>
 
         </ui:VisualElement>
