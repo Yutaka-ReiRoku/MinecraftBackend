@@ -1,9 +1,9 @@
-﻿/* ShopStyle.uss - PREMIUM DARK GLASS THEME (BIG SIZE & BUTTON PACK EDITION) */
+﻿/* ShopStyle.uss - FINAL POLISHED VERSION (Big Size & Perfect Align) */
 
 * {
     color: rgb(230, 230, 230);
     -unity-font-definition: resource('Fonts/Minecraft SDF');
-    font-size: 20px; /* Base font to */
+    font-size: 20px; /* Font cơ bản */
 }
 
 .screen-container {
@@ -12,6 +12,19 @@
     background-color: #121418;
     display: flex;
     flex-direction: column;
+}
+
+/* === GRID SYSTEM (MỚI THÊM ĐỂ FIX LAYOUT CHẾ ĐỘ CHƠI) === */
+.row {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.col-6 {
+    width: 48%; /* Chia đôi nhưng trừ hao khoảng cách */
+    margin-bottom: 10px;
 }
 
 /* === 1. TOP BAR === */
@@ -81,6 +94,8 @@
     padding: 0 35px;
     transition: 0.2s;
     cursor: url('link-cursor.png');
+    /* Căn giữa chữ trong tab */
+    -unity-text-align: middle-center;
 }
 
 .nav-tab-btn:hover { color: white; background-color: rgba(255,255,255,0.02); }
@@ -116,65 +131,77 @@
 
 /* Pagination & Filters */
 .pagination { flex-direction: row; align-items: center; background-color: rgba(0,0,0,0.3); border-radius: 30px; padding: 4px; }
-.btn-icon { width: 48px; height: 48px; background-color: transparent; border-width: 0; color: #aaa; -unity-font-style: bold; font-size: 20px; }
+.btn-icon { width: 48px; height: 48px; background-color: transparent; border-width: 0; color: #aaa; -unity-font-style: bold; font-size: 20px; -unity-text-align: middle-center; }
 .btn-icon:hover { color: white; background-color: rgba(255,255,255,0.1); border-radius: 50%; }
 .page-number { padding: 0 15px; font-size: 18px; color: #888; }
 
 .filter-group { flex-direction: row; background-color: rgba(0,0,0,0.3); border-radius: 12px; padding: 4px; }
-.btn-filter { background-color: transparent; border-width: 0; color: #888; height: 40px; border-radius: 8px; padding: 0 20px; font-size: 14px; }
+.btn-filter { background-color: transparent; border-width: 0; color: #888; height: 40px; border-radius: 8px; padding: 0 20px; font-size: 14px; -unity-text-align: middle-center; }
 .btn-filter:hover { color: white; }
 .btn-filter.active { background-color: #00d2ff; color: #121418; -unity-font-style: bold; }
 
-/* === 4. BUTTON STYLES (MỚI THÊM) === */
-/* Đây là phần bị thiếu trước đó khiến nút bị xấu */
+/* === 4. BUTTON STYLES (ĐÃ SỬA LỖI CĂN CHỈNH & SIZE) === */
 
-/* Style chung cho nút */
+/* Style chung: Quan trọng nhất là -unity-text-align */
 .btn {
-    height: 50px;
-    border-radius: 10px;
+    height: 60px; /* Chiều cao chuẩn cho nút to */
+    border-radius: 12px;
     border-width: 0;
-    font-size: 18px;
-    -unity-font-style: bold;
-    padding: 0 20px;
-    transition: 0.1s;
+    
+    /* FIX LỖI TEXT: Căn giữa tuyệt đối */
+    -unity-text-align: middle-center; 
     justify-content: center;
     align-items: center;
+
+    /* FIX LỖI SIZE: Font chữ vừa phải so với nút, không quá to */
+    font-size: 18px; 
+    -unity-font-style: bold;
+    
+    padding: 0 15px;
+    transition: 0.1s;
     cursor: url('link-cursor.png');
 }
-.btn:active { scale: 0.95; } /* Hiệu ứng nhấn xuống */
 
-/* Nút Xanh Lá (Success) - Dùng cho Craft, Buy, New Hero */
-.btn-success {
-    background-color: #28a745;
-    color: white;
-    border-bottom-width: 4px;
-    border-bottom-color: #1e7e34; /* Hiệu ứng 3D nhẹ */
-}
-.btn-success:hover { background-color: #218838; }
+.btn:active { scale: 0.98; }
 
-/* Nút Xanh Dương (Primary) - Dùng cho Confirm, Login */
+/* Nút Primary (Đăng nhập, Tạo nhân vật) - Font to hơn chút */
 .btn-primary {
     background-color: #007bff;
     color: white;
+    font-size: 22px; /* Nút chính thì chữ to hơn */
     border-bottom-width: 4px;
     border-bottom-color: #0056b3;
 }
 .btn-primary:hover { background-color: #0069d9; }
 
-/* Nút Viền (Outline Secondary) - Dùng cho Cancel, Price Tag */
+/* Nút Success (Mua, Craft) */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+    border-bottom-width: 4px;
+    border-bottom-color: #1e7e34;
+}
+.btn-success:hover { background-color: #218838; }
+
+/* Nút Outline (Chế độ chơi, Hủy) */
 .btn-outline-secondary {
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.05);
     border-width: 2px;
     border-color: #6c757d;
     color: #ccc;
+    font-size: 18px; /* Font nhỏ lại để không bị tràn */
 }
 .btn-outline-secondary:hover {
     border-color: white;
     color: white;
     background-color: rgba(255,255,255,0.1);
 }
+/* Khi nút outline được chọn (nếu có logic active) */
+.btn-outline-secondary:active {
+    background-color: rgba(255, 255, 255, 0.2);
+}
 
-/* Nút Đỏ (Danger) */
+/* Nút Đỏ */
 .btn-danger {
     background-color: #dc3545;
     color: white;
@@ -237,6 +264,7 @@
 .text-white { color: white; }
 .fw-bold { -unity-font-style: bold; }
 .mb-1 { margin-bottom: 8px; }
+.mb-3 { margin-bottom: 20px; }
 .mb-4 { margin-bottom: 30px; }
 
 /* === BATTLE ZONE === */
@@ -256,11 +284,12 @@
     border-width: 0; border-radius: 12px;
     color: white; font-size: 24px; -unity-font-style: bold;
     transition: 0.1s;
+    -unity-text-align: middle-center; /* Căn giữa nút Attack */
 }
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
 
-/* === FIX INPUT FORM COLOR === */
+/* === FIX INPUT FORM COLOR & SIZE === */
 .form-control .unity-base-text-field__input {
     background-color: rgb(255, 255, 255) !important;
     border-color: rgba(255, 255, 255, 0.2);

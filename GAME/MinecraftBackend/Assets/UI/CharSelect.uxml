@@ -3,61 +3,61 @@
 
     <ui:VisualElement name="ScreenContainer" class="screen-container align-items-center justify-content-center">
         
-        <ui:VisualElement class="glass-card" style="width: 600px; max-width: 95%; height: 80%;">
+        <ui:VisualElement class="glass-card" style="width: 800px; max-width: 95%; height: 85%; padding: 40px;">
             
-            <ui:VisualElement class="glass-card-header flex-row justify-content-between align-items-center mb-3">
+            <ui:VisualElement class="glass-card-header flex-row justify-content-between align-items-center mb-4">
                 <ui:VisualElement>
-                    <ui:Label text="SELECT CHARACTER" class="h3 text-warning mb-1" />
-                    <ui:Label text="Choose your hero to enter the world." class="small text-white-50" />
+                     <ui:Label text="SELECT CHARACTER" class="h3 text-warning mb-1" style="font-size: 32px;" />
+                    <ui:Label text="Choose your hero to enter the world." class="small text-white-50" style="font-size: 18px;" />
                 </ui:VisualElement>
                 
-                <ui:Button name="BtnCreateNew" text="+ NEW HERO" class="btn btn-success" style="width: 120px;" />
+                <ui:Button name="BtnCreateNew" text="+ NEW HERO" class="btn btn-success" style="width: 180px;" />
             </ui:VisualElement>
 
-            <ui:ScrollView name="CharList" class="flex-grow-1" style="margin-top: 10px;">
-                <ui:Label text="No characters found. Create one!" class="text-white-50 small" style="-unity-text-align: middle-center; margin-top: 50px;" />
+            <ui:ScrollView name="CharList" class="flex-grow-1" style="margin-top: 20px;">
+                <ui:Label text="No characters found. Create one!" class="text-white-50 small" style="-unity-text-align: middle-center; margin-top: 50px; font-size: 20px;" />
             </ui:ScrollView>
 
-            <ui:VisualElement style="border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.1); padding-top: 10px; margin-top: 10px;">
-                <ui:Label text="Server Status: ONLINE" class="small text-success" style="-unity-text-align: middle-right;" />
+            <ui:VisualElement style="border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.1); padding-top: 20px; margin-top: 10px;">
+                <ui:Label text="Server Status: ONLINE" class="small text-success" style="-unity-text-align: middle-right; font-size: 16px;" />
             </ui:VisualElement>
 
         </ui:VisualElement>
 
-        <ui:VisualElement name="CreatePopup" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; display: none;">
+        <ui:VisualElement name="CreatePopup" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); align-items: center; justify-content: center; display: none;">
             
-            <ui:VisualElement class="glass-card" style="width: 400px; background-color: rgb(26, 28, 32);">
+            <ui:VisualElement class="glass-card" style="width: 500px; background-color: rgb(26, 28, 32); padding: 40px; border-radius: 20px; border-width: 1px; border-color: rgba(255,255,255,0.1);">
                 
-                <ui:VisualElement class="glass-card-header mb-3">
-                    <ui:Label text="CREATE NEW HERO" class="h3 text-white mb-1" />
-                    <ui:Label text="Define your identity." class="small text-white-50" />
+                 <ui:VisualElement class="glass-card-header mb-4">
+                    <ui:Label text="CREATE NEW HERO" class="h3 text-white mb-1" style="font-size: 32px;" />
+                    <ui:Label text="Define your identity." class="small text-white-50" style="font-size: 18px;" />
                 </ui:VisualElement>
 
-                <ui:VisualElement class="mb-3">
-                    <ui:Label text="Character Name" class="form-label" />
+                <ui:VisualElement class="mb-4">
+                    <ui:Label text="Character Name" class="form-label mb-1" style="font-size: 18px;" />
                     <ui:TextField name="InputCharName" placeholder="Enter name..." class="form-control" />
                 </ui:VisualElement>
 
                 <ui:VisualElement class="mb-4">
-                    <ui:Label text="Game Mode" class="form-label" />
+                    <ui:Label text="Game Mode" class="form-label mb-1" style="font-size: 18px;" />
                     <ui:VisualElement name="ModeSelectionContainer" class="row">
-                        <ui:Button name="ModeSurvival" text="Survival" class="btn btn-outline-secondary col-6 mb-1" />
-                        <ui:Button name="ModeCreative" text="Creative" class="btn btn-outline-secondary col-6 mb-1" />
-                        <ui:Button name="ModeHardcore" text="Hardcore" class="btn btn-outline-secondary col-6 mb-1" />
-                        <ui:Button name="ModeAdventure" text="Adventure" class="btn btn-outline-secondary col-6 mb-1" />
-                    </ui:VisualElement>
+                        <ui:Button name="ModeSurvival" text="Survival" class="btn btn-outline-secondary col-6" />
+                        <ui:Button name="ModeCreative" text="Creative" class="btn btn-outline-secondary col-6" />
+                        <ui:Button name="ModeHardcore" text="Hardcore" class="btn btn-outline-secondary col-6" />
+                        <ui:Button name="ModeAdventure" text="Adventure" class="btn btn-outline-secondary col-6" />
+                     </ui:VisualElement>
                 </ui:VisualElement>
 
-                <ui:VisualElement class="row justify-content-end" style="border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.1); padding-top: 15px;">
-                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn btn-outline-secondary" style="width: 100px; margin-right: 10px;" />
-                    <ui:Button name="BtnConfirmCreate" text="Create Hero" class="btn btn-primary" style="width: 120px;" />
+                <ui:VisualElement class="row justify-content-end" style="border-top-width: 1px; border-top-color: rgba(255, 255, 255, 0.1); padding-top: 25px; flex-direction: row;">
+                    <ui:Button name="BtnCancelCreate" text="Cancel" class="btn btn-outline-secondary" style="width: 120px; margin-right: 15px;" />
+                    <ui:Button name="BtnConfirmCreate" text="Create Hero" class="btn btn-primary" style="width: 180px;" />
                 </ui:VisualElement>
 
             </ui:VisualElement>
         </ui:VisualElement>
 
         <ui:VisualElement name="LoadingOverlay" style="position: absolute; width: 100%; height: 100%; background-color: black; align-items: center; justify-content: center; display: none;">
-            <ui:Label text="ENTERING WORLD..." class="h3 text-warning" style="letter-spacing: 3px;" />
+            <ui:Label text="ENTERING WORLD..." class="h3 text-warning" style="letter-spacing: 3px; font-size: 32px;" />
         </ui:VisualElement>
 
     </ui:VisualElement>
