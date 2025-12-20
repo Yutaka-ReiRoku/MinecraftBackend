@@ -1,10 +1,9 @@
-﻿/* ShopStyle.uss - PREMIUM DARK GLASS THEME (BIG SIZE EDITION) */
+﻿/* ShopStyle.uss - PREMIUM DARK GLASS THEME (BIG SIZE & BUTTON PACK EDITION) */
 
 * {
     color: rgb(230, 230, 230);
     -unity-font-definition: resource('Fonts/Minecraft SDF');
-    /* Tăng font mặc định từ 14px lên 20px */
-    font-size: 20px;
+    font-size: 20px; /* Base font to */
 }
 
 .screen-container {
@@ -15,9 +14,8 @@
     flex-direction: column;
 }
 
-/* === 1. TOP BAR (TO HƠN) === */
+/* === 1. TOP BAR === */
 .top-bar {
-    /* Tăng chiều cao topbar */
     height: 110px; 
     flex-direction: row;
     justify-content: space-between;
@@ -29,7 +27,6 @@
 }
 
 .level-badge {
-    /* Badge to hơn */
     width: 70px;
     height: 70px;
     background-color: #2a2e38;
@@ -45,7 +42,6 @@
     background-color: #222;
     border-radius: 6px;
     border-width: 0;
-    /* Thanh máu dày hơn */
     height: 16px; 
 }
 .stat-bar .unity-progress-bar__fill { border-radius: 6px; }
@@ -57,7 +53,7 @@
     flex-direction: row;
     align-items: center;
     background-color: rgba(0,0,0,0.3);
-    padding: 8px 25px; /* Padding rộng hơn */
+    padding: 8px 25px;
     border-radius: 30px;
     margin-left: 15px;
     border-width: 2px;
@@ -65,10 +61,10 @@
 }
 .currency-text { font-size: 22px; -unity-font-style: bold; margin-left: 10px; }
 
-/* === 2. NAVIGATION TABS (TO HƠN) === */
+/* === 2. NAVIGATION TABS === */
 .nav-tabs {
     flex-direction: row;
-    height: 70px; /* Cao hơn */
+    height: 70px;
     background-color: rgba(30, 34, 42, 1);
     padding-left: 30px;
 }
@@ -77,10 +73,10 @@
     height: 100%;
     background-color: transparent;
     border-width: 0;
-    border-bottom-width: 4px; /* Viền dày hơn */
+    border-bottom-width: 4px;
     border-bottom-color: transparent;
     color: #888;
-    font-size: 18px; /* Chữ tab to hơn */
+    font-size: 18px;
     -unity-font-style: bold;
     padding: 0 35px;
     transition: 0.2s;
@@ -129,7 +125,62 @@
 .btn-filter:hover { color: white; }
 .btn-filter.active { background-color: #00d2ff; color: #121418; -unity-font-style: bold; }
 
-/* === 4. TABLE LAYOUT (ITEM LIST TO HƠN) === */
+/* === 4. BUTTON STYLES (MỚI THÊM) === */
+/* Đây là phần bị thiếu trước đó khiến nút bị xấu */
+
+/* Style chung cho nút */
+.btn {
+    height: 50px;
+    border-radius: 10px;
+    border-width: 0;
+    font-size: 18px;
+    -unity-font-style: bold;
+    padding: 0 20px;
+    transition: 0.1s;
+    justify-content: center;
+    align-items: center;
+    cursor: url('link-cursor.png');
+}
+.btn:active { scale: 0.95; } /* Hiệu ứng nhấn xuống */
+
+/* Nút Xanh Lá (Success) - Dùng cho Craft, Buy, New Hero */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+    border-bottom-width: 4px;
+    border-bottom-color: #1e7e34; /* Hiệu ứng 3D nhẹ */
+}
+.btn-success:hover { background-color: #218838; }
+
+/* Nút Xanh Dương (Primary) - Dùng cho Confirm, Login */
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+    border-bottom-width: 4px;
+    border-bottom-color: #0056b3;
+}
+.btn-primary:hover { background-color: #0069d9; }
+
+/* Nút Viền (Outline Secondary) - Dùng cho Cancel, Price Tag */
+.btn-outline-secondary {
+    background-color: transparent;
+    border-width: 2px;
+    border-color: #6c757d;
+    color: #ccc;
+}
+.btn-outline-secondary:hover {
+    border-color: white;
+    color: white;
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Nút Đỏ (Danger) */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* === 5. TABLE LAYOUT === */
 .table-header-row {
     flex-direction: row;
     padding: 0 20px;
@@ -140,7 +191,6 @@
 .col-grow { flex-grow: 1; }
 .col-fixed-right { width: 200px; -unity-text-align: middle-right; }
 
-/* Wrapper & ScrollView */
 .list-wrapper {
     flex-grow: 1;
     overflow: hidden;
@@ -156,10 +206,10 @@
 }
 #unity-content-container { flex-direction: column; }
 
-/* Table Rows - Item to đùng */
+/* Table Rows */
 .table-row {
     width: 100%;
-    height: 100px; /* Tăng từ 70px lên 100px */
+    height: 100px;
     flex-direction: row;
     align-items: center;
     padding: 0 30px;
@@ -172,7 +222,7 @@
 
 .table-row:hover {
     background-color: rgba(0, 210, 255, 0.1);
-    border-left-width: 6px; /* Border dày hơn */
+    border-left-width: 6px;
     border-left-color: #00d2ff;
     padding-left: 24px;
 }
@@ -193,15 +243,15 @@
 .battle-zone { justify-content: center; align-items: center; }
 .glass-panel {
     background-color: rgba(0,0,0,0.5);
-    padding: 60px; /* Padding to hơn */
+    padding: 60px;
     border-radius: 30px;
     border-width: 1px;
     border-color: rgba(255,255,255,0.1);
     align-items: center;
-    width: 500px; /* Rộng hơn */
+    width: 500px;
 }
 .btn-attack {
-    width: 100%; height: 70px; /* Nút to hơn */
+    width: 100%; height: 70px;
     background-color: #dc3545;
     border-width: 0; border-radius: 12px;
     color: white; font-size: 24px; -unity-font-style: bold;
@@ -210,29 +260,25 @@
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
 
-/* === FIX INPUT FORM COLOR - PHẦN QUAN TRỌNG NHẤT === */
-/* Đảm bảo chữ ĐEN, nền TRẮNG, và TO HƠN */
-
+/* === FIX INPUT FORM COLOR === */
 .form-control .unity-base-text-field__input {
     background-color: rgb(255, 255, 255) !important;
     border-color: rgba(255, 255, 255, 0.2);
     color: rgb(0, 0, 0) !important;
-    font-size: 24px !important; /* Chữ nhập vào to lên */
+    font-size: 24px !important;
     padding-left: 15px;
 }
-
 .form-control .unity-base-text-field__input .unity-text-element {
     color: rgb(0, 0, 0) !important;
     font-size: 24px !important;
     -unity-text-align: middle-left;
 }
-
 .form-control .unity-base-field__label {
     color: rgb(0, 0, 0) !important;
     font-size: 24px !important;
 }
 
-/* Scrollbar to hơn */
+/* Scrollbar */
 .unity-scroller { width: 12px; background-color: transparent; }
 .unity-scroller__slider { min-width: 12px; width: 12px; border-radius: 6px; background-color: rgba(255,255,255,0.1); }
 .unity-scroller__slider:hover { background-color: rgba(255,255,255,0.3); }
