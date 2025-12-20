@@ -139,7 +139,9 @@ public class SettingsManager : MonoBehaviour
         overlay.style.backgroundColor = new Color(0, 0, 0, 0.85f);
         overlay.style.alignItems = Align.Center;
         overlay.style.justifyContent = Justify.Center;
-        overlay.style.zIndex = 9999; // Đảm bảo luôn nằm trên cùng
+        
+        // Đã xóa overlay.style.zIndex vì gây lỗi. 
+        // Thay vào đó dùng BringToFront() khi mở.
 
         var card = new VisualElement();
         card.style.width = 450;
@@ -265,6 +267,8 @@ public class SettingsManager : MonoBehaviour
     public void OpenSettings()
     {
         _popup.style.display = DisplayStyle.Flex;
+        // Đưa popup lên trên cùng của danh sách hiển thị
+        _popup.BringToFront();
     }
 
     public void CloseSettings()
