@@ -5,7 +5,6 @@
     var shopItems = ViewBag.ShopItems as List<MinecraftBackend.Models.ShopItem>;
     var recipes = ViewBag.Recipes as List<MinecraftBackend.Models.Recipe>;
     var monsters = ViewBag.Monsters as List<MinecraftBackend.Models.Monster>;
-    // FIX: Lấy danh sách building từ ViewBag
     var buildings = ViewBag.Buildings as List<MinecraftBackend.Models.ShopItem>;
 }
 
@@ -122,8 +121,51 @@
 
 <script>
     function log(msg, type = 'info') { const c = document.getElementById('console'); const time = new Date().toLocaleTimeString(); let colorClass = 'text-info'; if (type === 'error') colorClass = 'text-danger fw-bold'; if (type === 'success') colorClass = 'text-success fw-bold'; const newLog = `<div class="${colorClass}">[${time}] > ${msg}</div>`; c.innerHTML += newLog; c.scrollTop = c.scrollHeight; }
-    async function api(endpoint) { log(`FETCHING: /api/game/${endpoint}...`, 'info'); try { let res = await fetch('/api/game/' + endpoint); if (!res.ok) throw new Error(res.statusText); let data = await res.json(); log("RESPONSE RECEIVED:", 'success'); log(JSON.stringify(data, null, 2)); } catch (e) { log("ERROR: " + e.message, 'error'); } }
+    
+    // Hàm gọi API GET
+    async function api(endpoint) { 
+        log(`FETCHING: /api/game/${endpoint}...`, 'info'); 
+        try { 
+            let res = await fetch('/api/game/' + endpoint); 
+            if (!res.ok) throw new Error(res.statusText); 
+            let data = await res.json(); 
+            log("RESPONSE RECEIVED:", 'success'); 
+            log(JSON.stringify(data, null, 2)); 
+        } catch (e) { 
+            log("ERROR: " + e.message, 'error'); 
+        } 
+    }
+    
     async function checkAffordable() { const charId = document.getElementById('char').value; if (!charId) { log("Error: No player selected!", 'error'); return; } await api('affordable/' + charId); }
     async function simDynamic(action, selectId) { const targetValue = document.getElementById(selectId).value; if (!targetValue) { log(`Error: No target selected for ${action}!`, 'error'); return; } await sim(action, targetValue); }
-    async function sim(action, targetId) { let charId = document.getElementById('char').value; if (!charId) { log("Error: No player selected!", 'error'); return; } let url = `/api/GameApi/sim/${action}?charId=${charId}`; if(action == 'buy') url += `&prodId=${targetId}`; if(action == 'craft') url += `&recipeId=${targetId}`; if(action == 'build') url += `&buildTypeId=${targetId}`; if(action == 'quest') url += `&questId=${targetId}`; if(action == 'upgrade') url += `&ruleId=${targetId}`; log(`EXECUTING: ${action.toUpperCase()} on ${targetId}...`, 'info'); try { let res = await fetch(url, { method: 'POST' }); let text = await res.text(); if (res.ok) { log(`SUCCESS: ${text}`, 'success'); Swal.fire({ icon: 'success', title: 'Action Completed', text: text, background: '#1f2937', color: '#fff', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' }); } else { throw new Error(text); } } catch (e) { log(`FAILED: ${e.message}`, 'error'); Swal.fire({ icon: 'error', title: 'Simulation Failed', text: e.message, background: '#1f2937', color: '#fff' }); } }
+    
+    // Hàm gọi API POST (Đã sửa URL)
+    async function sim(action, targetId) { 
+        let charId = document.getElementById('char').value; 
+        if (!charId) { log("Error: No player selected!", 'error'); return; } 
+        
+        // FIX: Sửa đường dẫn từ GameApi -> game
+        let url = `/api/game/sim/${action}?charId=${charId}`; 
+        
+        if(action == 'buy') url += `&prodId=${targetId}`; 
+        if(action == 'craft') url += `&recipeId=${targetId}`; 
+        if(action == 'build') url += `&buildTypeId=${targetId}`; 
+        if(action == 'quest') url += `&questId=${targetId}`; 
+        if(action == 'upgrade') url += `&ruleId=${targetId}`; 
+        
+        log(`EXECUTING: ${action.toUpperCase()} on ${targetId}...`, 'info'); 
+        try { 
+            let res = await fetch(url, { method: 'POST' }); 
+            let text = await res.text(); 
+            if (res.ok) { 
+                log(`SUCCESS: ${text}`, 'success'); 
+                Swal.fire({ icon: 'success', title: 'Action Completed', text: text, background: '#1f2937', color: '#fff', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' }); 
+            } else { 
+                throw new Error(text); 
+            } 
+        } catch (e) { 
+            log(`FAILED: ${e.message}`, 'error'); 
+            Swal.fire({ icon: 'error', title: 'Simulation Failed', text: e.message, background: '#1f2937', color: '#fff' }); 
+        } 
+    }
 </script>
