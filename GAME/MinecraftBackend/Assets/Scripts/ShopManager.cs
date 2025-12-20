@@ -472,6 +472,8 @@ public class ShopManager : MonoBehaviour
 
         var priceRow = template.Q<VisualElement>("PriceRow");
         priceRow.Clear();
+        
+        // --- TẠO NÚT MUA TO HƠN ---
         var btn = new Button();
         btn.AddToClassList("btn");
         btn.AddToClassList("btn-outline-secondary");
@@ -491,15 +493,20 @@ public class ShopManager : MonoBehaviour
             btn.style.color = new Color(0f, 0.82f, 1f);
             priceText = $"{item.PriceAmount:N0} 💎";
         }
+        
         btn.style.borderTopColor = borderColor;
         btn.style.borderBottomColor = borderColor;
         btn.style.borderLeftColor = borderColor;
         btn.style.borderRightColor = borderColor;
-        btn.style.height = 40;
+        
+        // KÍCH THƯỚC MỚI: Cao 55px (cũ 40)
+        btn.style.height = 55; 
 
         var lbl = new Label(priceText);
         lbl.AddToClassList("fw-bold");
-        lbl.style.fontSize = 16;
+        // FONT GIÁ MỚI: 22px (cũ 16)
+        lbl.style.fontSize = 22; 
+        
         btn.Add(lbl);
         btn.clicked += () => ShowDetailPopup(item);
         priceRow.Add(btn);
@@ -653,10 +660,12 @@ public class ShopManager : MonoBehaviour
     IEnumerator LoadRecipes()
     {
         _craftScroll.Clear();
-        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray, fontSize = 20 } });
+        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray, fontSize = 24 } }); // Font loading to hơn
+        
         yield return NetworkManager.Instance.SendRequest<List<RecipeDto>>("game/recipes", "GET", null, (recipes) => {
             _craftScroll.Clear();
-            if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white, fontSize = 20 } });
+            if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white, fontSize = 24 } });
+            
             int index = 0;
             foreach (var r in recipes)
             {
@@ -665,15 +674,24 @@ public class ShopManager : MonoBehaviour
                 if (index % 2 == 0) root.AddToClassList("row-even");
                 else root.AddToClassList("row-odd");
                 index++;
+                
                 ui.Q<Label>("ItemName").text = r.ResultItemName;
                 ui.Q<Label>("ItemRarity").text = $"Time: {r.CraftingTime}s";
                 StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(r.ResultItemImage));
+                
                 var priceRow = ui.Q<VisualElement>("PriceRow");
                 priceRow.Clear();
+                
+                // --- TẠO NÚT CRAFT TO HƠN ---
                 var btn = new Button { text = "CRAFT" };
                 btn.AddToClassList("btn-success");
-                btn.AddToClassList("btn"); 
-                btn.style.height = 40;
+                btn.AddToClassList("btn");
+                
+                // KÍCH THƯỚC MỚI: Cao 55px, Font 20px (tự nhận từ class btn)
+                btn.style.height = 55;
+                btn.style.fontSize = 20;
+                btn.style.width = 120; // Rộng hơn chút cho đẹp
+
                 btn.clicked += () => StartCoroutine(CraftProcess(r));
                 priceRow.Add(btn);
                 _craftScroll.Add(ui);
