@@ -2,10 +2,11 @@
 
 @{
     ViewData["Title"] = "Game Simulator";
-    // Lấy danh sách từ ViewBag (được nạp ở AdminController)
     var shopItems = ViewBag.ShopItems as List<MinecraftBackend.Models.ShopItem>;
     var recipes = ViewBag.Recipes as List<MinecraftBackend.Models.Recipe>;
     var monsters = ViewBag.Monsters as List<MinecraftBackend.Models.Monster>;
+    // FIX: Lấy danh sách building từ ViewBag
+    var buildings = ViewBag.Buildings as List<MinecraftBackend.Models.ShopItem>;
 }
 
 <div class="row h-100">
@@ -21,13 +22,7 @@
                 <div class="input-group">
                     <span class="input-group-text bg-dark border-secondary text-white-50"><i class="fas fa-user"></i></span>
                     <select id="char" class="form-select bg-dark text-white border-secondary">
-                        @if (Model != null)
-                        {
-                            foreach (var c in Model)
-                            {
-                                <option value="@c.CharacterID">@c.DisplayName (@c.GameMode)</option>
-                            }
-                        }
+                        @if (Model != null) { foreach (var c in Model) { <option value="@c.CharacterID">@c.DisplayName (@c.GameMode)</option> } }
                     </select>
                 </div>
             </div>
@@ -38,11 +33,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-black border-secondary text-white-50" style="width: 80px;">Buy</span>
                     <select id="prodSelect" class="form-select bg-dark text-white border-secondary">
-                        @if(shopItems != null) {
-                            foreach(var item in shopItems) {
-                                <option value="@item.ProductID">@item.Name (@item.PriceAmount @(item.PriceCurrency == "RES_GOLD" ? "G" : "Gem"))</option>
-                            }
-                        }
+                        @if(shopItems != null) { foreach(var item in shopItems) { <option value="@item.ProductID">@item.Name (@item.PriceAmount @(item.PriceCurrency == "RES_GOLD" ? "G" : "Gem"))</option> } }
                     </select>
                     <button onclick="simDynamic('buy', 'prodSelect')" class="btn btn-success fw-bold"><i class="fas fa-shopping-cart"></i></button>
                 </div>
@@ -52,11 +43,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-black border-secondary text-white-50" style="width: 80px;">Craft</span>
                     <select id="recipeSelect" class="form-select bg-dark text-white border-secondary">
-                        @if(recipes != null) {
-                            foreach(var rec in recipes) {
-                                <option value="@rec.RecipeId">@rec.ResultItemName (@rec.RecipeId)</option>
-                            }
-                        }
+                        @if(recipes != null) { foreach(var rec in recipes) { <option value="@rec.RecipeId">@rec.ResultItemName (@rec.RecipeId)</option> } }
                     </select>
                     <button onclick="simDynamic('craft', 'recipeSelect')" class="btn btn-primary fw-bold"><i class="fas fa-hammer"></i></button>
                 </div>
@@ -66,10 +53,37 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-black border-secondary text-white-50" style="width: 80px;">Build</span>
                     <select id="buildSelect" class="form-select bg-dark text-white border-secondary">
-                        <option value="BLD_HOUSE">Wooden House</option>
-                        <option value="BLD_TOWER">Watch Tower</option>
+                        @if(buildings != null && buildings.Count > 0) {
+                            foreach(var b in buildings) {
+                                <option value="@b.ProductID">@b.Name</option>
+                            }
+                        } else {
+                            <option value="">(No Buildings Data)</option>
+                        }
                     </select>
                     <button onclick="simDynamic('build', 'buildSelect')" class="btn btn-warning fw-bold text-dark"><i class="fas fa-gavel"></i></button>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-black border-secondary text-white-50" style="width: 80px;">Quest</span>
+                    <select id="questSelect" class="form-select bg-dark text-white border-secondary">
+                        <option value="Q_KILL_ZOMBIE">Hunt Zombies</option>
+                        <option value="Q_COLLECT_WOOD">Gather Wood</option>
+                    </select>
+                    <button onclick="simDynamic('quest', 'questSelect')" class="btn btn-info fw-bold"><i class="fas fa-flag"></i></button>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-black border-secondary text-white-50" style="width: 80px;">Upgrade</span>
+                    <select id="upgSelect" class="form-select bg-dark text-white border-secondary">
+                        <option value="UPG_WEAPON">Upgrade Weapon (+1)</option>
+                        <option value="UPG_ARMOR">Upgrade Armor (+1)</option>
+                    </select>
+                    <button onclick="simDynamic('upgrade', 'upgSelect')" class="btn btn-danger fw-bold"><i class="fas fa-arrow-up"></i></button>
                 </div>
             </div>
 
@@ -77,23 +91,18 @@
 
             <label class="text-success small fw-bold mb-2"><i class="fas fa-chart-pie me-1"></i>QUICK ANALYTICS</label>
             <div class="row g-2 mb-3">
-                <div class="col-6">
-                    <button onclick="checkAffordable()" class="btn btn-sm btn-dark border-secondary w-100 text-start">
-                        <i class="fas fa-wallet me-2 text-warning"></i>Check Affordable
-                    </button>
-                </div>
-                <div class="col-6">
-                    <button onclick="api('top-selling')" class="btn btn-sm btn-dark border-secondary w-100 text-start">
-                        <i class="fas fa-fire me-2 text-danger"></i>Top Selling
-                    </button>
-                </div>
+                <div class="col-6"><button onclick="checkAffordable()" class="btn btn-sm btn-dark border-secondary w-100 text-start"><i class="fas fa-wallet me-2 text-warning"></i>Check Affordable</button></div>
+                <div class="col-6"><button onclick="api('top-selling')" class="btn btn-sm btn-dark border-secondary w-100 text-start"><i class="fas fa-fire me-2 text-danger"></i>Top Selling</button></div>
+                <div class="col-6"><button onclick="api('expensive-weapons')" class="btn btn-sm btn-dark border-secondary w-100 text-start"><i class="fas fa-sword me-2 text-info"></i>Exp. Weapons</button></div>
+                <div class="col-6"><button onclick="api('cheap-diamond')" class="btn btn-sm btn-dark border-secondary w-100 text-start"><i class="far fa-gem me-2 text-primary"></i>Cheap Diamond</button></div>
             </div>
 
             <label class="text-secondary small fw-bold mb-2"><i class="fas fa-database me-1"></i>DATA INSPECTOR (JSON)</label>
             <div class="row g-1">
                 <div class="col-3"><button onclick="api('resources')" class="btn btn-xs btn-outline-secondary w-100">Res</button></div>
                 <div class="col-3"><button onclick="api('monsters')" class="btn btn-xs btn-outline-secondary w-100">Mobs</button></div>
-                <div class="col-3"><button onclick="api('wiki')" class="btn btn-xs btn-outline-secondary w-100">Wiki</button></div>
+                <div class="col-3"><button onclick="api('buildings')" class="btn btn-xs btn-outline-secondary w-100">Builds</button></div>
+                <div class="col-3"><button onclick="api('quests')" class="btn btn-xs btn-outline-secondary w-100">Quests</button></div>
             </div>
         </div>
     </div>
@@ -102,82 +111,19 @@
         <div class="glass-card h-100 d-flex flex-column p-0 overflow-hidden">
             <div class="d-flex justify-content-between align-items-center p-3 border-bottom border-secondary bg-black bg-opacity-25">
                 <h5 class="text-success m-0 font-monospace"><i class="fas fa-terminal me-2"></i>SIMULATION TERMINAL</h5>
-                <div>
-                    <span class="badge bg-dark border border-secondary me-2">Status: ONLINE</span>
-                    <button onclick="document.getElementById('console').innerHTML='System Ready...'" class="btn btn-sm btn-outline-light ms-2"><i class="fas fa-eraser"></i> Clear</button>
-                </div>
+                <div><span class="badge bg-dark border border-secondary me-2">Status: ONLINE</span><button onclick="document.getElementById('console').innerHTML='System Ready...'" class="btn btn-sm btn-outline-light ms-2"><i class="fas fa-eraser"></i> Clear</button></div>
             </div>
-            
             <div class="flex-grow-1 bg-black bg-opacity-50 position-relative">
-                 <div id="console" class="text-info font-monospace small p-3" 
-                     style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; white-space: pre-wrap;">System Ready...
-Waiting for commands...</div>
+                 <div id="console" class="text-info font-monospace small p-3" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; white-space: pre-wrap;">System Ready... Waiting for commands...</div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function log(msg, type = 'info') {
-        const c = document.getElementById('console');
-        const time = new Date().toLocaleTimeString();
-        let colorClass = 'text-info';
-        if (type === 'error') colorClass = 'text-danger fw-bold';
-        if (type === 'success') colorClass = 'text-success fw-bold';
-        const newLog = `<div class="${colorClass}">[${time}] > ${msg}</div>`;
-        c.innerHTML += newLog;
-        c.scrollTop = c.scrollHeight;
-    }
-
-    async function api(endpoint) {
-        log(`FETCHING: /api/game/${endpoint}...`, 'info');
-        try {
-            let res = await fetch('/api/game/' + endpoint);
-            if (!res.ok) throw new Error(res.statusText);
-            let data = await res.json();
-            log("RESPONSE RECEIVED:", 'success');
-            log(JSON.stringify(data, null, 2));
-        } catch (e) {
-            log("ERROR: " + e.message, 'error');
-        }
-    }
-
-    async function checkAffordable() {
-        const charId = document.getElementById('char').value;
-        if (!charId) { log("Error: No player selected!", 'error'); return; }
-        await api('affordable/' + charId);
-    }
-
-    async function simDynamic(action, selectId) {
-        const targetValue = document.getElementById(selectId).value;
-        if (!targetValue) {
-            log(`Error: No target selected for ${action}!`, 'error');
-            return;
-        }
-        await sim(action, targetValue);
-    }
-
-    async function sim(action, targetId) {
-        let charId = document.getElementById('char').value;
-        if (!charId) { log("Error: No player selected!", 'error'); return; }
-
-        let url = `/api/game/sim/${action}?charId=${charId}`;
-        if(action == 'buy') url += `&prodId=${targetId}`;
-        if(action == 'craft') url += `&recipeId=${targetId}`;
-        if(action == 'build') url += `&buildTypeId=${targetId}`;
-
-        log(`EXECUTING: ${action.toUpperCase()} on ${targetId}...`, 'info');
-        try {
-            let res = await fetch(url, { method: 'POST' });
-            let text = await res.text();
-            
-            if (res.ok) {
-                log(`SUCCESS: ${text}`, 'success');
-            } else {
-                throw new Error(text);
-            }
-        } catch (e) {
-            log(`FAILED: ${e.message}`, 'error');
-        }
-    }
+    function log(msg, type = 'info') { const c = document.getElementById('console'); const time = new Date().toLocaleTimeString(); let colorClass = 'text-info'; if (type === 'error') colorClass = 'text-danger fw-bold'; if (type === 'success') colorClass = 'text-success fw-bold'; const newLog = `<div class="${colorClass}">[${time}] > ${msg}</div>`; c.innerHTML += newLog; c.scrollTop = c.scrollHeight; }
+    async function api(endpoint) { log(`FETCHING: /api/game/${endpoint}...`, 'info'); try { let res = await fetch('/api/game/' + endpoint); if (!res.ok) throw new Error(res.statusText); let data = await res.json(); log("RESPONSE RECEIVED:", 'success'); log(JSON.stringify(data, null, 2)); } catch (e) { log("ERROR: " + e.message, 'error'); } }
+    async function checkAffordable() { const charId = document.getElementById('char').value; if (!charId) { log("Error: No player selected!", 'error'); return; } await api('affordable/' + charId); }
+    async function simDynamic(action, selectId) { const targetValue = document.getElementById(selectId).value; if (!targetValue) { log(`Error: No target selected for ${action}!`, 'error'); return; } await sim(action, targetValue); }
+    async function sim(action, targetId) { let charId = document.getElementById('char').value; if (!charId) { log("Error: No player selected!", 'error'); return; } let url = `/api/GameApi/sim/${action}?charId=${charId}`; if(action == 'buy') url += `&prodId=${targetId}`; if(action == 'craft') url += `&recipeId=${targetId}`; if(action == 'build') url += `&buildTypeId=${targetId}`; if(action == 'quest') url += `&questId=${targetId}`; if(action == 'upgrade') url += `&ruleId=${targetId}`; log(`EXECUTING: ${action.toUpperCase()} on ${targetId}...`, 'info'); try { let res = await fetch(url, { method: 'POST' }); let text = await res.text(); if (res.ok) { log(`SUCCESS: ${text}`, 'success'); Swal.fire({ icon: 'success', title: 'Action Completed', text: text, background: '#1f2937', color: '#fff', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' }); } else { throw new Error(text); } } catch (e) { log(`FAILED: ${e.message}`, 'error'); Swal.fire({ icon: 'error', title: 'Simulation Failed', text: e.message, background: '#1f2937', color: '#fff' }); } }
 </script>
