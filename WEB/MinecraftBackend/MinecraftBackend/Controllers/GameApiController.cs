@@ -23,7 +23,7 @@ namespace MinecraftBackend.Controllers
             _context = context;
             if (_mockMails.Count == 0)
             {
-                _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEAP_WOOD_SWORD", AttachedItemName = "Wooden Sword", AttachedAmount = 1 });
+                _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEP_WOOD_SWORD", AttachedItemName = "Wooden Sword", AttachedAmount = 1 });
             }
         }
 
@@ -136,48 +136,77 @@ namespace MinecraftBackend.Controllers
         [HttpGet("mail")] public IActionResult GetMails() => Ok(_mockMails);
         [HttpPost("mail/claim/{id}")] public async Task<IActionResult> ClaimMail(int id) { var mail = _mockMails.FirstOrDefault(m => m.Id == id); if (mail == null || mail.IsClaimed) return BadRequest("Error"); var profile = await GetCurrentProfile(); if (mail.AttachedItemId == "RES_GOLD") profile.Gold += mail.AttachedAmount; else if (!string.IsNullOrEmpty(mail.AttachedItemId)) await AddToInventory(profile.UserId, mail.AttachedItemId, mail.AttachedAmount); mail.IsClaimed = true; mail.IsRead = true; await _context.SaveChangesAsync(); return Ok(new { message = "Claimed" }); }
 
-        // --- 7. SIMULATOR ENDPOINTS ---
+        // --- 7. SIMULATOR ENDPOINTS (SAFE MODE) ---
+        // Các hàm này được bọc try-catch và kiểm tra null kỹ càng
+        
         [AllowAnonymous]
         [HttpPost("sim/buy")]
         public async Task<IActionResult> SimBuy(string charId, string prodId)
         {
-            var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
-            if (profile == null) return NotFound("Char not found");
-            var prod = await _context.ShopItems.FirstOrDefaultAsync(i => i.ProductID == prodId);
-            if (prod == null) return BadRequest("Product ID invalid");
+            try 
+            {
+                var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
+                if (profile == null) return NotFound("Char not found");
+                
+                var prod = await _context.ShopItems.FirstOrDefaultAsync(i => i.ProductID == prodId);
+                if (prod == null) return BadRequest("Product ID invalid");
 
-            if (prod.PriceCurrency == "RES_GOLD") profile.Gold -= prod.PriceAmount; 
-            else profile.Gem -= prod.PriceAmount;
+                // FIX: Nếu Currency bị null thì gán mặc định "NONE" để không lỗi DB
+                string currency = prod.PriceCurrency ?? "NONE"; 
 
-            await AddToInventory(profile.UserId, prod.TargetItemID, 1);
-            
-            // FIX: Ghi log đầy đủ để Top Selling đếm được
-            _context.Transactions.Add(new Transaction { 
-                UserId = profile.UserId, 
-                ActionType = "SIM_BUY", 
-                Details = $"Simulated Buy: {prod.Name}", 
-                Amount = -prod.PriceAmount, 
-                CurrencyType = prod.PriceCurrency, 
-                ItemId = prod.TargetItemID, // Quan trọng cho Top Selling
-                CreatedAt = DateTime.Now 
-            });
-            await _context.SaveChangesAsync();
-            return Ok($"Simulated purchase: {prod.Name} added, Money deducted.");
+                if (currency == "RES_GOLD") profile.Gold -= prod.PriceAmount; 
+                else if (currency == "RES_GEM") profile.Gem -= prod.PriceAmount;
+
+                await AddToInventory(profile.UserId, prod.TargetItemID, 1);
+                
+                _context.Transactions.Add(new Transaction { 
+                    UserId = profile.UserId, 
+                    ActionType = "SIM_BUY", 
+                    Details = $"Simulated Buy: {prod.Name}", 
+                    Amount = -prod.PriceAmount, 
+                    CurrencyType = currency, // Đã an toàn
+                    ItemId = prod.TargetItemID,
+                    CreatedAt = DateTime.Now 
+                });
+                await _context.SaveChangesAsync();
+                return Ok($"Simulated purchase: {prod.Name} added.");
+            }
+            catch (Exception ex)
+            {
+                // Trả về lỗi rõ ràng thay vì 500
+                return BadRequest($"Lỗi Server: {ex.Message}");
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("sim/craft")]
         public async Task<IActionResult> SimCraft(string charId, string recipeId)
         {
-            var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
-            if (profile == null) return NotFound("Char not found");
-            var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.RecipeId == recipeId);
-            if (recipe == null) return BadRequest("Recipe ID invalid");
+            try
+            {
+                var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
+                if (profile == null) return NotFound("Char not found");
+                
+                var recipe = await _context.Recipes.FirstOrDefaultAsync(r => r.RecipeId == recipeId);
+                if (recipe == null) return BadRequest("Recipe ID invalid");
 
-            await AddToInventory(profile.UserId, recipe.ResultItemId, 1);
-            _context.Transactions.Add(new Transaction { UserId = profile.UserId, ActionType = "SIM_CRAFT", Details = $"Simulated Craft (Force): {recipe.ResultItemName}", CreatedAt = DateTime.Now, CurrencyType = "NONE", Amount = 0 });
-            await _context.SaveChangesAsync();
-            return Ok($"Simulated Force Craft: {recipe.ResultItemName} added.");
+                await AddToInventory(profile.UserId, recipe.ResultItemId, 1);
+                
+                _context.Transactions.Add(new Transaction { 
+                    UserId = profile.UserId, 
+                    ActionType = "SIM_CRAFT", 
+                    Details = $"Simulated Craft: {recipe.ResultItemName}", 
+                    CreatedAt = DateTime.Now, 
+                    CurrencyType = "NONE", // Đảm bảo luôn có giá trị
+                    Amount = 0 
+                });
+                await _context.SaveChangesAsync();
+                return Ok($"Simulated Force Craft: {recipe.ResultItemName} added.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Lỗi Server: {ex.Message}");
+            }
         }
         
         [AllowAnonymous][HttpPost("sim/build")] public async Task<IActionResult> SimBuild(string charId, string buildTypeId) => Ok("Simulated Build");
@@ -188,7 +217,6 @@ namespace MinecraftBackend.Controllers
 
         // --- PUBLIC DATA ENDPOINTS ---
         
-        // FIX: Check Affordable hiển thị tiền và check cả Gem
         [AllowAnonymous]
         [HttpGet("affordable/{charId}")]
         public async Task<IActionResult> CheckAffordable(string charId) {
@@ -198,7 +226,6 @@ namespace MinecraftBackend.Controllers
             return Ok(items);
         }
         
-        // FIX: Top Selling đếm cả Sim Buy
         [AllowAnonymous]
         [HttpGet("top-selling")] 
         public async Task<IActionResult> GetTopSelling() {
@@ -220,7 +247,6 @@ namespace MinecraftBackend.Controllers
         
         [AllowAnonymous] [HttpGet("resources")] public async Task<IActionResult> GetResourcesSim() { return Ok(await _context.ShopItems.Where(i => i.ItemType == "Material").ToListAsync()); }
 
-        // FIX: Buildings trả về item thật (để hiển thị trong JSON Inspector)
         [AllowAnonymous] [HttpGet("buildings")] public async Task<IActionResult> GetBuildingsSim() { return Ok(await _context.ShopItems.Where(i => i.ItemType == "Building").ToListAsync()); }
         [AllowAnonymous][HttpGet("quests")] public IActionResult GetQuestsSim() => Ok(new List<object> { new { Name = "Kill Dragon", Reward = "Elytra" } });
         [AllowAnonymous][HttpGet("leaderboard")] public async Task<IActionResult> GetLeaderboard() => Ok(await _context.PlayerProfiles.OrderByDescending(p => p.Level).Take(10).ToListAsync());
