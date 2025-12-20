@@ -25,14 +25,14 @@ public class ShopManager : MonoBehaviour
     private VisualElement _inventoryContainer;
     private VisualElement _craftContainer;
     private VisualElement _battleContainer;
-    private VisualElement _historyContainer; // [MỚI] Container lịch sử
-    private VisualElement _shopWrapper; // Dùng để tính toán kích thước trang
+    private VisualElement _historyContainer;
+    private VisualElement _shopWrapper;
 
     // --- SCROLL VIEWS ---
     private ScrollView _shopScroll;
     private ScrollView _invScroll;
     private ScrollView _craftScroll;
-    private ScrollView _historyScroll; // [MỚI] Scroll lịch sử
+    private ScrollView _historyScroll;
 
     // --- HEADER STATS ---
     private Label _goldLabel;
@@ -46,25 +46,25 @@ public class ShopManager : MonoBehaviour
     private Button _btnTabInv;
     private Button _btnTabCraft;
     private Button _btnTabBattle;
-    private Button _btnTabHistory; // [MỚI] Nút Tab History
+    private Button _btnTabHistory;
 
     // --- FILTERS ---
     private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
-    // --- PAGINATION (Phân trang) ---
+    // --- PAGINATION ---
     private Label _pageLabel;       // Shop Page
     private Label _invPageLabel;    // Inv Page
-    private Label _histPageLabel;   // [MỚI] History Page
+    private Label _histPageLabel;   // History Page
 
     // --- LOGIC VARIABLES ---
     private int _currentPage = 1;
     private int _currentInvPage = 1;
-    private int _currentHistPage = 1; // [MỚI]
+    private int _currentHistPage = 1;
     private int _pageSize = 10;
     private float _itemHeight = 100f;
     private bool _isHeightCalculated = false;
 
-    // --- ANTI-SPAM / BUSY STATE ---
+    // --- ANTI-SPAM ---
     private bool _isBusy = false; 
     private float _lastClickTime = 0f;
     private const float CLICK_COOLDOWN = 0.3f;
@@ -101,13 +101,13 @@ public class ShopManager : MonoBehaviour
         _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
         _battleContainer = _root.Q<VisualElement>("BattleContainer");
-        _historyContainer = _root.Q<VisualElement>("HistoryContainer"); // [MỚI]
+        _historyContainer = _root.Q<VisualElement>("HistoryContainer");
 
         // 2. SETUP SCROLL VIEWS
         _shopScroll = _root.Q<ScrollView>("ShopScrollView");
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
-        _historyScroll = _root.Q<ScrollView>("HistoryScrollView"); // [MỚI]
+        _historyScroll = _root.Q<ScrollView>("HistoryScrollView");
 
         // 3. SETUP HEADER STATS
         _goldLabel = _root.Q<Label>("ShopGold");
@@ -116,16 +116,12 @@ public class ShopManager : MonoBehaviour
         _staminaBar = _root.Q<ProgressBar>("StaminaBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // 4. SETUP SETTINGS BUTTON (Tìm nút trong UXML)
+        // 4. SETUP SETTINGS BUTTON
         var btnSettings = _root.Q<Button>("BtnSettings");
         if (btnSettings != null)
         {
             btnSettings.clicked -= OnSettingsClicked;
             btnSettings.clicked += OnSettingsClicked;
-        }
-        else
-        {
-            Debug.LogWarning("[ShopManager] BtnSettings not found in UXML. Make sure you added it.");
         }
 
         // 5. SETUP TABS
@@ -133,45 +129,41 @@ public class ShopManager : MonoBehaviour
         _btnTabInv = SetupTabButton("TabInventory", "Inventory");
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
         _btnTabBattle = SetupTabButton("TabBattle", "Battle");
-        _btnTabHistory = SetupTabButton("TabHistory", "History"); // [MỚI]
+        _btnTabHistory = SetupTabButton("TabHistory", "History");
 
-        // 6. PAGINATION LOGIC
-        // Shop
+        // 6. PAGINATION
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
         if (btnPrev != null) btnPrev.clicked += () => { if (CanClick()) ChangePage(-1); };
         if (btnNext != null) btnNext.clicked += () => { if (CanClick()) ChangePage(1); };
 
-        // Inventory
         var btnInvPrev = _root.Q<Button>("BtnInvPrev");
         var btnInvNext = _root.Q<Button>("BtnInvNext");
         _invPageLabel = _root.Q<Label>("InvPageLabel");
         if (btnInvPrev != null) btnInvPrev.clicked += () => { if (CanClick()) ChangeInventoryPage(-1); };
         if (btnInvNext != null) btnInvNext.clicked += () => { if (CanClick()) ChangeInventoryPage(1); };
 
-        // History [MỚI]
         var btnHistPrev = _root.Q<Button>("BtnHistPrev");
         var btnHistNext = _root.Q<Button>("BtnHistNext");
         _histPageLabel = _root.Q<Label>("HistPageLabel");
         if (btnHistPrev != null) btnHistPrev.clicked += () => { if (CanClick()) ChangeHistoryPage(-1); };
         if (btnHistNext != null) btnHistNext.clicked += () => { if (CanClick()) ChangeHistoryPage(1); };
 
-        // 7. BATTLE LOGIC
+        // 7. BATTLE
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => {
             if (CanClick()) StartCoroutine(AttackProcess());
         };
 
-        // 8. FILTERS & LOGS
+        // 8. FILTERS
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
 
-        // Nút Log nhỏ trong Inventory (nếu còn dùng)
         var btnLogs = _root.Q<Button>("BtnNotiLog");
-        if (btnLogs != null) btnLogs.clicked += () => { if (CanClick()) SwitchTab("History"); }; // Chuyển sang tab History luôn cho tiện
+        if (btnLogs != null) btnLogs.clicked += () => { if (CanClick()) SwitchTab("History"); };
 
         // 9. EVENTS
         GameEvents.OnCurrencyChanged += RefreshAllData;
@@ -188,8 +180,6 @@ public class ShopManager : MonoBehaviour
         if (_shopWrapper != null) _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // --- CLICK HANDLERS ---
-
     private void OnSettingsClicked()
     {
         if (SettingsManager.Instance != null)
@@ -202,7 +192,6 @@ public class ShopManager : MonoBehaviour
     private bool CanClick()
     {
         if (_isBusy) return false;
-        // Chặn click nếu đang mở Settings
         if (SettingsManager.Instance != null && SettingsManager.Instance.IsSettingsOpen) return false;
         if (Time.time - _lastClickTime < CLICK_COOLDOWN) return false;
 
@@ -210,25 +199,20 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // --- TAB SWITCHING ---
-
     void SwitchTab(string tabName)
     {
-        // Ẩn hết
         if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.None;
         if (_inventoryContainer != null) _inventoryContainer.style.display = DisplayStyle.None;
         if (_craftContainer != null) _craftContainer.style.display = DisplayStyle.None;
         if (_battleContainer != null) _battleContainer.style.display = DisplayStyle.None;
-        if (_historyContainer != null) _historyContainer.style.display = DisplayStyle.None; // [MỚI]
+        if (_historyContainer != null) _historyContainer.style.display = DisplayStyle.None;
 
-        // Reset nút
         SetTabActive(_btnTabShop, tabName == "Shop");
         SetTabActive(_btnTabInv, tabName == "Inventory");
         SetTabActive(_btnTabCraft, tabName == "Craft");
         SetTabActive(_btnTabBattle, tabName == "Battle");
-        SetTabActive(_btnTabHistory, tabName == "History"); // [MỚI]
+        SetTabActive(_btnTabHistory, tabName == "History");
 
-        // Hiện logic tương ứng
         if (tabName == "Shop")
         {
             if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.Flex;
@@ -249,7 +233,7 @@ public class ShopManager : MonoBehaviour
             if (_battleContainer != null) _battleContainer.style.display = DisplayStyle.Flex;
             StartCoroutine(SpawnMonster());
         }
-        else if (tabName == "History") // [MỚI]
+        else if (tabName == "History")
         {
             if (_historyContainer != null) _historyContainer.style.display = DisplayStyle.Flex;
             StartCoroutine(LoadHistoryLogs(_currentHistPage));
@@ -265,11 +249,8 @@ public class ShopManager : MonoBehaviour
         if (isActive) btn.AddToClassList("active");
     }
 
-    // --- INITIALIZATION ---
-
     IEnumerator InitializeLayoutAndLoad()
     {
-        // Tính chiều cao item để phân trang
         if (ItemTemplate != null && _shopScroll != null)
         {
             var ghostItem = ItemTemplate.Instantiate();
@@ -285,7 +266,6 @@ public class ShopManager : MonoBehaviour
             _isHeightCalculated = true;
         }
 
-        // Lấy chiều cao container
         if (_shopContainer != null)
         {
             _shopWrapper = _shopContainer.Q(className: "list-wrapper");
@@ -316,18 +296,14 @@ public class ShopManager : MonoBehaviour
         if (fitCount != _pageSize)
         {
             _pageSize = fitCount;
-            // Reload trang hiện tại nếu kích thước đổi
             if (_shopContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadShopItems(_currentPage));
             if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage();
         }
     }
 
-    // --- PROFILE & DATA REFRESH ---
-
     void RefreshAllData()
     {
         StartCoroutine(LoadProfile());
-        // Nếu đang mở Inventory thì reload inventory
         if (_inventoryContainer != null && _inventoryContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadInventory());
     }
 
@@ -351,8 +327,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- SHOP LOGIC ---
-
     void ChangePage(int dir)
     {
         _currentPage += dir;
@@ -371,7 +345,7 @@ public class ShopManager : MonoBehaviour
                 
                 if (items.Count == 0 && page > 1)
                 {
-                    _currentPage--; // Quay lại nếu trang trống
+                    _currentPage--;
                     ChangePage(0);
                     return;
                 }
@@ -401,12 +375,10 @@ public class ShopManager : MonoBehaviour
         template.Q<Label>("ItemRarity").text = $"{item.Type} | {item.Rarity}";
         StartCoroutine(template.Q<Image>("ItemImage").LoadImage(item.ImageURL));
 
-        // Click vào item để xem chi tiết
         root.RegisterCallback<ClickEvent>(evt => {
             if (CanClick()) ShowDetailPopup(item);
         });
 
-        // Nút giá tiền
         var priceRow = template.Q<VisualElement>("PriceRow");
         priceRow.Clear();
 
@@ -420,16 +392,23 @@ public class ShopManager : MonoBehaviour
         if (item.PriceCurrency == "RES_GOLD")
         {
             priceText = $"{item.PriceAmount:N0} G";
-            color = new Color(1f, 0.75f, 0f); // Gold
+            color = new Color(1f, 0.75f, 0f);
         }
         else
         {
             priceText = $"{item.PriceAmount:N0} 💎";
-            color = new Color(0f, 0.82f, 1f); // Cyan
+            color = new Color(0f, 0.82f, 1f);
         }
         
         btn.style.color = color;
-        btn.style.borderColor = new Color(color.r, color.g, color.b, 0.3f);
+        
+        // FIX ERROR CS1061: Viết rõ từng cạnh thay vì shorthand 'borderColor'
+        Color borderCol = new Color(color.r, color.g, color.b, 0.3f);
+        btn.style.borderTopColor = borderCol;
+        btn.style.borderBottomColor = borderCol;
+        btn.style.borderLeftColor = borderCol;
+        btn.style.borderRightColor = borderCol;
+
         btn.style.height = 55;
 
         var lbl = new Label(priceText);
@@ -442,8 +421,6 @@ public class ShopManager : MonoBehaviour
 
         return template;
     }
-
-    // --- POPUP MUA HÀNG ---
 
     void ShowDetailPopup(ShopItemDto item)
     {
@@ -525,8 +502,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- INVENTORY LOGIC ---
-
     void ChangeInventoryPage(int dir)
     {
         if (_filteredInventory.Count == 0) return;
@@ -600,7 +575,6 @@ public class ShopManager : MonoBehaviour
             priceRow.Add(equipLabel);
         }
 
-        // Chuột phải mở menu
         root.RegisterCallback<ClickEvent>(e =>
         {
             if (e.button == 1) ShowContextMenu(inv, e.position);
@@ -609,7 +583,6 @@ public class ShopManager : MonoBehaviour
         return ui;
     }
 
-    // --- PUBLIC ITEM USAGE (Fix lỗi CS1061) ---
     public void UseItemFromHotbar(string itemId)
     {
         var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
@@ -656,8 +629,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- CONTEXT MENU ---
-
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
@@ -666,7 +637,6 @@ public class ShopManager : MonoBehaviour
         var menu = ContextMenuTemplate.Instantiate();
         var menuRoot = menu.Q<VisualElement>("ContextMenu");
 
-        // Tính vị trí để không tràn màn hình
         float x = mousePos.x;
         float y = mousePos.y;
         if (x + 180 > _root.resolvedStyle.width) x -= 180;
@@ -752,8 +722,6 @@ public class ShopManager : MonoBehaviour
         StartCoroutine(EquipItem(itemId));
     }
 
-    // --- CRAFTING ---
-
     IEnumerator LoadRecipes()
     {
         _craftScroll.Clear();
@@ -816,8 +784,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- BATTLE ---
-
     IEnumerator SpawnMonster()
     {
         _currentMonster = new MonsterDto { Name = "Zombie", HP = 100, MaxHp = 100 };
@@ -845,8 +811,6 @@ public class ShopManager : MonoBehaviour
             (err) => _isBusy = false
         );
     }
-
-    // --- HELPER FUNCTIONS ---
 
     Button SetupTabButton(string btnName, string tabName)
     {
@@ -880,7 +844,7 @@ public class ShopManager : MonoBehaviour
         if (isActive) btn.AddToClassList("active");
     }
 
-    // --- [MỚI] HISTORY / TRANSACTION LOGS LOGIC ---
+    // --- HISTORY / TRANSACTION LOGS LOGIC ---
 
     void ChangeHistoryPage(int dir)
     {
@@ -895,7 +859,6 @@ public class ShopManager : MonoBehaviour
         _historyScroll.Clear();
         _historyScroll.Add(new Label("Loading history...") { style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 20, fontSize = 20 } });
 
-        // Gọi API lấy lịch sử (Giả sử endpoint: game/transactions/my)
         string url = $"game/transactions/my?page={page}&pageSize={_pageSize}";
         
         yield return NetworkManager.Instance.SendRequest<List<TransactionDto>>(url, "GET", null,
@@ -930,7 +893,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // Tự tạo UI Row cho History bằng code (không cần UXML template)
     VisualElement CreateHistoryRow(TransactionDto log, int index)
     {
         var row = new VisualElement();
@@ -938,23 +900,21 @@ public class ShopManager : MonoBehaviour
         row.style.height = 65;
         row.style.alignItems = Align.Center;
         row.style.paddingLeft = 20; row.style.paddingRight = 20;
+        
+        // Fix Error: Sử dụng từng cạnh thay vì shorthand borderColor
         row.style.borderBottomWidth = 1;
         row.style.borderBottomColor = new Color(1, 1, 1, 0.05f);
         
-        // Màu nền xen kẽ
         if (index % 2 == 0) row.style.backgroundColor = new Color(0, 0, 0, 0.2f);
         else row.style.backgroundColor = new Color(0, 0, 0, 0.1f);
 
-        // Cột Trái: Hành động & Ngày tháng
         var leftCol = new VisualElement { style = { flexGrow = 1, justifyContent = Justify.Center } };
-        
         var lblAction = new Label(log.Action) { style = { color = Color.white, fontSize = 18, unityFontStyleAndWeight = FontStyle.Bold } };
         var lblDate = new Label(log.Date) { style = { color = new Color(0.7f, 0.7f, 0.7f), fontSize = 14, marginTop = 2 } };
         
         leftCol.Add(lblAction);
         leftCol.Add(lblDate);
 
-        // Cột Phải: Số tiền (+/-)
         string currencySymbol = (log.Currency == "RES_GEM") ? "💎" : "G";
         string sign = log.Amount >= 0 ? "+" : "";
         Color amountColor = log.Amount >= 0 ? new Color(0.2f, 1f, 0.2f) : new Color(1f, 0.4f, 0.4f);
