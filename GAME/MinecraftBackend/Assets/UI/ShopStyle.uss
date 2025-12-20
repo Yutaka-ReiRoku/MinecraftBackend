@@ -206,18 +206,23 @@
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
 
-/* === INPUT FORMS (FIXED: BLACK TEXT ON WHITE) === */
-.form-control {
-    color: black; /* Màu chữ đen */
-}
-.form-control > .unity-text-field__input {
-    color: black; /* Đảm bảo text input là màu đen */
-    background-color: white; /* Đảm bảo nền là màu trắng */
+/* === FIX INPUT FORM COLOR === */
+/* Class base chuẩn của Unity là: .unity-base-text-field__input */
+.form-control .unity-base-text-field__input {
+    color: rgb(0, 0, 0) !important; /* Chữ ĐEN */
+    background-color: rgb(255, 255, 255) !important; /* Nền TRẮNG */
     -unity-background-image-tint-color: white;
     cursor: text;
 }
-.form-control:focus > .unity-text-field__input {
-    border-color: #00d2ff; /* Viền xanh khi bấm vào */
+
+/* Thêm cả class này đề phòng các version Unity khác nhau */
+.form-control .unity-text-field__input {
+    color: rgb(0, 0, 0) !important;
+    background-color: rgb(255, 255, 255) !important;
+}
+
+.form-control:focus .unity-base-text-field__input {
+    border-color: #00d2ff;
 }
 
 /* Scrollbar */
