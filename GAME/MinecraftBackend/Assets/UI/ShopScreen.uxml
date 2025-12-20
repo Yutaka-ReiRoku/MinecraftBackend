@@ -36,6 +36,7 @@
             <ui:Button name="TabInventory" text="INVENTORY" class="nav-tab-btn" />
             <ui:Button name="TabCraft" text="CRAFT" class="nav-tab-btn" />
             <ui:Button name="TabBattle" text="BATTLE" class="nav-tab-btn" />
+			<ui:Button name="TabHistory" text="HISTORY" class="nav-tab-btn" />
         </ui:VisualElement>
 
         <ui:VisualElement class="content-body">
@@ -114,7 +115,25 @@
                     <ui:Button name="BtnAttack" text="ATTACK!" class="btn-attack" />
                 </ui:VisualElement>
             </ui:VisualElement>
+			<ui:VisualElement name="HistoryContainer" class="tab-content" style="display: none;">
+                <ui:VisualElement class="control-bar">
+                    <ui:Label text="ACTIVITY LOGS" class="section-title" />
+                    <ui:VisualElement class="pagination">
+                        <ui:Button name="BtnHistPrev" text="&lt;" class="btn-icon" />
+                        <ui:Label name="HistPageLabel" text="1" class="page-number" />
+                        <ui:Button name="BtnHistNext" text="&gt;" class="btn-icon" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                
+                <ui:VisualElement class="table-header-row">
+                    <ui:Label text="TIME / ACTIVITY" class="col-header col-grow" />
+                    <ui:Label text="CHANGE" class="col-header col-fixed-right" />
+                </ui:VisualElement>
 
+                <ui:VisualElement class="list-wrapper">
+                    <ui:ScrollView name="HistoryScrollView" />
+                </ui:VisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
