@@ -19,8 +19,6 @@ public class ShopManager : MonoBehaviour
 
     private UIDocument _uiDoc;
     private VisualElement _root;
-    
-    // Containers
     private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer;
     private VisualElement _shopWrapper;
 
@@ -39,26 +37,25 @@ public class ShopManager : MonoBehaviour
     private Label _pageLabel;
     private Label _invPageLabel;
 
-    // State Variables
+    // State
     private int _currentPage = 1;
     private int _currentInvPage = 1;
     private int _pageSize = 10;
     private float _itemHeight = 100f;
     private bool _isHeightCalculated = false;
 
-    // Anti-Spam / Busy
+    // Logic
     private bool _isBusy = false; 
     private float _lastClickTime = 0f;
     private const float CLICK_COOLDOWN = 0.3f;
 
-    // Data
     private string _currentFilterType = "All";
     private List<InventoryDto> _fullInventory = new List<InventoryDto>();
     private List<InventoryDto> _filteredInventory = new List<InventoryDto>();
     private MonsterDto _currentMonster;
     private CharacterDto _currentProfile;
 
-    // Battle Elements
+    // Battle
     private ProgressBar _monsterHpBar;
     private Button _btnAttack;
 
@@ -85,23 +82,23 @@ public class ShopManager : MonoBehaviour
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
 
-        // 3. Setup Stats Labels (Header)
+        // 3. Setup Stats Labels & Header Integration
         _goldLabel = _root.Q<Label>("ShopGold");
         _gemLabel = _root.Q<Label>("ShopGem");
         _hpBar = _root.Q<ProgressBar>("HpBar");
         _staminaBar = _root.Q<ProgressBar>("StaminaBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // 4. Create & Place SETTINGS BUTTON (Code-First UI)
-        CreateSettingsButtonInTopBar();
+        // --- TẠO NÚT SETTING VÀO TRONG TOP BAR ---
+        AddSettingsButtonToHeader(); 
 
-        // 5. Setup Tabs
+        // 4. Setup Tabs
         _btnTabShop = SetupTabButton("TabShop", "Shop");
         _btnTabInv = SetupTabButton("TabInventory", "Inventory");
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
         _btnTabBattle = SetupTabButton("TabBattle", "Battle");
 
-        // 6. Pagination Logic
+        // 5. Pagination
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
@@ -116,14 +113,14 @@ public class ShopManager : MonoBehaviour
         if (btnInvPrev != null) btnInvPrev.clicked += () => { if (CanClick()) ChangeInventoryPage(-1); };
         if (btnInvNext != null) btnInvNext.clicked += () => { if (CanClick()) ChangeInventoryPage(1); };
 
-        // 7. Battle Logic
+        // 6. Battle
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => {
             if (CanClick()) StartCoroutine(AttackProcess());
         };
 
-        // 8. Filters & Logs
+        // 7. Filters & Logs
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
@@ -131,7 +128,6 @@ public class ShopManager : MonoBehaviour
         var btnLogs = _root.Q<Button>("BtnNotiLog");
         if (btnLogs != null) btnLogs.clicked += () => { if (CanClick()) StartCoroutine(LoadTransactionHistory()); };
 
-        // Events
         GameEvents.OnCurrencyChanged += RefreshAllData;
         GameEvents.OnEquipRequest += HandleEquipRequest;
 
@@ -146,75 +142,72 @@ public class ShopManager : MonoBehaviour
         if (_shopWrapper != null) _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // --- TẠO NÚT SETTING Ở TOP BAR ---
-    private void CreateSettingsButtonInTopBar()
+    // --- HÀM TÍCH HỢP NÚT SETTINGS VÀO HEADER ---
+    private void AddSettingsButtonToHeader()
     {
-        // Kiểm tra xem đã có nút chưa để tránh tạo trùng
-        var existingBtn = _root.Q<Button>("BtnOpenSettingsUnique");
-        if (existingBtn != null) 
+        // Tránh tạo trùng
+        if (_root.Q<Button>("BtnOpenSettingsEmbedded") != null) return;
+
+        // 1. Tìm container "Top Bar"
+        // Chiến thuật: Tìm cha của Gold Label, vì Gold Label chắc chắn nằm trên Top Bar
+        VisualElement topBar = null;
+        
+        if (_goldLabel != null) topBar = _goldLabel.parent;
+        else if (_playerLevelLabel != null) topBar = _playerLevelLabel.parent;
+        else topBar = _root.Q("TopBar"); // Thử tìm theo tên nếu các label null
+
+        if (topBar == null)
         {
-            // Nếu có rồi thì chỉ cần gán lại sự kiện
-             existingBtn.clicked -= OnSettingsClicked;
-             existingBtn.clicked += OnSettingsClicked;
-             return;
+            Debug.LogWarning("Không tìm thấy Top Bar để gắn nút Settings!");
+            return;
         }
 
+        // 2. Tạo nút
         var btn = new Button();
-        btn.name = "BtnOpenSettingsUnique";
-        btn.text = "⚙"; // Icon bánh răng
+        btn.name = "BtnOpenSettingsEmbedded";
+        btn.text = "⚙"; 
         
-        // Vị trí: Góc Phải Trên (Top-Right), cố định tuyệt đối
-        btn.style.position = Position.Absolute;
-        btn.style.top = 15;   // Cách mép trên 15px
-        btn.style.right = 15; // Cách mép phải 15px
+        // 3. Style để hòa nhập vào Flexbox
+        btn.style.width = 50;
+        btn.style.height = 50;
+        btn.style.backgroundColor = new Color(0, 0, 0, 0.3f); // Màu tối bán trong suốt
+        btn.style.color = Color.white;
+        btn.style.fontSize = 30;
+        btn.style.marginLeft = 10; // Cách xa phần tử bên trái một chút
         
-        // Kích thước: To, dễ bấm
-        btn.style.width = 60;
-        btn.style.height = 60;
+        // Căn chỉnh
+        btn.style.alignSelf = Align.Center; // Tự căn giữa theo chiều dọc
+        btn.style.justifyContent = Justify.Center;
         
-        // Styling đẹp
-        btn.style.backgroundColor = new Color(0.2f, 0.2f, 0.25f, 0.9f);
-        btn.style.color = new Color(1f, 1f, 1f, 0.9f); // Trắng sáng
-        btn.style.fontSize = 35; // Icon to
-        btn.style.unityFontStyleAndWeight = FontStyle.Bold;
-        
-        // Border Radius (Tròn hoặc bo góc mạnh)
-        btn.style.borderTopLeftRadius = 12;
-        btn.style.borderTopRightRadius = 12;
-        btn.style.borderBottomLeftRadius = 12;
-        btn.style.borderBottomRightRadius = 12;
+        // Border đẹp
+        btn.style.borderTopLeftRadius = 8; btn.style.borderTopRightRadius = 8;
+        btn.style.borderBottomLeftRadius = 8; btn.style.borderBottomRightRadius = 8;
+        btn.style.borderTopWidth = 1; btn.style.borderBottomWidth = 1;
+        btn.style.borderLeftWidth = 1; btn.style.borderRightWidth = 1;
+        btn.style.borderTopColor = new Color(1,1,1,0.2f);
+        btn.style.borderBottomColor = new Color(1,1,1,0.2f);
+        btn.style.borderLeftColor = new Color(1,1,1,0.2f);
+        btn.style.borderRightColor = new Color(1,1,1,0.2f);
 
-        // Border Line
-        btn.style.borderTopWidth = 2; btn.style.borderBottomWidth = 2;
-        btn.style.borderLeftWidth = 2; btn.style.borderRightWidth = 2;
-        Color borderColor = new Color(1, 1, 1, 0.3f);
-        btn.style.borderTopColor = borderColor; btn.style.borderBottomColor = borderColor;
-        btn.style.borderLeftColor = borderColor; btn.style.borderRightColor = borderColor;
+        // Hover style (Optional)
+        // Unity UI Toolkit tự xử lý hover cơ bản, 
+        // nhưng ta set logic click
+        btn.clicked += () => {
+            if (SettingsManager.Instance != null)
+            {
+                SettingsManager.Instance.ToggleSettings();
+                if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
+            }
+        };
 
-        // Hover Effect (Optional - Logic handled by Unity UI implicitly for buttons)
-        
-        // Logic Click
-        btn.clicked += OnSettingsClicked;
-
-        // Thêm vào Root (Nó sẽ nằm đè lên mọi thứ khác ở góc đó)
-        _root.Add(btn);
+        // 4. Thêm vào cuối Top Bar
+        topBar.Add(btn);
     }
 
-    private void OnSettingsClicked()
-    {
-        // Gọi SettingsManager
-        if (SettingsManager.Instance != null)
-        {
-            SettingsManager.Instance.ToggleSettings();
-            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
-        }
-    }
-
-    // --- LOGIC CHÍNH ---
+    // --- LOGIC SHOP CŨ (GIỮ NGUYÊN) ---
     private bool CanClick()
     {
         if (_isBusy) return false;
-        // Nếu Settings đang mở thì chặn tương tác shop
         if (SettingsManager.Instance != null && SettingsManager.Instance.IsSettingsOpen) return false;
         if (Time.time - _lastClickTime < CLICK_COOLDOWN) return false;
 
@@ -224,7 +217,6 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator InitializeLayoutAndLoad()
     {
-        // Tính toán layout cho Shop Grid
         if (ItemTemplate != null && _shopScroll != null)
         {
             var ghostItem = ItemTemplate.Instantiate();
@@ -274,8 +266,6 @@ public class ShopManager : MonoBehaviour
             if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage();
         }
     }
-
-    // ... CÁC HÀM XỬ LÝ INVENTORY, SHOP, PROFILE NHƯ CŨ (GIỮ NGUYÊN LOGIC) ...
 
     void ChangeInventoryPage(int dir)
     {
