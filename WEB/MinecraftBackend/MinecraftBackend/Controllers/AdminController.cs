@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MinecraftBackend.Data;
 using MinecraftBackend.Models;
+using System.IO;
 
 namespace MinecraftBackend.Controllers
 {
@@ -237,76 +238,61 @@ namespace MinecraftBackend.Controllers
             return RedirectToAction("UserDetails", new { id = userId });
         }
 
-        // --- SYSTEM LOGS (UPDATED: DATE RANGE SUPPORT) ---
-        public async Task<IActionResult> Logs(
-            string search = "", 
-            string userId = "", 
-            string type = "", 
-            string startDate = "", // Mới: Từ ngày
-            string endDate = "",   // Mới: Đến ngày
-            string currency = "", 
-            string sortOrder = "", 
-            int page = 1)
+        // --- SYSTEM LOGS ---
+        public async Task<IActionResult> Logs(string search = "", string userId = "", string type = "", string startDate = "", string endDate = "", string currency = "", string sortOrder = "", int page = 1)
         {
             int pageSize = 15;
-
             ViewBag.DateSortParm = String.IsNullOrEmpty(sortOrder) ? "date_asc" : "";
             ViewBag.UserSortParm = sortOrder == "User" ? "user_desc" : "User";
             ViewBag.ActionSortParm = sortOrder == "Action" ? "action_desc" : "Action";
             ViewBag.AmountSortParm = sortOrder == "Amount" ? "amount_desc" : "Amount";
-
-            ViewBag.CurrentSort = sortOrder;
-            ViewBag.CurrentSearch = search;
-            ViewBag.CurrentUserId = userId;
-            ViewBag.CurrentType = type;
-            ViewBag.CurrentStartDate = startDate; // Mới
-            ViewBag.CurrentEndDate = endDate;     // Mới
-            ViewBag.CurrentCurrency = currency;
-
-            ViewBag.Types = new List<string> { "LOGIN", "REGISTER", "TRANSACTION", "GIFT", "CRAFT", "BUY", "BUILD" };
+            ViewBag.CurrentSort = sortOrder; ViewBag.CurrentSearch = search; ViewBag.CurrentUserId = userId; ViewBag.CurrentType = type; ViewBag.CurrentStartDate = startDate; ViewBag.CurrentEndDate = endDate; ViewBag.CurrentCurrency = currency;
+            ViewBag.Types = new List<string> { "LOGIN", "REGISTER", "TRANSACTION", "GIFT", "CRAFT", "BUY", "BUILD", "SELL" };
 
             var query = _context.Transactions.AsQueryable();
-
             if (!string.IsNullOrEmpty(type) && type != "All") query = query.Where(l => l.ActionType == type);
             if (!string.IsNullOrEmpty(userId)) query = query.Where(l => l.UserId.Contains(userId));
             if (!string.IsNullOrEmpty(search)) query = query.Where(l => l.Details.ToLower().Contains(search.ToLower()) || l.ItemId.Contains(search));
             if (!string.IsNullOrEmpty(currency)) query = query.Where(l => l.CurrencyType == currency);
+            if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime sDt)) query = query.Where(l => l.CreatedAt >= sDt.Date);
+            if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime eDt)) query = query.Where(l => l.CreatedAt < eDt.Date.AddDays(1)); 
 
-            // LOGIC DATE RANGE
-            if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime sDt))
-            {
-                query = query.Where(l => l.CreatedAt >= sDt.Date);
-            }
-            if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime eDt))
-            {
-                // Lấy đến hết ngày hôm đó (23:59:59)
-                query = query.Where(l => l.CreatedAt < eDt.Date.AddDays(1)); 
-            }
-
-            query = sortOrder switch
-            {
-                "date_asc" => query.OrderBy(l => l.CreatedAt),
-                "User" => query.OrderBy(l => l.UserId), "user_desc" => query.OrderByDescending(l => l.UserId),
-                "Action" => query.OrderBy(l => l.ActionType), "action_desc" => query.OrderByDescending(l => l.ActionType),
-                "Amount" => query.OrderBy(l => l.Amount), "amount_desc" => query.OrderByDescending(l => l.Amount),
-                _ => query.OrderByDescending(l => l.CreatedAt),
-            };
+            query = sortOrder switch { "date_asc" => query.OrderBy(l => l.CreatedAt), "User" => query.OrderBy(l => l.UserId), "user_desc" => query.OrderByDescending(l => l.UserId), "Action" => query.OrderBy(l => l.ActionType), "action_desc" => query.OrderByDescending(l => l.ActionType), "Amount" => query.OrderBy(l => l.Amount), "amount_desc" => query.OrderByDescending(l => l.Amount), _ => query.OrderByDescending(l => l.CreatedAt) };
 
             int totalItems = await query.CountAsync();
             int totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             page = Math.Max(1, Math.Min(page, totalPages > 0 ? totalPages : 1));
-
-            var logs = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
-            ViewBag.CurrentPage = page; ViewBag.TotalPages = totalPages;
-            return View(logs);
+            return View(await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync());
         }
 
-        public IActionResult Simulator() => View(_context.PlayerProfiles.Include(p => p.User).ToList());
+        // --- SIMULATOR: FIX LOAD DỮ LIỆU THẬT ---
+        public async Task<IActionResult> Simulator()
+        {
+            var players = await _context.PlayerProfiles.Include(p => p.User).ToListAsync();
+            
+            // Lấy dữ liệu thật cho Dropdown
+            ViewBag.ShopItems = await _context.ShopItems.Where(i => i.IsShow).OrderBy(i => i.PriceAmount).ToListAsync();
+            ViewBag.Recipes = await _context.Recipes.ToListAsync();
+            ViewBag.Monsters = await _context.Monsters.ToListAsync();
+            
+            return View(players);
+        }
+
         public IActionResult TestApi() => View();
 
         [HttpPost] public async Task<IActionResult> SeedDataStrict() { SeedData.Initialize(HttpContext.RequestServices); TempData["Message"] = "Data Seeded Successfully!"; return RedirectToAction("Dashboard"); }
         [HttpPost] public async Task<IActionResult> FactoryReset() { _context.Inventories.RemoveRange(_context.Inventories); _context.Transactions.RemoveRange(_context.Transactions); var profiles = await _context.PlayerProfiles.ToListAsync(); foreach (var p in profiles) { p.Gold = 1000; p.Gem = 0; p.Level = 1; p.Exp = 0; p.Health = 100; } await _context.SaveChangesAsync(); TempData["Message"] = "Đã Reset toàn bộ dữ liệu Game!"; return RedirectToAction("Dashboard"); }
-        [HttpPost] public IActionResult UpdateMOTD(string msg) { TempData["Message"] = $"Đã cập nhật thông báo Server: {msg}"; return RedirectToAction("Dashboard"); }
+        
+        [HttpPost] 
+        public IActionResult UpdateMOTD(string msg) 
+        { 
+            // FIX: Lưu vào file thật
+            string path = Path.Combine(_env.WebRootPath, "motd.txt");
+            System.IO.File.WriteAllText(path, msg);
+            TempData["Message"] = $"Đã cập nhật thông báo Server: {msg}"; 
+            return RedirectToAction("Dashboard"); 
+        }
+
         private async Task<string> SaveImage(IFormFile image, string type) { string folder = type?.ToLower() switch { "weapon" => "weapons", "armor" => "armor", "consumable" => "resources", "resource" => "resources", "bundle" => "others", _ => "others" }; string uploadsFolder = Path.Combine(_env.WebRootPath, "images", folder); if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder); string uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName; string filePath = Path.Combine(uploadsFolder, uniqueFileName); using (var fileStream = new FileStream(filePath, FileMode.Create)) { await image.CopyToAsync(fileStream); } return $"/images/{folder}/{uniqueFileName}"; }
     }
 }
