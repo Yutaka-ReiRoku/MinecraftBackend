@@ -33,17 +33,20 @@ public class ShopManager : MonoBehaviour
     private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
     // Logic Variables
-    private int _currentPage = 1; // Shop Page (API side)
-    private int _currentInvPage = 1; // Inv Page (Client side)
-
+    private int _currentPage = 1;
+    private int _currentInvPage = 1;
     private int _pageSize = 10;
     
-    // --- AUTO-DETECT UPDATE ---
-    // Không dùng const nữa. Mặc định là 100, nhưng sẽ tự cập nhật khi chạy.
+    // Auto-Detect Height Variables
     private float _itemHeight = 100f; 
-    private bool _isHeightCalculated = false; // Cờ kiểm tra đã đo xong chưa
+    private bool _isHeightCalculated = false;
 
-    private string _currentFilterType = "All"; // Lưu loại lọc hiện tại
+    // --- ANTI-DOUBLE CLICK VARIABLES (MỚI) ---
+    private bool _isBusy = false; // Khóa khi đang xử lý mạng
+    private float _lastClickTime = 0f;
+    private const float CLICK_COOLDOWN = 0.3f; // Thời gian cấm giữa 2 lần click (giây)
+
+    private string _currentFilterType = "All"; 
     private List<InventoryDto> _fullInventory = new List<InventoryDto>(); 
     private List<InventoryDto> _filteredInventory = new List<InventoryDto>(); 
 
@@ -91,33 +94,37 @@ public class ShopManager : MonoBehaviour
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
-        if (btnPrev != null) btnPrev.clicked += () => ChangePage(-1);
-        if (btnNext != null) btnNext.clicked += () => ChangePage(1);
+        if (btnPrev != null) btnPrev.clicked += () => { if (CanClick()) ChangePage(-1); };
+        if (btnNext != null) btnNext.clicked += () => { if (CanClick()) ChangePage(1); };
 
         var btnInvPrev = _root.Q<Button>("BtnInvPrev");
         var btnInvNext = _root.Q<Button>("BtnInvNext");
         _invPageLabel = _root.Q<Label>("InvPageLabel");
-        if (btnInvPrev != null) btnInvPrev.clicked += () => ChangeInventoryPage(-1);
-        if (btnInvNext != null) btnInvNext.clicked += () => ChangeInventoryPage(1);
+        if (btnInvPrev != null) btnInvPrev.clicked += () => { if (CanClick()) ChangeInventoryPage(-1); };
+        if (btnInvNext != null) btnInvNext.clicked += () => { if (CanClick()) ChangeInventoryPage(1); };
 
         // --- Battle & Filters ---
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
-        if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
+        if (_btnAttack != null) _btnAttack.clicked += () => {
+            // Battle có thể click nhanh hơn chút, nên check riêng hoặc dùng chung cũng được
+            if (CanClick()) StartCoroutine(AttackProcess());
+        };
 
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
 
         var btnLogs = _root.Q<Button>("BtnNotiLog");
-        if (btnLogs != null) btnLogs.clicked += () => StartCoroutine(LoadTransactionHistory());
+        if (btnLogs != null) btnLogs.clicked += () => { if (CanClick()) StartCoroutine(LoadTransactionHistory()); };
 
         // --- Events ---
         GameEvents.OnCurrencyChanged += RefreshAllData;
         GameEvents.OnEquipRequest += HandleEquipRequest;
 
-        // --- AUTO-DETECT LOGIC ---
-        // Thay vì SwitchTab ngay, ta đo chiều cao trước
+        // Reset Busy State khi mở lại UI
+        _isBusy = false;
+
         StartCoroutine(InitializeLayoutAndLoad());
     }
 
@@ -129,55 +136,47 @@ public class ShopManager : MonoBehaviour
             _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // --- COROUTINE KHỞI TẠO THÔNG MINH ---
+    // --- HÀM KIỂM TRA CLICK (QUAN TRỌNG) ---
+    private bool CanClick()
+    {
+        // 1. Nếu đang bận xử lý mạng (Mua/Bán/Craft) -> Chặn
+        if (_isBusy) return false;
+
+        // 2. Nếu click quá nhanh (dưới 0.3s) -> Chặn
+        if (Time.time - _lastClickTime < CLICK_COOLDOWN) return false;
+
+        _lastClickTime = Time.time;
+        return true;
+    }
+
     IEnumerator InitializeLayoutAndLoad()
     {
-        // 1. Tạo một item giả để đo
         if (ItemTemplate != null && _shopScroll != null)
         {
             var ghostItem = ItemTemplate.Instantiate();
             var ghostRoot = ghostItem.Q<VisualElement>("ItemContainer");
-            
-            // Làm cho nó tàng hình và không ảnh hưởng layout chính
             ghostRoot.style.visibility = Visibility.Hidden; 
             ghostRoot.style.position = Position.Absolute;
-            
             _shopScroll.Add(ghostRoot);
-
-            // 2. Đợi đến cuối frame để Unity tính toán layout xong
             yield return new WaitForEndOfFrame(); 
 
-            // 3. Lấy chiều cao thực tế
-            if (ghostRoot.layout.height > 0)
-            {
-                _itemHeight = ghostRoot.layout.height;
-                Debug.Log($"[ShopManager] Auto-detected Item Height: {_itemHeight}px");
-            }
-            else
-            {
-                Debug.LogWarning("[ShopManager] Could not detect height, using default 100px");
-                _itemHeight = 100f; // Fallback nếu lỗi
-            }
+            if (ghostRoot.layout.height > 0) _itemHeight = ghostRoot.layout.height;
+            else _itemHeight = 100f;
 
-            // 4. Xóa item giả
             _shopScroll.Remove(ghostRoot);
             _isHeightCalculated = true;
         }
 
-        // --- Sau khi đo xong mới gán sự kiện Resize ---
         if (_shopContainer != null)
         {
             _shopWrapper = _shopContainer.Q(className: "list-wrapper");
             if (_shopWrapper != null)
             {
-                // Gọi thủ công lần đầu để tính _pageSize ngay lập tức
                 CalculatePageSize(_shopWrapper.resolvedStyle.height);
-                // Sau đó mới đăng ký sự kiện cho các lần resize sau
                 _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
             }
         }
 
-        // Load dữ liệu
         StartCoroutine(LoadProfile());
         SwitchTab("Shop");
     }
@@ -187,28 +186,23 @@ public class ShopManager : MonoBehaviour
         CalculatePageSize(evt.newRect.height);
     }
 
-    // Hàm tính toán số lượng item hiển thị
     void CalculatePageSize(float wrapperHeight)
     {
-        if (!_isHeightCalculated) return; // Chưa đo xong thì chưa tính
+        if (!_isHeightCalculated) return;
         if (wrapperHeight < _itemHeight) return;
 
-        // Tính số lượng item vừa khít
         int fitCount = Mathf.FloorToInt(wrapperHeight / _itemHeight);
         if (fitCount < 1) fitCount = 1;
 
-        // Chỉ reload khi số lượng thay đổi
         if (fitCount != _pageSize)
         {
             _pageSize = fitCount;
-            Debug.Log($"[ShopManager] Page Size updated to: {_pageSize} items");
-            
             if (_shopContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadShopItems(_currentPage));
             if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage();
         }
     }
 
-    // --- CÁC HÀM LOGIC CŨ GIỮ NGUYÊN ---
+    // --- LOGIC ---
 
     void ChangeInventoryPage(int dir)
     {
@@ -326,6 +320,9 @@ public class ShopManager : MonoBehaviour
         var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
         if (item != null)
         {
+            // Kiểm tra click trước khi dùng item từ hotbar
+            if (!CanClick()) return; 
+
             if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
             else StartCoroutine(EquipItem(itemId));
         }
@@ -339,7 +336,12 @@ public class ShopManager : MonoBehaviour
             StartCoroutine(LoadInventory());
     }
 
-    void HandleEquipRequest(string itemId) { StartCoroutine(EquipItem(itemId)); }
+    void HandleEquipRequest(string itemId) 
+    { 
+        // Equip từ UI khác gọi về cũng cần check
+        if (!CanClick()) return;
+        StartCoroutine(EquipItem(itemId)); 
+    }
 
     Button SetupTabButton(string btnName, string tabName)
     {
@@ -347,7 +349,8 @@ public class ShopManager : MonoBehaviour
         if (btn != null)
         {
             btn.clicked -= () => SwitchTab(tabName);
-            btn.clicked += () => SwitchTab(tabName);
+            // Thêm check CanClick()
+            btn.clicked += () => { if (CanClick()) SwitchTab(tabName); };
         }
         return btn;
     }
@@ -355,7 +358,7 @@ public class ShopManager : MonoBehaviour
     Button SetupInvFilter(string btnName, string type)
     {
         var btn = _root.Q<Button>(btnName);
-        if (btn != null) btn.clicked += () => FilterInventory(type);
+        if (btn != null) btn.clicked += () => { if (CanClick()) FilterInventory(type); };
         return btn;
     }
 
@@ -374,7 +377,6 @@ public class ShopManager : MonoBehaviour
         if (tabName == "Shop")
         {
             _shopContainer.style.display = DisplayStyle.Flex;
-            // Chỉ load nếu đã tính được kích thước trang
             if (_pageSize > 0 && _isHeightCalculated) StartCoroutine(LoadShopItems(_currentPage));
         }
         else if (tabName == "Inventory")
@@ -468,12 +470,12 @@ public class ShopManager : MonoBehaviour
         template.Q<Label>("ItemName").text = item.Name;
         template.Q<Label>("ItemRarity").text = $"{item.Type} | {item.Rarity}";
         StartCoroutine(template.Q<Image>("ItemImage").LoadImage(item.ImageURL));
-        root.RegisterCallback<ClickEvent>(evt => ShowDetailPopup(item));
+        root.RegisterCallback<ClickEvent>(evt => {
+            if (CanClick()) ShowDetailPopup(item);
+        });
 
         var priceRow = template.Q<VisualElement>("PriceRow");
         priceRow.Clear();
-        
-        // --- TẠO NÚT MUA TO HƠN ---
         var btn = new Button();
         btn.AddToClassList("btn");
         btn.AddToClassList("btn-outline-secondary");
@@ -493,22 +495,17 @@ public class ShopManager : MonoBehaviour
             btn.style.color = new Color(0f, 0.82f, 1f);
             priceText = $"{item.PriceAmount:N0} 💎";
         }
-        
         btn.style.borderTopColor = borderColor;
         btn.style.borderBottomColor = borderColor;
         btn.style.borderLeftColor = borderColor;
         btn.style.borderRightColor = borderColor;
-        
-        // KÍCH THƯỚC MỚI: Cao 55px (cũ 40)
-        btn.style.height = 55; 
+        btn.style.height = 55; // Nút to
 
         var lbl = new Label(priceText);
         lbl.AddToClassList("fw-bold");
-        // FONT GIÁ MỚI: 22px (cũ 16)
-        lbl.style.fontSize = 22; 
-        
+        lbl.style.fontSize = 22; // Chữ to
         btn.Add(lbl);
-        btn.clicked += () => ShowDetailPopup(item);
+        btn.clicked += () => { if (CanClick()) ShowDetailPopup(item); };
         priceRow.Add(btn);
         return template;
     }
@@ -523,15 +520,18 @@ public class ShopManager : MonoBehaviour
         overlay.style.width = Length.Percent(100);
         overlay.style.height = Length.Percent(100);
         _root.Add(overlay);
+
         var lblName = overlay.Q<Label>("DetailName");
         if (lblName != null) lblName.text = item.Name;
         var lblDesc = overlay.Q<Label>("DetailDesc");
         if (lblDesc != null) lblDesc.text = item.Description;
         var img = overlay.Q<Image>("DetailImage");
         if (img != null) StartCoroutine(img.LoadImage(item.ImageURL));
+
         int qty = 1;
         var lblQty = overlay.Q<Label>("LblQuantity");
         var lblTotal = overlay.Q<Label>("LblTotalPrice");
+
         Action UpdatePrice = () => {
             if (lblQty != null) lblQty.text = qty.ToString();
             if (lblTotal != null)
@@ -540,18 +540,35 @@ public class ShopManager : MonoBehaviour
                 lblTotal.text = $"Total: {total:N0} {(item.PriceCurrency == "RES_GOLD" ? "G" : "💎")}";
             }
         };
+
         var btnPlus = overlay.Q<Button>("BtnPlus");
-        if (btnPlus != null) btnPlus.clicked += () => { qty++; UpdatePrice(); };
+        if (btnPlus != null) btnPlus.clicked += () => { 
+            // Nút +/- không cần lock busy, nhưng cần debounce nhẹ
+            if (Time.time - _lastClickTime > 0.1f) { 
+                qty++; UpdatePrice(); _lastClickTime = Time.time; 
+            }
+        };
+
         var btnMinus = overlay.Q<Button>("BtnMinus");
-        if (btnMinus != null) btnMinus.clicked += () => { if (qty > 1) qty--; UpdatePrice(); };
+        if (btnMinus != null) btnMinus.clicked += () => { 
+            if (Time.time - _lastClickTime > 0.1f) { 
+                if (qty > 1) qty--; UpdatePrice(); _lastClickTime = Time.time; 
+            }
+        };
+
         var btnConfirm = overlay.Q<Button>("BtnConfirmBuy");
         if (btnConfirm != null)
         {
             btnConfirm.clicked += () => {
-                StartCoroutine(BuyProcess(item.ProductID, qty));
-                if (_root.Contains(overlay)) _root.Remove(overlay);
+                // Mua hàng: Cần check CanClick
+                if (CanClick())
+                {
+                    StartCoroutine(BuyProcess(item.ProductID, qty));
+                    if (_root.Contains(overlay)) _root.Remove(overlay);
+                }
             };
         }
+
         var btnClose = overlay.Q<Button>("BtnCloseDetail");
         if (btnClose != null)
         {
@@ -564,14 +581,19 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator BuyProcess(string prodId, int qty)
     {
+        _isBusy = true; // KHÓA CLICK
         var body = new BuyRequest { ProductId = prodId, Quantity = qty };
         yield return NetworkManager.Instance.SendRequest<object>("game/buy", "POST", body,
             (res) => {
+                _isBusy = false; // MỞ KHÓA
                 ToastManager.Instance.Show("Purchased successfully!", true);
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("success");
                 GameEvents.TriggerCurrencyChanged();
             },
-            (err) => ToastManager.Instance.Show(err, false)
+            (err) => {
+                _isBusy = false; // MỞ KHÓA
+                ToastManager.Instance.Show(err, false);
+            }
         );
     }
 
@@ -581,6 +603,7 @@ public class ShopManager : MonoBehaviour
         if (old != null) old.style.display = DisplayStyle.None;
         var menu = ContextMenuTemplate.Instantiate();
         var menuRoot = menu.Q<VisualElement>("ContextMenu");
+        
         float x = mousePos.x;
         float y = mousePos.y;
         if (x + 180 > _root.resolvedStyle.width) x -= 180;
@@ -588,14 +611,19 @@ public class ShopManager : MonoBehaviour
         menuRoot.style.left = x;
         menuRoot.style.top = y;
         menuRoot.style.display = DisplayStyle.Flex;
+
         menu.Q<Button>("BtnCtxUse").clicked += () => {
-            if (inv.Type == "Consumable") StartCoroutine(UseItem(inv.ItemId));
-            else StartCoroutine(EquipItem(inv.ItemId));
-            _root.Remove(menuRoot);
+            if (CanClick()) {
+                if (inv.Type == "Consumable") StartCoroutine(UseItem(inv.ItemId));
+                else StartCoroutine(EquipItem(inv.ItemId));
+                _root.Remove(menuRoot);
+            }
         };
         menu.Q<Button>("BtnCtxSell").clicked += () => {
-            StartCoroutine(SellItem(inv.ItemId, 1));
-            _root.Remove(menuRoot);
+            if (CanClick()) {
+                StartCoroutine(SellItem(inv.ItemId, 1));
+                _root.Remove(menuRoot);
+            }
         };
         menu.Q<Button>("BtnCtxCancel").clicked += () => _root.Remove(menuRoot);
         _root.Add(menuRoot);
@@ -603,41 +631,50 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator SellItem(string itemId, int qty)
     {
+        _isBusy = true;
         var body = new BuyRequest { ProductId = itemId, Quantity = qty };
         yield return NetworkManager.Instance.SendRequest<object>("game/sell", "POST", body,
             (res) => {
+                _isBusy = false;
                 ToastManager.Instance.Show("Sold successfully!", true);
                 if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("coins");
                 GameEvents.TriggerCurrencyChanged();
             },
-            (err) => ToastManager.Instance.Show("Error selling: " + err, false)
+            (err) => {
+                _isBusy = false;
+                ToastManager.Instance.Show("Error selling: " + err, false);
+            }
         );
     }
 
     IEnumerator UseItem(string itemId)
     {
+        _isBusy = true;
         yield return NetworkManager.Instance.SendRequest<object>($"game/use-item/{itemId}", "POST", null,
-            (res) => { ToastManager.Instance.Show("Item used!", true); RefreshAllData(); },
-            (err) => ToastManager.Instance.Show(err, false)
+            (res) => { _isBusy = false; ToastManager.Instance.Show("Item used!", true); RefreshAllData(); },
+            (err) => { _isBusy = false; ToastManager.Instance.Show(err, false); }
         );
     }
 
     IEnumerator EquipItem(string itemId)
     {
+        _isBusy = true;
         yield return NetworkManager.Instance.SendRequest<object>($"game/equip/{itemId}", "POST", null,
-            (res) => { ToastManager.Instance.Show("Equipped!", true); RefreshAllData(); },
-            (err) => ToastManager.Instance.Show(err, false)
+            (res) => { _isBusy = false; ToastManager.Instance.Show("Equipped!", true); RefreshAllData(); },
+            (err) => { _isBusy = false; ToastManager.Instance.Show(err, false); }
         );
     }
 
     IEnumerator LoadTransactionHistory()
     {
+        // Log chỉ đọc, không cần lock busy, chỉ cần debounce
         var panel = _root.Q<VisualElement>("NotiLogPanel");
         if (panel == null) yield break;
         panel.style.display = (panel.style.display == DisplayStyle.None) ? DisplayStyle.Flex : DisplayStyle.None;
         var list = panel.Q<ScrollView>("NotiLogList");
         list.Clear();
         list.Add(new Label("Loading...") { style = { color = Color.gray, fontSize = 18 } });
+        
         yield return NetworkManager.Instance.SendRequest<List<TransactionDto>>("game/transactions/my", "GET", null,
             (logs) => {
                 list.Clear();
@@ -660,12 +697,10 @@ public class ShopManager : MonoBehaviour
     IEnumerator LoadRecipes()
     {
         _craftScroll.Clear();
-        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray, fontSize = 24 } }); // Font loading to hơn
-        
+        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray, fontSize = 24 } });
         yield return NetworkManager.Instance.SendRequest<List<RecipeDto>>("game/recipes", "GET", null, (recipes) => {
             _craftScroll.Clear();
             if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white, fontSize = 24 } });
-            
             int index = 0;
             foreach (var r in recipes)
             {
@@ -674,25 +709,20 @@ public class ShopManager : MonoBehaviour
                 if (index % 2 == 0) root.AddToClassList("row-even");
                 else root.AddToClassList("row-odd");
                 index++;
-                
                 ui.Q<Label>("ItemName").text = r.ResultItemName;
                 ui.Q<Label>("ItemRarity").text = $"Time: {r.CraftingTime}s";
                 StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(r.ResultItemImage));
-                
                 var priceRow = ui.Q<VisualElement>("PriceRow");
                 priceRow.Clear();
                 
-                // --- TẠO NÚT CRAFT TO HƠN ---
                 var btn = new Button { text = "CRAFT" };
                 btn.AddToClassList("btn-success");
                 btn.AddToClassList("btn");
+                btn.style.height = 55; // Nút to
+                btn.style.fontSize = 20; 
+                btn.style.width = 120;
                 
-                // KÍCH THƯỚC MỚI: Cao 55px, Font 20px (tự nhận từ class btn)
-                btn.style.height = 55;
-                btn.style.fontSize = 20;
-                btn.style.width = 120; // Rộng hơn chút cho đẹp
-
-                btn.clicked += () => StartCoroutine(CraftProcess(r));
+                btn.clicked += () => { if (CanClick()) StartCoroutine(CraftProcess(r)); };
                 priceRow.Add(btn);
                 _craftScroll.Add(ui);
             }
@@ -701,12 +731,22 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator CraftProcess(RecipeDto r)
     {
+        _isBusy = true;
         ToastManager.Instance.Show($"Crafting {r.ResultItemName}...", true);
         if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("craft");
+        
         yield return new WaitForSeconds(r.CraftingTime);
+        
         yield return NetworkManager.Instance.SendRequest<object>($"game/craft/{r.RecipeId}", "POST", null,
-            (res) => { ToastManager.Instance.Show("Crafting Complete!", true); GameEvents.TriggerCurrencyChanged(); },
-            (err) => ToastManager.Instance.Show(err, false)
+            (res) => { 
+                _isBusy = false;
+                ToastManager.Instance.Show("Crafting Complete!", true); 
+                GameEvents.TriggerCurrencyChanged(); 
+            },
+            (err) => {
+                _isBusy = false;
+                ToastManager.Instance.Show(err, false);
+            }
         );
     }
 
@@ -720,6 +760,10 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator AttackProcess()
     {
+        // Attack cũng cần lock busy, nhưng vì user muốn spam đánh quái
+        // ta chỉ lock trong lúc request bay đi thôi.
+        _isBusy = true;
+        
         if (_currentMonster != null)
         {
             if (_monsterHpBar != null) _monsterHpBar.value -= 10;
@@ -728,10 +772,12 @@ public class ShopManager : MonoBehaviour
         }
         yield return NetworkManager.Instance.SendRequest<HuntResponse>("game/hunt", "POST", null,
             (res) => {
+                _isBusy = false;
                 ToastManager.Instance.Show($"Hit! +{res.GoldEarned}G", true);
                 if (res.LevelUp) ToastManager.Instance.Show("LEVEL UP!", true);
                 GameEvents.TriggerCurrencyChanged();
-            }, null
+            }, 
+            (err) => _isBusy = false
         );
     }
 }
