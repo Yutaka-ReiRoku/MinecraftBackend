@@ -21,9 +21,10 @@ namespace MinecraftBackend.Controllers
         public GameApiController(ApplicationDbContext context)
         {
             _context = context;
+            // Khởi tạo thư giả lập nếu chưa có
             if (_mockMails.Count == 0)
             {
-                _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEP_WOOD_SWORD", AttachedItemName = "Wooden Sword", AttachedAmount = 1 });
+                _mockMails.Add(new MailDto { Id = 1, Title = "Welcome!", Content = "Chào mừng bạn đến với Minecraft Server.", SentDate = DateTime.Now.ToString("yyyy-MM-dd"), IsRead = false, IsClaimed = false, AttachedItemId = "WEAP_WOOD_SWORD", AttachedItemName = "Wooden Sword", AttachedAmount = 1 });
             }
         }
 
@@ -270,7 +271,7 @@ namespace MinecraftBackend.Controllers
             return Ok(new DailyCheckinResponse { Message = "+500G", Gold = 500, Streak = 1 });
         }
 
-        [AllowAnonymous] // Cho phép Sim gọi
+        [AllowAnonymous]
         [HttpGet("monsters")]
         public async Task<IActionResult> GetMonsters() 
         {
@@ -329,7 +330,7 @@ namespace MinecraftBackend.Controllers
             return Ok(new { message = "Claimed" });
         }
 
-        // --- 7. SIMULATOR ENDPOINTS & PUBLIC HELPERS ---
+        // --- 7. SIMULATOR ENDPOINTS ---
         
         [AllowAnonymous]
         [HttpPost("sim/buy")]
@@ -359,7 +360,16 @@ namespace MinecraftBackend.Controllers
             if (recipe == null) return BadRequest("Recipe ID invalid");
 
             await AddToInventory(profile.UserId, recipe.ResultItemId, 1);
-            _context.Transactions.Add(new Transaction { UserId = profile.UserId, ActionType = "SIM_CRAFT", Details = $"Simulated Craft (Force): {recipe.ResultItemName}", CreatedAt = DateTime.Now });
+            
+            // FIX LỖI ĐỎ: Thêm CurrencyType = "NONE" để thỏa mãn NOT NULL của DB
+            _context.Transactions.Add(new Transaction { 
+                UserId = profile.UserId, 
+                ActionType = "SIM_CRAFT", 
+                Details = $"Simulated Craft (Force): {recipe.ResultItemName}", 
+                CreatedAt = DateTime.Now,
+                CurrencyType = "NONE", // FIX QUAN TRỌNG
+                Amount = 0
+            });
             await _context.SaveChangesAsync();
             return Ok($"Simulated Force Craft: {recipe.ResultItemName} added.");
         }
@@ -376,7 +386,7 @@ namespace MinecraftBackend.Controllers
             else _context.Inventories.Add(new GameInventory { InventoryId = Guid.NewGuid().ToString(), UserId = userId, ItemID = itemId, Quantity = qty, AcquiredDate = DateTime.Now });
         }
 
-        // --- PUBLIC DATA ENDPOINTS (Đã Fix AllowAnonymous) ---
+        // --- PUBLIC DATA ENDPOINTS ---
         
         [AllowAnonymous]
         [HttpGet("affordable/{charId}")]
@@ -387,19 +397,54 @@ namespace MinecraftBackend.Controllers
             return Ok(items);
         }
         
-        [AllowAnonymous][HttpGet("top-selling")] public IActionResult GetTopSelling() => Ok(new { TopItem = "Iron Sword", Sales = 150 });
+        // FIX: Top Selling ĐẾM THẬT
+        [AllowAnonymous]
+        [HttpGet("top-selling")] 
+        public async Task<IActionResult> GetTopSelling() 
+        {
+            // Query DB đếm số lượng item bán ra nhiều nhất
+            var topItem = await _context.Transactions
+                .Where(t => t.ActionType == "BUY" && t.ItemId != null)
+                .GroupBy(t => t.ItemId)
+                .Select(g => new { ItemId = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .FirstOrDefaultAsync();
+
+            if (topItem != null) {
+               var name = await _context.ShopItems.Where(s => s.TargetItemID == topItem.ItemId).Select(s => s.Name).FirstOrDefaultAsync();
+               return Ok(new { TopItem = name ?? topItem.ItemId, Sales = topItem.Count });
+            }
+            // Mặc định nếu chưa bán gì
+            return Ok(new { TopItem = "None", Sales = 0 });
+        }
+
         [AllowAnonymous][HttpGet("cheap-diamond")] public async Task<IActionResult> GetCheapDiamond() => Ok(await _context.ShopItems.Where(i => i.Name.Contains("Diamond") && i.PriceAmount < 500).ToListAsync());
-        [AllowAnonymous][HttpGet("resources")] public async Task<IActionResult> GetResourcesSim() => Ok(await _context.ShopItems.Where(i => i.ItemType == "Resource").ToListAsync());
+        
+        // FIX: Resources hiển thị THẬT (Tìm theo "Material" để khớp SeedData)
+        [AllowAnonymous]
+        [HttpGet("resources")] 
+        public async Task<IActionResult> GetResourcesSim() 
+        {
+            return Ok(await _context.ShopItems.Where(i => i.ItemType == "Material").ToListAsync());
+        }
+
         [AllowAnonymous][HttpGet("buildings")] public IActionResult GetBuildingsSim() => Ok(new List<object> { new { Name = "House", Cost = 500 }, new { Name = "Tower", Cost = 1000 } });
         [AllowAnonymous][HttpGet("quests")] public IActionResult GetQuestsSim() => Ok(new List<object> { new { Name = "Kill Dragon", Reward = "Elytra" } });
         
-        // FIX: Thêm AllowAnonymous cho Leaderboard và Wiki
         [AllowAnonymous]
         [HttpGet("leaderboard")] public async Task<IActionResult> GetLeaderboard() => Ok(await _context.PlayerProfiles.OrderByDescending(p => p.Level).Take(10).ToListAsync());
         
         [AllowAnonymous] 
         [HttpGet("wiki")] public async Task<IActionResult> GetWiki() => Ok(await _context.ShopItems.ToListAsync());
         
+        // Giữ lại API này để TestApi không lỗi 404
+        [AllowAnonymous]
+        [HttpGet("expensive-weapons")] 
+        public async Task<IActionResult> GetExpensiveWeapons() 
+        {
+            return Ok(await _context.ShopItems.Where(i => i.ItemType == "Weapon" && i.PriceAmount > 100).ToListAsync());
+        }
+
         [HttpGet("transactions/my")]
         public async Task<IActionResult> GetMyTransactions()
         {
