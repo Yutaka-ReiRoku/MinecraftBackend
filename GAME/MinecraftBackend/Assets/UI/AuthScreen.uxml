@@ -3,94 +3,94 @@
 
     <ui:VisualElement name="ScreenContainer" class="screen-container justify-content-center align-items-center" style="background-color: rgb(18, 20, 24);">
         
-        <ui:VisualElement name="LoginContainer" class="glass-card" style="width: 700px; max-width: 95%; padding: 60px; border-radius: 24px; border-width: 1px; border-color: rgba(255,255,255,0.1);">
+        <ui:VisualElement name="LoginContainer" class="glass-card" style="width: 900px; max-width: 95%; padding: 80px; border-radius: 30px; border-width: 2px; border-color: rgba(255,255,255,0.1);">
             
-            <ui:VisualElement class="mb-4" style="align-items: center; margin-bottom: 50px;">
-                <ui:Label text="WELCOME BACK" class="h1 text-white" style="font-size: 48px; -unity-font-style: bold; letter-spacing: 2px; text-shadow: 0 0 20px rgba(0, 210, 255, 0.4);" />
-                <ui:Label text="Continue your journey in the world of Minecraft RPG." class="text-white-50" style="font-size: 18px; margin-top: 10px;" />
+            <ui:VisualElement class="mb-4" style="align-items: center; margin-bottom: 60px;">
+                <ui:Label text="WELCOME BACK" class="h1 text-white" style="font-size: 64px; -unity-font-style: bold; letter-spacing: 3px; text-shadow: 0 0 25px rgba(0, 210, 255, 0.5);" />
+                <ui:Label text="Continue your journey in the world of Minecraft RPG." class="text-white-50" style="font-size: 24px; margin-top: 15px;" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="mb-4" style="margin-bottom: 30px;">
-                <ui:Label text="EMAIL ADDRESS" class="text-info mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
+            <ui:VisualElement class="mb-4" style="margin-bottom: 40px;">
+                <ui:Label text="EMAIL ADDRESS" class="text-info mb-1" style="font-size: 18px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 12px;" />
                 
                 <ui:TextField name="LoginEmail" placeholder="Enter your email..." class="form-control" 
-                    style="height: 55px; font-size: 20px; -unity-text-align: middle-left; 
+                    style="height: 75px; font-size: 24px; -unity-text-align: middle-left; 
                            color: black; background-color: white;
-                           border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
+                           border-radius: 16px; border-width: 2px; border-color: rgba(255,255,255,0.1); padding-left: 15px;" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="mb-4" style="margin-bottom: 50px;">
-                <ui:Label text="PASSWORD" class="text-info mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
+            <ui:VisualElement class="mb-4" style="margin-bottom: 60px;">
+                <ui:Label text="PASSWORD" class="text-info mb-1" style="font-size: 18px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 12px;" />
                 
                 <ui:TextField name="LoginPass" password="true" class="form-control" 
-                    style="height: 55px; font-size: 20px; -unity-text-align: middle-left; 
+                    style="height: 75px; font-size: 24px; -unity-text-align: middle-left; 
                            color: black; background-color: white;
-                           border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
+                           border-radius: 16px; border-width: 2px; border-color: rgba(255,255,255,0.1); padding-left: 15px;" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="row justify-content-between align-items-center" style="flex-direction: row; gap: 20px;">
-                <ui:Button name="BtnSwitchToReg" text="Create Account" class="btn" style="flex-grow: 1; height: 60px; font-size: 18px; background-color: transparent; border-width: 2px; border-color: rgba(255,255,255,0.2); color: white; border-radius: 12px; transition: 0.2s;" />
-                <ui:Button name="BtnLoginSubmit" text="SIGN IN NOW" class="btn" style="flex-grow: 2; height: 60px; font-size: 22px; -unity-font-style: bold; background-color: rgb(0, 210, 255); color: rgb(20, 20, 20); border-radius: 12px; border-width: 0;" />
+            <ui:VisualElement class="row justify-content-between align-items-center" style="flex-direction: row; gap: 30px;">
+                <ui:Button name="BtnSwitchToReg" text="Create Account" class="btn" style="flex-grow: 1; height: 80px; font-size: 22px; background-color: transparent; border-width: 3px; border-color: rgba(255,255,255,0.2); color: white; border-radius: 16px; transition: 0.2s;" />
+                <ui:Button name="BtnLoginSubmit" text="SIGN IN NOW" class="btn" style="flex-grow: 2; height: 80px; font-size: 28px; -unity-font-style: bold; background-color: rgb(0, 210, 255); color: rgb(20, 20, 20); border-radius: 16px; border-width: 0;" />
             </ui:VisualElement>
 
         </ui:VisualElement>
 
-        <ui:VisualElement name="RegisterContainer" class="glass-card" style="width: 700px; max-width: 95%; padding: 60px; border-radius: 24px; border-width: 1px; border-color: rgba(255,255,255,0.1); display: none;">
+        <ui:VisualElement name="RegisterContainer" class="glass-card" style="width: 900px; max-width: 95%; padding: 80px; border-radius: 30px; border-width: 2px; border-color: rgba(255,255,255,0.1); display: none;">
             
-            <ui:VisualElement class="mb-4" style="align-items: center; margin-bottom: 40px;">
-                <ui:Label text="NEW ADVENTURE" class="h1 text-success" style="font-size: 48px; -unity-font-style: bold; letter-spacing: 2px; text-shadow: 0 0 20px rgba(40, 167, 69, 0.4);" />
-                <ui:Label text="Create your identity to start crafting &amp; fighting." class="text-white-50" style="font-size: 18px; margin-top: 10px;" />
+            <ui:VisualElement class="mb-4" style="align-items: center; margin-bottom: 50px;">
+                <ui:Label text="NEW ADVENTURE" class="h1 text-success" style="font-size: 64px; -unity-font-style: bold; letter-spacing: 3px; text-shadow: 0 0 25px rgba(40, 167, 69, 0.5);" />
+                <ui:Label text="Create your identity to start crafting &amp; fighting." class="text-white-50" style="font-size: 24px; margin-top: 15px;" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="mb-3" style="margin-bottom: 25px;">
-                <ui:Label text="USERNAME" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 8px;" />
+            <ui:VisualElement class="mb-3" style="margin-bottom: 30px;">
+                <ui:Label text="USERNAME" class="text-success mb-1" style="font-size: 18px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
                 
                 <ui:TextField name="RegUsername" placeholder="Your Hero Name" class="form-control" 
-                    style="height: 50px; font-size: 18px; -unity-text-align: middle-left; 
+                    style="height: 65px; font-size: 22px; -unity-text-align: middle-left; 
                            color: black; background-color: white;
-                           border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                           border-radius: 14px; border-color: rgba(255,255,255,0.1);" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="mb-3" style="margin-bottom: 25px;">
-                <ui:Label text="EMAIL ADDRESS" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 8px;" />
+            <ui:VisualElement class="mb-3" style="margin-bottom: 30px;">
+                <ui:Label text="EMAIL ADDRESS" class="text-success mb-1" style="font-size: 18px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
                 
                 <ui:TextField name="RegEmail" placeholder="name@example.com" class="form-control" 
-                    style="height: 50px; font-size: 18px; -unity-text-align: middle-left; 
+                    style="height: 65px; font-size: 22px; -unity-text-align: middle-left; 
                            color: black; background-color: white;
-                           border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                           border-radius: 14px; border-color: rgba(255,255,255,0.1);" />
             </ui:VisualElement>
 
-            <ui:VisualElement class="row mb-4" style="flex-direction: row; justify-content: space-between; margin-bottom: 40px;">
+            <ui:VisualElement class="row mb-4" style="flex-direction: row; justify-content: space-between; margin-bottom: 50px;">
                 <ui:VisualElement style="width: 48%;">
-                    <ui:Label text="PASSWORD" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; margin-bottom: 8px;" />
+                    <ui:Label text="PASSWORD" class="text-success mb-1" style="font-size: 18px; -unity-font-style: bold; margin-bottom: 10px;" />
                     
                     <ui:TextField name="RegPass" password="true" class="form-control" 
-                        style="height: 50px; font-size: 18px; -unity-text-align: middle-left; 
+                        style="height: 65px; font-size: 22px; -unity-text-align: middle-left; 
                                color: black; background-color: white;
-                               border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                               border-radius: 14px; border-color: rgba(255,255,255,0.1);" />
                 </ui:VisualElement>
                 <ui:VisualElement style="width: 48%;">
-                    <ui:Label text="CONFIRM" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; margin-bottom: 8px;" />
+                    <ui:Label text="CONFIRM" class="text-success mb-1" style="font-size: 18px; -unity-font-style: bold; margin-bottom: 10px;" />
                     
                     <ui:TextField name="RegConfirmPass" password="true" class="form-control" 
-                        style="height: 50px; font-size: 18px; -unity-text-align: middle-left; 
+                        style="height: 65px; font-size: 22px; -unity-text-align: middle-left; 
                                color: black; background-color: white;
-                               border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                               border-radius: 14px; border-color: rgba(255,255,255,0.1);" />
                 </ui:VisualElement>
             </ui:VisualElement>
 
-            <ui:VisualElement class="row justify-content-between align-items-center" style="flex-direction: row; gap: 20px;">
-                <ui:Button name="BtnSwitchToLogin" text="Back to Login" class="btn" style="flex-grow: 1; height: 60px; font-size: 18px; background-color: transparent; border-width: 2px; border-color: rgba(255,255,255,0.2); color: white; border-radius: 12px;" />
-                <ui:Button name="BtnRegisterSubmit" text="CREATE HERO" class="btn" style="flex-grow: 2; height: 60px; font-size: 22px; -unity-font-style: bold; background-color: rgb(40, 167, 69); color: white; border-radius: 12px; border-width: 0;" />
+            <ui:VisualElement class="row justify-content-between align-items-center" style="flex-direction: row; gap: 30px;">
+                <ui:Button name="BtnSwitchToLogin" text="Back to Login" class="btn" style="flex-grow: 1; height: 80px; font-size: 22px; background-color: transparent; border-width: 3px; border-color: rgba(255,255,255,0.2); color: white; border-radius: 16px;" />
+                <ui:Button name="BtnRegisterSubmit" text="CREATE HERO" class="btn" style="flex-grow: 2; height: 80px; font-size: 28px; -unity-font-style: bold; background-color: rgb(40, 167, 69); color: white; border-radius: 16px; border-width: 0;" />
             </ui:VisualElement>
 
         </ui:VisualElement>
 
-        <ui:Label name="StatusLabel" text="" class="small text-danger mt-3" style="font-size: 16px; margin-top: 20px; -unity-font-style: bold;" />
+        <ui:Label name="StatusLabel" text="" class="small text-danger mt-3" style="font-size: 20px; margin-top: 30px; -unity-font-style: bold;" />
 
         <ui:VisualElement name="LoadingOverlay" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; display: none;">
-            <ui:Label text="CONNECTING TO SERVER..." class="h5 text-info" style="font-size: 24px; letter-spacing: 5px;" />
-            <ui:VisualElement style="width: 300px; height: 4px; background-color: rgb(0, 210, 255); margin-top: 30px; border-radius: 2px;" />
+            <ui:Label text="CONNECTING TO SERVER..." class="h5 text-info" style="font-size: 32px; letter-spacing: 5px;" />
+            <ui:VisualElement style="width: 500px; height: 6px; background-color: rgb(0, 210, 255); margin-top: 40px; border-radius: 3px;" />
         </ui:VisualElement>
 
     </ui:VisualElement>
