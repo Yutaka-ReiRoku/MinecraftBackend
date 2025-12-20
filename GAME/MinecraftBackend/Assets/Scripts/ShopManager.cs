@@ -27,21 +27,25 @@ public class ShopManager : MonoBehaviour
 
     // UI Elements
     private Label _pageLabel; // Trang Shop
-    private Label _invPageLabel; // [MỚI] Trang Inventory
+    private Label _invPageLabel; // Trang Inventory
 
     private Button _btnTabShop, _btnTabInv, _btnTabCraft, _btnTabBattle;
     private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
 
     // Logic Variables
     private int _currentPage = 1; // Shop Page (API side)
-    private int _currentInvPage = 1; // [MỚI] Inv Page (Client side)
+    private int _currentInvPage = 1; // Inv Page (Client side)
 
     private int _pageSize = 10;
-    private const float ITEM_HEIGHT = 72f;
+    
+    // --- AUTO-DETECT UPDATE ---
+    // Không dùng const nữa. Mặc định là 100, nhưng sẽ tự cập nhật khi chạy.
+    private float _itemHeight = 100f; 
+    private bool _isHeightCalculated = false; // Cờ kiểm tra đã đo xong chưa
 
-    private string _currentFilterType = "All"; // [MỚI] Lưu loại lọc hiện tại
-    private List<InventoryDto> _fullInventory = new List<InventoryDto>(); // Tất cả đồ
-    private List<InventoryDto> _filteredInventory = new List<InventoryDto>(); // Đồ sau khi lọc (để phân trang)
+    private string _currentFilterType = "All"; // Lưu loại lọc hiện tại
+    private List<InventoryDto> _fullInventory = new List<InventoryDto>(); 
+    private List<InventoryDto> _filteredInventory = new List<InventoryDto>(); 
 
     private ProgressBar _monsterHpBar;
     private Button _btnAttack;
@@ -70,14 +74,6 @@ public class ShopManager : MonoBehaviour
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
 
-        // --- Resize Logic ---
-        if (_shopContainer != null)
-        {
-            _shopWrapper = _shopContainer.Q(className: "list-wrapper");
-            if (_shopWrapper != null)
-                _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
-        }
-
         // --- Stats ---
         _goldLabel = _root.Q<Label>("ShopGold");
         _gemLabel = _root.Q<Label>("ShopGem");
@@ -91,27 +87,24 @@ public class ShopManager : MonoBehaviour
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
         _btnTabBattle = SetupTabButton("TabBattle", "Battle");
 
-        // --- Shop Pagination ---
+        // --- Pagination Controls ---
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
         if (btnPrev != null) btnPrev.clicked += () => ChangePage(-1);
         if (btnNext != null) btnNext.clicked += () => ChangePage(1);
 
-        // --- [MỚI] Inventory Pagination ---
         var btnInvPrev = _root.Q<Button>("BtnInvPrev");
         var btnInvNext = _root.Q<Button>("BtnInvNext");
         _invPageLabel = _root.Q<Label>("InvPageLabel");
-
         if (btnInvPrev != null) btnInvPrev.clicked += () => ChangeInventoryPage(-1);
         if (btnInvNext != null) btnInvNext.clicked += () => ChangeInventoryPage(1);
 
-        // --- Battle ---
+        // --- Battle & Filters ---
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => StartCoroutine(AttackProcess());
 
-        // --- Inventory Filters ---
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
@@ -123,8 +116,9 @@ public class ShopManager : MonoBehaviour
         GameEvents.OnCurrencyChanged += RefreshAllData;
         GameEvents.OnEquipRequest += HandleEquipRequest;
 
-        StartCoroutine(LoadProfile());
-        SwitchTab("Shop");
+        // --- AUTO-DETECT LOGIC ---
+        // Thay vì SwitchTab ngay, ta đo chiều cao trước
+        StartCoroutine(InitializeLayoutAndLoad());
     }
 
     void OnDisable()
@@ -135,29 +129,90 @@ public class ShopManager : MonoBehaviour
             _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
+    // --- COROUTINE KHỞI TẠO THÔNG MINH ---
+    IEnumerator InitializeLayoutAndLoad()
+    {
+        // 1. Tạo một item giả để đo
+        if (ItemTemplate != null && _shopScroll != null)
+        {
+            var ghostItem = ItemTemplate.Instantiate();
+            var ghostRoot = ghostItem.Q<VisualElement>("ItemContainer");
+            
+            // Làm cho nó tàng hình và không ảnh hưởng layout chính
+            ghostRoot.style.visibility = Visibility.Hidden; 
+            ghostRoot.style.position = Position.Absolute;
+            
+            _shopScroll.Add(ghostRoot);
+
+            // 2. Đợi đến cuối frame để Unity tính toán layout xong
+            yield return new WaitForEndOfFrame(); 
+
+            // 3. Lấy chiều cao thực tế
+            if (ghostRoot.layout.height > 0)
+            {
+                _itemHeight = ghostRoot.layout.height;
+                Debug.Log($"[ShopManager] Auto-detected Item Height: {_itemHeight}px");
+            }
+            else
+            {
+                Debug.LogWarning("[ShopManager] Could not detect height, using default 100px");
+                _itemHeight = 100f; // Fallback nếu lỗi
+            }
+
+            // 4. Xóa item giả
+            _shopScroll.Remove(ghostRoot);
+            _isHeightCalculated = true;
+        }
+
+        // --- Sau khi đo xong mới gán sự kiện Resize ---
+        if (_shopContainer != null)
+        {
+            _shopWrapper = _shopContainer.Q(className: "list-wrapper");
+            if (_shopWrapper != null)
+            {
+                // Gọi thủ công lần đầu để tính _pageSize ngay lập tức
+                CalculatePageSize(_shopWrapper.resolvedStyle.height);
+                // Sau đó mới đăng ký sự kiện cho các lần resize sau
+                _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
+            }
+        }
+
+        // Load dữ liệu
+        StartCoroutine(LoadProfile());
+        SwitchTab("Shop");
+    }
+
     private void OnShopWrapperLayoutChange(GeometryChangedEvent evt)
     {
-        float wrapperHeight = evt.newRect.height;
-        if (wrapperHeight < ITEM_HEIGHT) return;
+        CalculatePageSize(evt.newRect.height);
+    }
 
-        int fitCount = Mathf.FloorToInt(wrapperHeight / ITEM_HEIGHT);
+    // Hàm tính toán số lượng item hiển thị
+    void CalculatePageSize(float wrapperHeight)
+    {
+        if (!_isHeightCalculated) return; // Chưa đo xong thì chưa tính
+        if (wrapperHeight < _itemHeight) return;
+
+        // Tính số lượng item vừa khít
+        int fitCount = Mathf.FloorToInt(wrapperHeight / _itemHeight);
         if (fitCount < 1) fitCount = 1;
 
+        // Chỉ reload khi số lượng thay đổi
         if (fitCount != _pageSize)
         {
             _pageSize = fitCount;
-            // Nếu đang ở tab nào thì reload tab đó
+            Debug.Log($"[ShopManager] Page Size updated to: {_pageSize} items");
+            
             if (_shopContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadShopItems(_currentPage));
             if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage();
         }
     }
 
-    // --- LOGIC PHÂN TRANG INVENTORY (MỚI) ---
+    // --- CÁC HÀM LOGIC CŨ GIỮ NGUYÊN ---
+
     void ChangeInventoryPage(int dir)
     {
         if (_filteredInventory.Count == 0) return;
-
-        // Tính tổng số trang
         int maxPage = Mathf.CeilToInt((float)_filteredInventory.Count / _pageSize);
         if (maxPage < 1) maxPage = 1;
 
@@ -175,22 +230,19 @@ public class ShopManager : MonoBehaviour
 
         if (_filteredInventory.Count == 0)
         {
-            _invScroll.Add(new Label("Empty.") { style = { color = Color.gray, alignSelf = Align.Center, marginTop = 20 } });
+            _invScroll.Add(new Label("Empty.") { style = { color = Color.gray, alignSelf = Align.Center, marginTop = 20, fontSize = 20 } });
             _invPageLabel.text = "1";
             return;
         }
 
-        // Cập nhật Label trang
         int maxPage = Mathf.CeilToInt((float)_filteredInventory.Count / _pageSize);
         _invPageLabel.text = $"{_currentInvPage}/{maxPage}";
 
-        // Cắt list theo trang (Skip & Take)
         var pageItems = _filteredInventory
             .Skip((_currentInvPage - 1) * _pageSize)
             .Take(_pageSize)
             .ToList();
 
-        // Render items
         int index = 0;
         foreach (var inv in pageItems)
         {
@@ -216,7 +268,7 @@ public class ShopManager : MonoBehaviour
         priceRow.Clear();
 
         var qtyLabel = new Label($"x{inv.Quantity}");
-        qtyLabel.style.fontSize = 14;
+        qtyLabel.style.fontSize = 20;
         qtyLabel.style.color = Color.white;
         qtyLabel.style.marginRight = 10;
         priceRow.Add(qtyLabel);
@@ -226,6 +278,9 @@ public class ShopManager : MonoBehaviour
             var equipLabel = new Label("EQUIPPED");
             equipLabel.AddToClassList("badge");
             equipLabel.style.backgroundColor = new Color(0, 0.7f, 0);
+            equipLabel.style.fontSize = 14;
+            equipLabel.style.paddingLeft = 5;
+            equipLabel.style.paddingRight = 5;
             priceRow.Add(equipLabel);
         }
 
@@ -240,14 +295,8 @@ public class ShopManager : MonoBehaviour
     {
         _currentFilterType = type;
         UpdateFilterVisual(type);
-
-        // 1. Lọc dữ liệu thô
         _filteredInventory = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
-
-        // 2. Reset về trang 1
         _currentInvPage = 1;
-
-        // 3. Render trang đầu tiên
         RenderInventoryCurrentPage();
     }
 
@@ -255,25 +304,22 @@ public class ShopManager : MonoBehaviour
     {
         if (_invScroll == null) yield break;
         _invScroll.Clear();
-        _invScroll.Add(new Label("Loading...") { style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 20 } });
+        _invScroll.Add(new Label("Loading...") { style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 20, fontSize = 20 } });
 
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null,
             (items) => {
                 _fullInventory = items;
-                // Gọi filter để khởi tạo _filteredInventory và render trang đầu
                 FilterInventory(_currentFilterType);
             },
             (err) => {
                 if (_invScroll != null)
                 {
                     _invScroll.Clear();
-                    _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red } });
+                    _invScroll.Add(new Label("Failed to load.") { style = { color = Color.red, fontSize = 20 } });
                 }
             }
         );
     }
-
-    // --- (PHẦN CÒN LẠI GIỮ NGUYÊN) ---
 
     public void UseItemFromHotbar(string itemId)
     {
@@ -328,7 +374,8 @@ public class ShopManager : MonoBehaviour
         if (tabName == "Shop")
         {
             _shopContainer.style.display = DisplayStyle.Flex;
-            if (_pageSize > 0) StartCoroutine(LoadShopItems(_currentPage));
+            // Chỉ load nếu đã tính được kích thước trang
+            if (_pageSize > 0 && _isHeightCalculated) StartCoroutine(LoadShopItems(_currentPage));
         }
         else if (tabName == "Inventory")
         {
@@ -429,6 +476,7 @@ public class ShopManager : MonoBehaviour
         btn.AddToClassList("btn");
         btn.AddToClassList("btn-outline-secondary");
         btn.style.flexDirection = FlexDirection.Row;
+        
         Color borderColor;
         string priceText;
         if (item.PriceCurrency == "RES_GOLD")
@@ -447,8 +495,11 @@ public class ShopManager : MonoBehaviour
         btn.style.borderBottomColor = borderColor;
         btn.style.borderLeftColor = borderColor;
         btn.style.borderRightColor = borderColor;
+        btn.style.height = 40;
+
         var lbl = new Label(priceText);
         lbl.AddToClassList("fw-bold");
+        lbl.style.fontSize = 16;
         btn.Add(lbl);
         btn.clicked += () => ShowDetailPopup(item);
         priceRow.Add(btn);
@@ -525,8 +576,8 @@ public class ShopManager : MonoBehaviour
         var menuRoot = menu.Q<VisualElement>("ContextMenu");
         float x = mousePos.x;
         float y = mousePos.y;
-        if (x + 150 > _root.resolvedStyle.width) x -= 150;
-        if (y + 150 > _root.resolvedStyle.height) y -= 150;
+        if (x + 180 > _root.resolvedStyle.width) x -= 180;
+        if (y + 180 > _root.resolvedStyle.height) y -= 180;
         menuRoot.style.left = x;
         menuRoot.style.top = y;
         menuRoot.style.display = DisplayStyle.Flex;
@@ -579,17 +630,17 @@ public class ShopManager : MonoBehaviour
         panel.style.display = (panel.style.display == DisplayStyle.None) ? DisplayStyle.Flex : DisplayStyle.None;
         var list = panel.Q<ScrollView>("NotiLogList");
         list.Clear();
-        list.Add(new Label("Loading...") { style = { color = Color.gray } });
+        list.Add(new Label("Loading...") { style = { color = Color.gray, fontSize = 18 } });
         yield return NetworkManager.Instance.SendRequest<List<TransactionDto>>("game/transactions/my", "GET", null,
             (logs) => {
                 list.Clear();
-                if (logs.Count == 0) list.Add(new Label("No history.") { style = { color = Color.white } });
+                if (logs.Count == 0) list.Add(new Label("No history.") { style = { color = Color.white, fontSize = 18 } });
                 foreach (var log in logs)
                 {
                     string currencySymbol = (log.Currency == "RES_GEM") ? "💎" : "G";
                     var row = new Label($"[{log.Date}] {log.Action} ({log.Amount} {currencySymbol})");
                     row.style.color = log.Amount >= 0 ? Color.green : new Color(1f, 0.4f, 0.4f);
-                    row.style.fontSize = 12;
+                    row.style.fontSize = 18;
                     row.style.borderBottomWidth = 1;
                     row.style.borderBottomColor = new Color(1, 1, 1, 0.1f);
                     list.Add(row);
@@ -602,10 +653,10 @@ public class ShopManager : MonoBehaviour
     IEnumerator LoadRecipes()
     {
         _craftScroll.Clear();
-        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray } });
+        _craftScroll.Add(new Label("Loading Recipes...") { style = { color = Color.gray, fontSize = 20 } });
         yield return NetworkManager.Instance.SendRequest<List<RecipeDto>>("game/recipes", "GET", null, (recipes) => {
             _craftScroll.Clear();
-            if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white } });
+            if (recipes.Count == 0) _craftScroll.Add(new Label("No Recipes Available.") { style = { color = Color.white, fontSize = 20 } });
             int index = 0;
             foreach (var r in recipes)
             {
@@ -621,7 +672,8 @@ public class ShopManager : MonoBehaviour
                 priceRow.Clear();
                 var btn = new Button { text = "CRAFT" };
                 btn.AddToClassList("btn-success");
-                btn.style.height = 30;
+                btn.AddToClassList("btn"); 
+                btn.style.height = 40;
                 btn.clicked += () => StartCoroutine(CraftProcess(r));
                 priceRow.Add(btn);
                 _craftScroll.Add(ui);
