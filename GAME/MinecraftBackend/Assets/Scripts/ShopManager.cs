@@ -19,40 +19,48 @@ public class ShopManager : MonoBehaviour
 
     private UIDocument _uiDoc;
     private VisualElement _root;
+    
+    // Containers
     private VisualElement _shopContainer, _inventoryContainer, _craftContainer, _battleContainer;
     private VisualElement _shopWrapper;
 
+    // Components
     private ScrollView _shopScroll, _invScroll, _craftScroll;
     private Label _goldLabel, _gemLabel, _playerLevelLabel;
     private ProgressBar _hpBar, _staminaBar;
 
-    // UI Elements
+    // Tabs
+    private Button _btnTabShop, _btnTabInv, _btnTabCraft, _btnTabBattle;
+    
+    // Filters
+    private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
+
+    // Pagination
     private Label _pageLabel;
     private Label _invPageLabel;
 
-    private Button _btnTabShop, _btnTabInv, _btnTabCraft, _btnTabBattle;
-    private Button _btnFilterAll, _btnFilterWep, _btnFilterCon;
-
-    // Logic Variables
+    // State Variables
     private int _currentPage = 1;
     private int _currentInvPage = 1;
     private int _pageSize = 10;
     private float _itemHeight = 100f;
     private bool _isHeightCalculated = false;
 
-    // Anti-Double Click / Busy State
+    // Anti-Spam / Busy
     private bool _isBusy = false; 
     private float _lastClickTime = 0f;
     private const float CLICK_COOLDOWN = 0.3f;
 
+    // Data
     private string _currentFilterType = "All";
     private List<InventoryDto> _fullInventory = new List<InventoryDto>();
     private List<InventoryDto> _filteredInventory = new List<InventoryDto>();
-
-    private ProgressBar _monsterHpBar;
-    private Button _btnAttack;
     private MonsterDto _currentMonster;
     private CharacterDto _currentProfile;
+
+    // Battle Elements
+    private ProgressBar _monsterHpBar;
+    private Button _btnAttack;
 
     void Awake()
     {
@@ -66,31 +74,34 @@ public class ShopManager : MonoBehaviour
         if (_uiDoc == null) return;
         _root = _uiDoc.rootVisualElement;
 
-        // Containers
+        // 1. Setup Containers
         _shopContainer = _root.Q<VisualElement>("ShopContainer");
         _inventoryContainer = _root.Q<VisualElement>("InventoryContainer");
         _craftContainer = _root.Q<VisualElement>("CraftContainer");
         _battleContainer = _root.Q<VisualElement>("BattleContainer");
 
-        // Scrolls
+        // 2. Setup Scrolls
         _shopScroll = _root.Q<ScrollView>("ShopScrollView");
         _invScroll = _root.Q<ScrollView>("InventoryScrollView");
         _craftScroll = _root.Q<ScrollView>("CraftScrollView");
 
-        // Stats
+        // 3. Setup Stats Labels (Header)
         _goldLabel = _root.Q<Label>("ShopGold");
         _gemLabel = _root.Q<Label>("ShopGem");
         _hpBar = _root.Q<ProgressBar>("HpBar");
         _staminaBar = _root.Q<ProgressBar>("StaminaBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // Tabs
+        // 4. Create & Place SETTINGS BUTTON (Code-First UI)
+        CreateSettingsButtonInTopBar();
+
+        // 5. Setup Tabs
         _btnTabShop = SetupTabButton("TabShop", "Shop");
         _btnTabInv = SetupTabButton("TabInventory", "Inventory");
         _btnTabCraft = SetupTabButton("TabCraft", "Craft");
         _btnTabBattle = SetupTabButton("TabBattle", "Battle");
 
-        // Shop Pagination
+        // 6. Pagination Logic
         var btnPrev = _root.Q<Button>("BtnPrev");
         var btnNext = _root.Q<Button>("BtnNext");
         _pageLabel = _root.Q<Label>("PageLabel");
@@ -98,7 +109,6 @@ public class ShopManager : MonoBehaviour
         if (btnPrev != null) btnPrev.clicked += () => { if (CanClick()) ChangePage(-1); };
         if (btnNext != null) btnNext.clicked += () => { if (CanClick()) ChangePage(1); };
 
-        // Inventory Pagination
         var btnInvPrev = _root.Q<Button>("BtnInvPrev");
         var btnInvNext = _root.Q<Button>("BtnInvNext");
         _invPageLabel = _root.Q<Label>("InvPageLabel");
@@ -106,14 +116,14 @@ public class ShopManager : MonoBehaviour
         if (btnInvPrev != null) btnInvPrev.clicked += () => { if (CanClick()) ChangeInventoryPage(-1); };
         if (btnInvNext != null) btnInvNext.clicked += () => { if (CanClick()) ChangeInventoryPage(1); };
 
-        // Battle
+        // 7. Battle Logic
         _monsterHpBar = _root.Q<ProgressBar>("MonsterHpBar");
         _btnAttack = _root.Q<Button>("BtnAttack");
         if (_btnAttack != null) _btnAttack.clicked += () => {
             if (CanClick()) StartCoroutine(AttackProcess());
         };
 
-        // Filters
+        // 8. Filters & Logs
         _btnFilterAll = SetupInvFilter("BtnFilterAll", "All");
         _btnFilterWep = SetupInvFilter("BtnFilterWep", "Weapon");
         _btnFilterCon = SetupInvFilter("BtnFilterCon", "Consumable");
@@ -136,17 +146,76 @@ public class ShopManager : MonoBehaviour
         if (_shopWrapper != null) _shopWrapper.UnregisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
     }
 
-    // --- HÀM KIỂM TRA CLICK (Đã cập nhật kiểm tra Settings) ---
+    // --- TẠO NÚT SETTING Ở TOP BAR ---
+    private void CreateSettingsButtonInTopBar()
+    {
+        // Kiểm tra xem đã có nút chưa để tránh tạo trùng
+        var existingBtn = _root.Q<Button>("BtnOpenSettingsUnique");
+        if (existingBtn != null) 
+        {
+            // Nếu có rồi thì chỉ cần gán lại sự kiện
+             existingBtn.clicked -= OnSettingsClicked;
+             existingBtn.clicked += OnSettingsClicked;
+             return;
+        }
+
+        var btn = new Button();
+        btn.name = "BtnOpenSettingsUnique";
+        btn.text = "⚙"; // Icon bánh răng
+        
+        // Vị trí: Góc Phải Trên (Top-Right), cố định tuyệt đối
+        btn.style.position = Position.Absolute;
+        btn.style.top = 15;   // Cách mép trên 15px
+        btn.style.right = 15; // Cách mép phải 15px
+        
+        // Kích thước: To, dễ bấm
+        btn.style.width = 60;
+        btn.style.height = 60;
+        
+        // Styling đẹp
+        btn.style.backgroundColor = new Color(0.2f, 0.2f, 0.25f, 0.9f);
+        btn.style.color = new Color(1f, 1f, 1f, 0.9f); // Trắng sáng
+        btn.style.fontSize = 35; // Icon to
+        btn.style.unityFontStyleAndWeight = FontStyle.Bold;
+        
+        // Border Radius (Tròn hoặc bo góc mạnh)
+        btn.style.borderTopLeftRadius = 12;
+        btn.style.borderTopRightRadius = 12;
+        btn.style.borderBottomLeftRadius = 12;
+        btn.style.borderBottomRightRadius = 12;
+
+        // Border Line
+        btn.style.borderTopWidth = 2; btn.style.borderBottomWidth = 2;
+        btn.style.borderLeftWidth = 2; btn.style.borderRightWidth = 2;
+        Color borderColor = new Color(1, 1, 1, 0.3f);
+        btn.style.borderTopColor = borderColor; btn.style.borderBottomColor = borderColor;
+        btn.style.borderLeftColor = borderColor; btn.style.borderRightColor = borderColor;
+
+        // Hover Effect (Optional - Logic handled by Unity UI implicitly for buttons)
+        
+        // Logic Click
+        btn.clicked += OnSettingsClicked;
+
+        // Thêm vào Root (Nó sẽ nằm đè lên mọi thứ khác ở góc đó)
+        _root.Add(btn);
+    }
+
+    private void OnSettingsClicked()
+    {
+        // Gọi SettingsManager
+        if (SettingsManager.Instance != null)
+        {
+            SettingsManager.Instance.ToggleSettings();
+            if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("click");
+        }
+    }
+
+    // --- LOGIC CHÍNH ---
     private bool CanClick()
     {
-        // 1. Nếu đang bận (Mua/Bán/Craft)
         if (_isBusy) return false;
-
-        // 2. Nếu bảng Settings đang mở -> Chặn thao tác Shop
-        if (SettingsManager.Instance != null && SettingsManager.Instance.IsSettingsOpen) 
-            return false;
-
-        // 3. Cooldown
+        // Nếu Settings đang mở thì chặn tương tác shop
+        if (SettingsManager.Instance != null && SettingsManager.Instance.IsSettingsOpen) return false;
         if (Time.time - _lastClickTime < CLICK_COOLDOWN) return false;
 
         _lastClickTime = Time.time;
@@ -155,9 +224,9 @@ public class ShopManager : MonoBehaviour
 
     IEnumerator InitializeLayoutAndLoad()
     {
+        // Tính toán layout cho Shop Grid
         if (ItemTemplate != null && _shopScroll != null)
         {
-            // Tính toán chiều cao item để phân trang tự động
             var ghostItem = ItemTemplate.Instantiate();
             var ghostRoot = ghostItem.Q<VisualElement>("ItemContainer");
             ghostRoot.style.visibility = Visibility.Hidden;
@@ -206,7 +275,8 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    // --- LOGIC: Inventory Pagination & Rendering ---
+    // ... CÁC HÀM XỬ LÝ INVENTORY, SHOP, PROFILE NHƯ CŨ (GIỮ NGUYÊN LOGIC) ...
+
     void ChangeInventoryPage(int dir)
     {
         if (_filteredInventory.Count == 0) return;
@@ -332,7 +402,6 @@ public class ShopManager : MonoBehaviour
             if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
             else StartCoroutine(EquipItem(itemId));
         }
-        else ToastManager.Instance.Show("Item không tồn tại!", false);
     }
 
     void RefreshAllData()
@@ -347,7 +416,6 @@ public class ShopManager : MonoBehaviour
         StartCoroutine(EquipItem(itemId));
     }
 
-    // --- TABS & FILTERS ---
     Button SetupTabButton(string btnName, string tabName)
     {
         var btn = _root.Q<Button>(btnName);
@@ -443,7 +511,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- SHOP LOGIC ---
     void ChangePage(int dir)
     {
         _currentPage += dir;
@@ -536,7 +603,6 @@ public class ShopManager : MonoBehaviour
         return template;
     }
 
-    // --- POPUP & BUY ---
     void ShowDetailPopup(ShopItemDto item)
     {
         if (PopupTemplate == null) return;
@@ -630,7 +696,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- CONTEXT MENU ---
     void ShowContextMenu(InventoryDto inv, Vector2 mousePos)
     {
         var old = _root.Q("ContextMenu");
@@ -718,7 +783,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- TRANSACTION HISTORY ---
     IEnumerator LoadTransactionHistory()
     {
         var panel = _root.Q<VisualElement>("NotiLogPanel");
@@ -752,7 +816,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- CRAFTING ---
     IEnumerator LoadRecipes()
     {
         _craftScroll.Clear();
@@ -815,7 +878,6 @@ public class ShopManager : MonoBehaviour
         );
     }
 
-    // --- BATTLE ---
     IEnumerator SpawnMonster()
     {
         _currentMonster = new MonsterDto { Name = "Zombie", HP = 100, MaxHp = 100 };

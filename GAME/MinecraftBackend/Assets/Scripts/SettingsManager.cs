@@ -11,6 +11,7 @@ public class SettingsManager : MonoBehaviour
     [Header("Settings UI")]
     public UIDocument UiDoc;
 
+    // Biến kiểm tra trạng thái mở để ShopManager chặn click bên dưới
     public bool IsSettingsOpen => _popup != null && _popup.style.display == DisplayStyle.Flex;
 
     private VisualElement _root;
@@ -38,7 +39,7 @@ public class SettingsManager : MonoBehaviour
         if (UiDoc != null)
         {
             _root = UiDoc.rootVisualElement;
-            InitializeSettingsUI();
+            InitializeSettingsPopup();
         }
         else
         {
@@ -48,21 +49,13 @@ public class SettingsManager : MonoBehaviour
 
     void Update()
     {
+        // Phím tắt ESC để mở/đóng nhanh
         if (Input.GetKeyDown(KeyCode.Escape)) ToggleSettings();
     }
 
-    private void InitializeSettingsUI()
+    private void InitializeSettingsPopup()
     {
-        // 1. Tìm hoặc Tạo Nút Settings
-        var btnOpen = _root.Q<Button>("BtnSettings");
-        if (btnOpen == null)
-        {
-            btnOpen = CreateSettingsButton();
-            _root.Add(btnOpen);
-        }
-        btnOpen.clicked += ToggleSettings;
-
-        // 2. Tìm hoặc Tạo Popup Settings
+        // Chỉ tìm hoặc tạo Popup, KHÔNG tạo nút Button ở đây nữa
         _popup = _root.Q<VisualElement>("SettingsPopup");
         if (_popup == null)
         {
@@ -70,7 +63,7 @@ public class SettingsManager : MonoBehaviour
             _root.Add(_popup);
         }
         
-        // 3. Gán sự kiện
+        // Gán sự kiện cho các nút trong Popup
         var btnClose = _popup.Q<Button>("BtnCloseSettings");
         if (btnClose != null) btnClose.clicked += CloseSettings;
 
@@ -124,95 +117,60 @@ public class SettingsManager : MonoBehaviour
         _newPassField = _popup.Q<TextField>("NewPass");
         _btnConfirmPass = _popup.Q<Button>("BtnConfirmPass");
 
-        // FIX: Unity 6 dùng 'maskChar' thay vì 'isPassword' hoặc 'maskCharacter'
+        // Unity 6+ dùng maskChar
         if (_oldPassField != null) _oldPassField.maskChar = '*';
         if (_newPassField != null) _newPassField.maskChar = '*';
 
         if (_btnConfirmPass != null)
             _btnConfirmPass.clicked += () => StartCoroutine(ChangePasswordProcess());
 
+        // Mặc định ẩn
         _popup.style.display = DisplayStyle.None;
     }
 
-    // --- CÁC HÀM TẠO UI CODE-FIRST ---
-    
-    private Button CreateSettingsButton()
-    {
-        var btn = new Button();
-        btn.name = "BtnSettings";
-        btn.text = "⚙";
-        btn.style.position = Position.Absolute;
-        btn.style.top = 20;
-        btn.style.right = 20;
-        btn.style.width = 50;
-        btn.style.height = 50;
-        btn.style.backgroundColor = new Color(0, 0, 0, 0.5f);
-        btn.style.color = Color.white;
-        btn.style.fontSize = 30;
-
-        // Style rõ ràng để tránh lỗi phiên bản
-        btn.style.borderTopLeftRadius = 10;
-        btn.style.borderTopRightRadius = 10;
-        btn.style.borderBottomLeftRadius = 10;
-        btn.style.borderBottomRightRadius = 10;
-
-        btn.style.borderTopWidth = 1;
-        btn.style.borderBottomWidth = 1;
-        btn.style.borderLeftWidth = 1;
-        btn.style.borderRightWidth = 1;
-
-        Color borderColor = new Color(1, 1, 1, 0.2f);
-        btn.style.borderTopColor = borderColor;
-        btn.style.borderBottomColor = borderColor;
-        btn.style.borderLeftColor = borderColor;
-        btn.style.borderRightColor = borderColor;
-
-        return btn;
-    }
-
+    // --- HÀM TẠO POPUP CODE-FIRST ---
     private VisualElement CreateSettingsPopup()
     {
         var overlay = new VisualElement();
         overlay.name = "SettingsPopup";
         overlay.style.position = Position.Absolute;
-        overlay.style.width = Length.Percent(100);
-        overlay.style.height = Length.Percent(100);
+        overlay.style.top = 0; overlay.style.bottom = 0;
+        overlay.style.left = 0; overlay.style.right = 0;
         overlay.style.backgroundColor = new Color(0, 0, 0, 0.85f);
         overlay.style.alignItems = Align.Center;
         overlay.style.justifyContent = Justify.Center;
+        overlay.style.zIndex = 9999; // Đảm bảo luôn nằm trên cùng
 
         var card = new VisualElement();
-        card.style.width = 400;
-        card.style.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
-        card.style.paddingLeft = 20; card.style.paddingRight = 20;
-        card.style.paddingTop = 20; card.style.paddingBottom = 20;
+        card.style.width = 450;
+        card.style.backgroundColor = new Color(0.12f, 0.12f, 0.18f);
+        card.style.paddingLeft = 30; card.style.paddingRight = 30;
+        card.style.paddingTop = 30; card.style.paddingBottom = 30;
         
-        card.style.borderTopLeftRadius = 15; card.style.borderTopRightRadius = 15;
-        card.style.borderBottomLeftRadius = 15; card.style.borderBottomRightRadius = 15;
+        // Border Radius
+        card.style.borderTopLeftRadius = 20; card.style.borderTopRightRadius = 20;
+        card.style.borderBottomLeftRadius = 20; card.style.borderBottomRightRadius = 20;
 
-        card.style.borderTopWidth = 1;
-        card.style.borderBottomWidth = 1;
-        card.style.borderLeftWidth = 1;
-        card.style.borderRightWidth = 1;
-
-        Color cardBorderColor = new Color(1, 1, 1, 0.1f);
-        card.style.borderTopColor = cardBorderColor;
-        card.style.borderBottomColor = cardBorderColor;
-        card.style.borderLeftColor = cardBorderColor;
-        card.style.borderRightColor = cardBorderColor;
+        // Border
+        card.style.borderTopWidth = 2; card.style.borderBottomWidth = 2;
+        card.style.borderLeftWidth = 2; card.style.borderRightWidth = 2;
+        Color borderColor = new Color(1, 1, 1, 0.15f);
+        card.style.borderTopColor = borderColor; card.style.borderBottomColor = borderColor;
+        card.style.borderLeftColor = borderColor; card.style.borderRightColor = borderColor;
 
         // Header
-        var title = new Label("SETTINGS / PAUSE");
-        title.style.fontSize = 24;
-        title.style.color = Color.white;
+        var title = new Label("PAUSE MENU");
+        title.style.fontSize = 28;
+        title.style.color = new Color(1, 0.8f, 0.4f); // Màu vàng nhạt
         title.style.unityFontStyleAndWeight = FontStyle.Bold;
-        title.style.marginBottom = 20;
+        title.style.marginBottom = 25;
         title.style.alignSelf = Align.Center;
         card.Add(title);
 
         // Sliders
         var lblMusic = new Label("Music Volume");
         lblMusic.style.color = Color.gray;
+        lblMusic.style.marginTop = 10;
         card.Add(lblMusic);
         
         var sliderMusic = new Slider(0, 1);
@@ -226,27 +184,27 @@ public class SettingsManager : MonoBehaviour
 
         var sliderSfx = new Slider(0, 1);
         sliderSfx.name = "SfxSlider";
-        sliderSfx.style.marginBottom = 20;
+        sliderSfx.style.marginBottom = 25;
         card.Add(sliderSfx);
 
         // Change Password Button
         var btnChangePass = new Button { text = "Change Password", name = "BtnChangePass" };
-        btnChangePass.style.height = 40;
-        btnChangePass.style.marginBottom = 10;
+        btnChangePass.style.height = 45;
+        btnChangePass.style.marginBottom = 15;
+        btnChangePass.style.fontSize = 16;
         card.Add(btnChangePass);
 
         // Password Area
         var passArea = new VisualElement { name = "PassChangeArea" };
         passArea.style.display = DisplayStyle.None;
         passArea.style.backgroundColor = new Color(0,0,0,0.3f);
-        passArea.style.paddingLeft = 10; passArea.style.paddingRight = 10;
-        passArea.style.paddingTop = 10; passArea.style.paddingBottom = 10;
-        passArea.style.marginBottom = 10;
+        passArea.style.paddingLeft = 15; passArea.style.paddingRight = 15;
+        passArea.style.paddingTop = 15; passArea.style.paddingBottom = 15;
+        passArea.style.marginBottom = 15;
         
-        passArea.style.borderTopLeftRadius = 5; passArea.style.borderTopRightRadius = 5;
-        passArea.style.borderBottomLeftRadius = 5; passArea.style.borderBottomRightRadius = 5;
+        passArea.style.borderTopLeftRadius = 10; passArea.style.borderTopRightRadius = 10;
+        passArea.style.borderBottomLeftRadius = 10; passArea.style.borderBottomRightRadius = 10;
 
-        // FIX: maskChar
         var oldPass = new TextField { name = "OldPass" }; 
         oldPass.maskChar = '*'; 
         oldPass.label = "Old Password";
@@ -255,10 +213,11 @@ public class SettingsManager : MonoBehaviour
         newPass.maskChar = '*'; 
         newPass.label = "New Password";
 
-        var btnConfirm = new Button { text = "Confirm Change", name = "BtnConfirmPass" };
+        var btnConfirm = new Button { text = "Confirm", name = "BtnConfirmPass" };
         btnConfirm.style.marginTop = 10;
-        btnConfirm.style.backgroundColor = new Color(0, 0.5f, 0);
+        btnConfirm.style.backgroundColor = new Color(0, 0.6f, 0);
         btnConfirm.style.color = Color.white;
+        btnConfirm.style.height = 40;
 
         passArea.Add(oldPass);
         passArea.Add(newPass);
@@ -269,18 +228,22 @@ public class SettingsManager : MonoBehaviour
         var row = new VisualElement();
         row.style.flexDirection = FlexDirection.Row;
         row.style.justifyContent = Justify.SpaceBetween;
-        row.style.marginTop = 10;
+        row.style.marginTop = 15;
 
         var btnLogout = new Button { text = "LOGOUT", name = "BtnLogout" };
-        btnLogout.style.backgroundColor = new Color(0.6f, 0, 0);
+        btnLogout.style.backgroundColor = new Color(0.7f, 0.1f, 0.1f);
         btnLogout.style.color = Color.white;
         btnLogout.style.flexGrow = 1;
-        btnLogout.style.height = 45;
+        btnLogout.style.height = 50;
+        btnLogout.style.fontSize = 16;
+        btnLogout.style.unityFontStyleAndWeight = FontStyle.Bold;
 
-        var btnClose = new Button { text = "CLOSE", name = "BtnCloseSettings" };
+        var btnClose = new Button { text = "RESUME", name = "BtnCloseSettings" };
         btnClose.style.flexGrow = 1;
-        btnClose.style.height = 45;
-        btnClose.style.marginLeft = 10;
+        btnClose.style.height = 50;
+        btnClose.style.marginLeft = 15;
+        btnClose.style.fontSize = 16;
+        btnClose.style.unityFontStyleAndWeight = FontStyle.Bold;
 
         row.Add(btnLogout);
         row.Add(btnClose);
@@ -291,7 +254,6 @@ public class SettingsManager : MonoBehaviour
     }
 
     // --- LOGIC ---
-
     public void ToggleSettings()
     {
         if (_popup == null) return;
@@ -317,24 +279,24 @@ public class SettingsManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass))
         {
-            ToastManager.Instance.Show("Vui lòng nhập đầy đủ thông tin!", false);
+            ToastManager.Instance.Show("Please enter all fields!", false);
             yield break;
         }
         if (newPass.Length < 6)
         {
-            ToastManager.Instance.Show("Mật khẩu mới quá ngắn!", false);
+            ToastManager.Instance.Show("Password must be > 6 chars!", false);
             yield break;
         }
 
         var body = new { OldPassword = oldPass, NewPassword = newPass };
         yield return NetworkManager.Instance.SendRequest<object>("auth/password", "PUT", body,
             (res) => {
-                ToastManager.Instance.Show("Đổi mật khẩu thành công!", true);
+                ToastManager.Instance.Show("Password Changed!", true);
                 _oldPassField.value = "";
                 _newPassField.value = "";
                 if(_passChangeArea != null) _passChangeArea.style.display = DisplayStyle.None;
             },
-            (err) => ToastManager.Instance.Show("Lỗi: " + err, false)
+            (err) => ToastManager.Instance.Show("Error: " + err, false)
         );
     }
 
