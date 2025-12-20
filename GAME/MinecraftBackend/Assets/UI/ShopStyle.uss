@@ -206,23 +206,25 @@
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
 
-/* === FIX INPUT FORM COLOR === */
-/* Class base chuẩn của Unity là: .unity-base-text-field__input */
+/* === FIX INPUT FORM COLOR - PHẦN QUAN TRỌNG NHẤT === */
+
+/* 1. Ép nền màu trắng */
 .form-control .unity-base-text-field__input {
-    color: rgb(0, 0, 0) !important; /* Chữ ĐEN */
-    background-color: rgb(255, 255, 255) !important; /* Nền TRẮNG */
-    -unity-background-image-tint-color: white;
-    cursor: text;
-}
-
-/* Thêm cả class này đề phòng các version Unity khác nhau */
-.form-control .unity-text-field__input {
-    color: rgb(0, 0, 0) !important;
     background-color: rgb(255, 255, 255) !important;
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgb(0, 0, 0) !important;
 }
 
-.form-control:focus .unity-base-text-field__input {
-    border-color: #00d2ff;
+/* 2. Ép CHỮ (TextElement) bên trong Input phải màu ĐEN. 
+   Dùng selector này để đè lên quy tắc '*' ở đầu file */
+.form-control .unity-base-text-field__input .unity-text-element {
+    color: rgb(0, 0, 0) !important;
+    -unity-text-align: middle-left;
+}
+
+/* 3. Đổi màu chữ Placeholder (nếu có) sang màu xám đậm cho dễ nhìn */
+.form-control .unity-base-field__label {
+    color: rgb(0, 0, 0) !important;
 }
 
 /* Scrollbar */
