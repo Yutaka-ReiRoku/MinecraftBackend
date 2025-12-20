@@ -9,7 +9,7 @@
             </ui:VisualElement>
 
             <ui:Label text="MINECRAFT RPG" class="h3 text-white" style="font-size: 40px; letter-spacing: 5px; text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);" />
-            <ui:Label text="ADMIN & GAME CLIENT" class="small text-info" style="letter-spacing: 3px; margin-top: 5px;" />
+            <ui:Label text="ADMIN &amp; GAME CLIENT" class="small text-info" style="letter-spacing: 3px; margin-top: 5px;" />
         </ui:VisualElement>
 
         <ui:VisualElement style="width: 300px; margin-top: 50px;">
