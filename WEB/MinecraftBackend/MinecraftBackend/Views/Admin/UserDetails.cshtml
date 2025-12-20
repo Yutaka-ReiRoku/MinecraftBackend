@@ -2,9 +2,11 @@
 
 @{
     ViewData["Title"] = "Player Details";
-    // Đảm bảo cast đúng kiểu dữ liệu mới
     var inventory = ViewBag.Inventory as List<MinecraftBackend.Models.GameInventory>;
     var logs = ViewBag.Logs as List<MinecraftBackend.Models.Transaction>; 
+    
+    // MỚI: Nhận danh sách ảnh từ Controller
+    var itemImages = ViewBag.ItemImages as Dictionary<string, string>;
 }
 
 <div class="container-fluid">
@@ -23,14 +25,8 @@
                         <div class="mt-2">
                             <span class="badge bg-primary me-2">Lv.@Model.Level</span>
                             <span class="badge bg-secondary me-2">Mode: @Model.GameMode</span>
-                            @if (Model.User.Status == "Active")
-                            {
-                                <span class="badge bg-success">Active Account</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger">BANNED</span>
-                            }
+                            @if (Model.User.Status == "Active") { <span class="badge bg-success">Active Account</span> }
+                            else { <span class="badge bg-danger">BANNED</span> }
                         </div>
                     </div>
                     <div class="text-end">
@@ -39,7 +35,7 @@
                              <a asp-action="EditUser" asp-route-id="@Model.UserId" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i> Edit</a>
                              <form asp-action="ToggleUserStatus" method="get">
                                  <input type="hidden" name="id" value="@Model.User.Id" />
-                                <button class="btn btn-danger btn-sm"><i class="fas fa-ban me-1"></i> Toggle Ban</button>
+                                 <button class="btn btn-danger btn-sm"><i class="fas fa-ban me-1"></i> Toggle Ban</button>
                             </form>
                         </div>
                     </div>
@@ -52,7 +48,6 @@
         <div class="col-md-4 mb-4">
             <div class="glass-card h-100">
                 <h5 class="text-warning mb-3 border-bottom border-secondary pb-2"><i class="fas fa-chart-bar me-2"></i>Stats & Wallet</h5>
-                
                 <div class="row g-3 text-center mb-4">
                     <div class="col-6">
                         <div class="p-3 bg-black bg-opacity-25 rounded border border-warning">
@@ -69,7 +64,6 @@
                         </div>
                     </div>
                 </div>
-
                 <ul class="list-group list-group-flush bg-transparent">
                     <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
                         <span><i class="fas fa-heart text-danger me-2"></i>Health</span>
@@ -92,42 +86,33 @@
                 <div class="card-header bg-white bg-opacity-10 border-bottom border-secondary pt-3 px-3 pb-3">
                     <ul class="nav nav-tabs card-header-tabs border-0" id="userTabs" role="tablist">
                         <li class="nav-item me-3">
-                            <button class="nav-link active text-info bg-transparent border-0 border-bottom border-3 border-info fw-bold m-0 pb-2" 
-                                    data-bs-toggle="tab" data-bs-target="#inventory" type="button">
-                                <i class="fas fa-box me-2"></i>Inventory (@(inventory?.Count ?? 0))
-                            </button>
+                            <button class="nav-link active text-info bg-transparent border-0 border-bottom border-3 border-info fw-bold m-0 pb-2" data-bs-toggle="tab" data-bs-target="#inventory" type="button"><i class="fas fa-box me-2"></i>Inventory (@(inventory?.Count ?? 0))</button>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link text-secondary bg-transparent border-0 fw-bold m-0 pb-2" 
-                                    data-bs-toggle="tab" data-bs-target="#logs" type="button">
-                                <i class="fas fa-history me-2"></i>Recent Transactions
-                            </button>
+                            <button class="nav-link text-secondary bg-transparent border-0 fw-bold m-0 pb-2" data-bs-toggle="tab" data-bs-target="#logs" type="button"><i class="fas fa-history me-2"></i>Recent Transactions</button>
                         </li>
                     </ul>
                 </div>
-
                 <div class="card-body p-0">
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="inventory">
                             <div class="table-responsive" style="max-height: 400px;">
                                 <table class="table table-hover table-dark mb-0 text-white-50 align-middle">
                                     <thead class="sticky-top bg-black">
-                                        <tr>
-                                            <th>Item ID</th>
-                                            <th>Qty</th>
-                                            <th>Status</th>
-                                        </tr>
+                                        <tr><th>Item ID</th><th>Qty</th><th>Status</th></tr>
                                     </thead>
                                     <tbody>
-                                        @if (inventory != null && inventory.Any())
-                                        {
-                                            foreach (var item in inventory)
-                                            {
+                                        @if (inventory != null && inventory.Any()) {
+                                            foreach (var item in inventory) {
+                                                // Tìm ảnh trong Dictionary
+                                                string imgUrl = (itemImages != null && itemImages.ContainsKey(item.ItemID)) 
+                                                                ? itemImages[item.ItemID] 
+                                                                : "/images/others/default.png";
                                                 <tr>
                                                     <td>
                                                         <div class="d-flex align-items-center">
-                                                            <div class="bg-secondary rounded me-2" style="width: 32px; height: 32px;">
-                                                                 <i class="fas fa-cube text-white m-2"></i>
+                                                            <div class="bg-black border border-secondary rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                <img src="@imgUrl" width="32" height="32" style="object-fit: contain;">
                                                             </div>
                                                             <div>
                                                                 <span class="text-white fw-bold">@item.ItemID</span>
@@ -142,32 +127,22 @@
                                                     </td>
                                                 </tr>
                                             }
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             <tr><td colspan="3" class="text-center py-4">Empty Inventory</td></tr>
                                         }
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
                         <div class="tab-pane fade" id="logs">
                             <div class="table-responsive" style="max-height: 400px;">
                                 <table class="table table-hover table-dark mb-0 text-white-50 small align-middle">
                                     <thead class="sticky-top bg-black">
-                                        <tr>
-                                            <th>Time</th>
-                                            <th>Action</th>
-                                            <th>Details</th>
-                                            <th>Change</th>
-                                        </tr>
+                                        <tr><th>Time</th><th>Action</th><th>Details</th><th>Change</th></tr>
                                     </thead>
                                     <tbody>
-                                        @if (logs != null && logs.Any())
-                                        {
-                                            foreach (var log in logs)
-                                            {
+                                        @if (logs != null && logs.Any()) {
+                                            foreach (var log in logs) {
                                                 <tr>
                                                     <td>@log.CreatedAt.ToString("MM/dd HH:mm")</td>
                                                     <td>
@@ -180,27 +155,18 @@
                                                         @if(!string.IsNullOrEmpty(log.ItemId)) { <div class="text-info small opacity-75">Ref: @log.ItemId</div> }
                                                     </td>
                                                     <td>
-                                                        @if (log.Amount != 0)
-                                                        {
+                                                        @if (log.Amount != 0) {
                                                             bool isPos = log.Amount > 0;
                                                             string color = isPos ? "text-success" : "text-danger";
                                                             string icon = (log.CurrencyType == "RES_GEM") ? "far fa-gem" : "fas fa-coins";
                                                             string currColor = (log.CurrencyType == "RES_GEM") ? "text-info" : "text-warning";
-
-                                                            <span class="@color fw-bold">
-                                                                @(isPos ? "+" : "")@log.Amount 
-                                                            </span>
-                                                            <span class="@currColor ms-1">
-                                                                <i class="@icon"></i>
-                                                            </span>
-                                                        }
-                                                        else { <span>-</span> }
+                                                            <span class="@color fw-bold">@(isPos ? "+" : "")@log.Amount</span>
+                                                            <span class="@currColor ms-1"><i class="@icon"></i></span>
+                                                        } else { <span>-</span> }
                                                     </td>
                                                 </tr>
                                             }
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             <tr><td colspan="4" class="text-center py-4">No recent activity</td></tr>
                                         }
                                     </tbody>
@@ -216,19 +182,10 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Lấy danh sách tất cả các nút Tab trong cụm #userTabs
         const tabs = document.querySelectorAll('#userTabs button');
-
         tabs.forEach(tab => {
             tab.addEventListener('show.bs.tab', function (event) {
-                // 1. RESET tất cả các nút về trạng thái "Chìm" (Màu xám, không gạch chân)
-                tabs.forEach(t => {
-                    t.classList.remove('text-info', 'border-info', 'border-bottom', 'border-3', 'active');
-                    t.classList.add('text-secondary');
-                });
-
-                // 2. KÍCH HOẠT nút vừa bấm lên trạng thái "Nổi" (Màu xanh, có gạch chân)
-                // 'event.target' chính là nút vừa được bấm
+                tabs.forEach(t => { t.classList.remove('text-info', 'border-info', 'border-bottom', 'border-3', 'active'); t.classList.add('text-secondary'); });
                 event.target.classList.remove('text-secondary');
                 event.target.classList.add('text-info', 'border-info', 'border-bottom', 'border-3', 'active');
             });

@@ -127,22 +127,21 @@ namespace MinecraftBackend.Controllers
 
         // --- 5. GAMEPLAY ---
         [HttpPost("daily-checkin")] public async Task<IActionResult> DailyCheckin() { var p = await GetCurrentProfile(); p.Gold += 500; await _context.SaveChangesAsync(); return Ok(new DailyCheckinResponse { Message = "+500G", Gold = 500, Streak = 1 }); }
-        [AllowAnonymous] [HttpGet("monsters")] public async Task<IActionResult> GetMonsters() { return Ok(await _context.Monsters.ToListAsync()); }
+        
+        // FIX: Trả về Monsters từ DB thay vì cứng
+        [AllowAnonymous] 
+        [HttpGet("monsters")] 
+        public async Task<IActionResult> GetMonsters() 
+        { 
+             return Ok(await _context.Monsters.ToListAsync()); 
+        }
         
         [HttpPost("hunt")] 
         public async Task<IActionResult> HuntMonster() { 
             var p = await GetCurrentProfile(); 
             p.Gold += 10; p.Exp += 5; 
             bool lvUp = false; if (p.Exp >= 100 * p.Level) { p.Level++; p.Exp = 0; lvUp = true; } 
-            
-            // FIX: Thêm log cho Hunt thật
-            _context.Transactions.Add(new Transaction { 
-                UserId = p.UserId, 
-                ActionType = "HUNT", 
-                Details = "Hunted Monster", 
-                Amount = 10, CurrencyType = "RES_GOLD", CreatedAt = DateTime.Now 
-            });
-
+            _context.Transactions.Add(new Transaction { UserId = p.UserId, ActionType = "HUNT", Details = "Hunted Monster", Amount = 10, CurrencyType = "RES_GOLD", CreatedAt = DateTime.Now });
             await _context.SaveChangesAsync(); 
             return Ok(new HuntResponse { GoldEarned = 10, ExpEarned = 5, LevelUp = lvUp }); 
         }
@@ -154,8 +153,7 @@ namespace MinecraftBackend.Controllers
         [HttpGet("mail")] public IActionResult GetMails() => Ok(_mockMails);
         [HttpPost("mail/claim/{id}")] public async Task<IActionResult> ClaimMail(int id) { var mail = _mockMails.FirstOrDefault(m => m.Id == id); if (mail == null || mail.IsClaimed) return BadRequest("Error"); var profile = await GetCurrentProfile(); if (mail.AttachedItemId == "RES_GOLD") profile.Gold += mail.AttachedAmount; else if (!string.IsNullOrEmpty(mail.AttachedItemId)) await AddToInventory(profile.UserId, mail.AttachedItemId, mail.AttachedAmount); mail.IsClaimed = true; mail.IsRead = true; await _context.SaveChangesAsync(); return Ok(new { message = "Claimed" }); }
 
-        // --- 7. SIMULATOR ENDPOINTS (V7 - FULL LOGS) ---
-        
+        // --- 7. SIMULATOR ENDPOINTS ---
         [AllowAnonymous]
         [HttpPost("sim/buy")]
         public async Task<IActionResult> SimBuy(string charId, string prodId)
@@ -196,7 +194,6 @@ namespace MinecraftBackend.Controllers
             catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); }
         }
         
-        // FIX: Build giờ sẽ cộng Item và Ghi Log
         [AllowAnonymous]
         [HttpPost("sim/build")] 
         public async Task<IActionResult> SimBuild(string charId, string buildTypeId) 
@@ -206,75 +203,19 @@ namespace MinecraftBackend.Controllers
                 var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
                 if (profile == null) return NotFound("Char not found");
 
-                // Tìm tên công trình (Item)
                 var buildItem = await _context.ShopItems.FirstOrDefaultAsync(i => i.ProductID == buildTypeId);
                 string buildName = buildItem?.Name ?? buildTypeId;
 
-                // Cộng vào Inventory theo ý bạn
                 await AddToInventory(profile.UserId, buildTypeId, 1);
-
-                // Ghi Log Transaction
-                _context.Transactions.Add(new Transaction { 
-                    UserId = profile.UserId, 
-                    ActionType = "SIM_BUILD", 
-                    Details = $"Simulated Build: {buildName}", 
-                    CreatedAt = DateTime.Now, 
-                    CurrencyType = "NONE", 
-                    Amount = 0 
-                });
+                _context.Transactions.Add(new Transaction { UserId = profile.UserId, ActionType = "SIM_BUILD", Details = $"Simulated Build: {buildName}", CreatedAt = DateTime.Now, CurrencyType = "NONE", Amount = 0 });
                 await _context.SaveChangesAsync();
                 return Ok($"Simulated Build: {buildName} added to Inventory.");
             }
             catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); }
         }
 
-        // FIX: Quest giờ sẽ Ghi Log
-        [AllowAnonymous]
-        [HttpPost("sim/quest")] 
-        public async Task<IActionResult> SimQuest(string charId, string questId) 
-        {
-            try
-            {
-                var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
-                if (profile == null) return NotFound("Char not found");
-
-                _context.Transactions.Add(new Transaction { 
-                    UserId = profile.UserId, 
-                    ActionType = "SIM_QUEST", 
-                    Details = $"Simulated Quest Completed: {questId}", 
-                    CreatedAt = DateTime.Now, 
-                    CurrencyType = "NONE", 
-                    Amount = 0 
-                });
-                await _context.SaveChangesAsync();
-                return Ok($"Simulated Quest: {questId} (Log Saved).");
-            }
-            catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); }
-        }
-
-        // FIX: Upgrade giờ sẽ Ghi Log
-        [AllowAnonymous]
-        [HttpPost("sim/upgrade")] 
-        public async Task<IActionResult> SimUpgrade(string charId, string ruleId) 
-        {
-            try
-            {
-                var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId);
-                if (profile == null) return NotFound("Char not found");
-
-                _context.Transactions.Add(new Transaction { 
-                    UserId = profile.UserId, 
-                    ActionType = "SIM_UPGRADE", 
-                    Details = $"Simulated Upgrade: {ruleId}", 
-                    CreatedAt = DateTime.Now, 
-                    CurrencyType = "NONE", 
-                    Amount = 0 
-                });
-                await _context.SaveChangesAsync();
-                return Ok($"Simulated Upgrade: {ruleId} (Log Saved).");
-            }
-            catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); }
-        }
+        [AllowAnonymous] [HttpPost("sim/quest")] public async Task<IActionResult> SimQuest(string charId, string questId) { try { var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId); if (profile == null) return NotFound("Char not found"); _context.Transactions.Add(new Transaction { UserId = profile.UserId, ActionType = "SIM_QUEST", Details = $"Simulated Quest Completed: {questId}", CreatedAt = DateTime.Now, CurrencyType = "NONE", Amount = 0 }); await _context.SaveChangesAsync(); return Ok($"Simulated Quest: {questId} (Log Saved)."); } catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); } }
+        [AllowAnonymous] [HttpPost("sim/upgrade")] public async Task<IActionResult> SimUpgrade(string charId, string ruleId) { try { var profile = await _context.PlayerProfiles.FirstOrDefaultAsync(p => p.CharacterID == charId); if (profile == null) return NotFound("Char not found"); _context.Transactions.Add(new Transaction { UserId = profile.UserId, ActionType = "SIM_UPGRADE", Details = $"Simulated Upgrade: {ruleId}", CreatedAt = DateTime.Now, CurrencyType = "NONE", Amount = 0 }); await _context.SaveChangesAsync(); return Ok($"Simulated Upgrade: {ruleId} (Log Saved)."); } catch (Exception ex) { return BadRequest($"Error: {ex.Message}"); } }
 
         private async Task AddToInventory(string userId, string itemId, int qty) { var existing = await _context.Inventories.FirstOrDefaultAsync(i => i.UserId == userId && i.ItemID == itemId); if (existing != null) existing.Quantity += qty; else _context.Inventories.Add(new GameInventory { InventoryId = Guid.NewGuid().ToString(), UserId = userId, ItemID = itemId, Quantity = qty, AcquiredDate = DateTime.Now }); }
 
@@ -305,12 +246,24 @@ namespace MinecraftBackend.Controllers
         }
 
         [AllowAnonymous][HttpGet("cheap-diamond")] public async Task<IActionResult> GetCheapDiamond() => Ok(await _context.ShopItems.Where(i => i.Name.Contains("Diamond") && i.PriceAmount < 500).ToListAsync());
-        [AllowAnonymous] [HttpGet("resources")] public async Task<IActionResult> GetResourcesSim() { return Ok(await _context.ShopItems.Where(i => i.ItemType == "Material").ToListAsync()); }
-        [AllowAnonymous] [HttpGet("buildings")] public async Task<IActionResult> GetBuildingsSim() { return Ok(await _context.ShopItems.Where(i => i.ItemType == "Building").ToListAsync()); }
         
-        // Quests vẫn là Fake Data nhưng nút Sim Quest đã có Log
+        // FIX: Đổi từ "Resource" thành "Material" để khớp SeedData
+        [AllowAnonymous] 
+        [HttpGet("resources")] 
+        public async Task<IActionResult> GetResourcesSim() 
+        { 
+            return Ok(await _context.ShopItems.Where(i => i.ItemType == "Material").ToListAsync()); 
+        }
+        
+        // FIX: Lấy Building từ DB thay vì cứng
+        [AllowAnonymous] 
+        [HttpGet("buildings")] 
+        public async Task<IActionResult> GetBuildingsSim() 
+        { 
+            return Ok(await _context.ShopItems.Where(i => i.ItemType == "Building").ToListAsync()); 
+        }
+        
         [AllowAnonymous][HttpGet("quests")] public IActionResult GetQuestsSim() => Ok(new List<object> { new { Name = "Kill Dragon", Reward = "Elytra" } });
-        
         [AllowAnonymous][HttpGet("leaderboard")] public async Task<IActionResult> GetLeaderboard() => Ok(await _context.PlayerProfiles.OrderByDescending(p => p.Level).Take(10).ToListAsync());
         [AllowAnonymous] [HttpGet("wiki")] public async Task<IActionResult> GetWiki() => Ok(await _context.ShopItems.ToListAsync());
         [AllowAnonymous][HttpGet("expensive-weapons")] public async Task<IActionResult> GetExpensiveWeapons() { return Ok(await _context.ShopItems.Where(i => i.ItemType == "Weapon" && i.PriceAmount > 100).ToListAsync()); }
