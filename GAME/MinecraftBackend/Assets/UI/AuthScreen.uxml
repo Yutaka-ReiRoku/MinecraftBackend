@@ -12,12 +12,12 @@
 
             <ui:VisualElement class="mb-4" style="margin-bottom: 30px;">
                 <ui:Label text="EMAIL ADDRESS" class="text-info mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
-                <ui:TextField name="LoginEmail" placeholder="Enter your email..." class="form-control" style="height: 55px; font-size: 20px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
+                <ui:TextField name="LoginEmail" placeholder="Enter your email..." class="form-control" style="height: 55px; font-size: 20px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
             </ui:VisualElement>
 
             <ui:VisualElement class="mb-4" style="margin-bottom: 50px;">
                 <ui:Label text="PASSWORD" class="text-info mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 10px;" />
-                <ui:TextField name="LoginPass" password="true" class="form-control" style="height: 55px; font-size: 20px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
+                <ui:TextField name="LoginPass" password="true" class="form-control" style="height: 55px; font-size: 20px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 12px; border-width: 1px; border-color: rgba(255,255,255,0.1); padding-left: 10px;" />
             </ui:VisualElement>
 
             <ui:VisualElement class="row justify-content-between align-items-center" style="flex-direction: row; gap: 20px;">
@@ -36,22 +36,22 @@
 
             <ui:VisualElement class="mb-3" style="margin-bottom: 25px;">
                 <ui:Label text="USERNAME" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 8px;" />
-                <ui:TextField name="RegUsername" placeholder="Your Hero Name" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                <ui:TextField name="RegUsername" placeholder="Your Hero Name" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
             </ui:VisualElement>
 
             <ui:VisualElement class="mb-3" style="margin-bottom: 25px;">
                 <ui:Label text="EMAIL ADDRESS" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; letter-spacing: 1px; margin-bottom: 8px;" />
-                <ui:TextField name="RegEmail" placeholder="name@example.com" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                <ui:TextField name="RegEmail" placeholder="name@example.com" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
             </ui:VisualElement>
 
             <ui:VisualElement class="row mb-4" style="flex-direction: row; justify-content: space-between; margin-bottom: 40px;">
                 <ui:VisualElement style="width: 48%;">
                     <ui:Label text="PASSWORD" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; margin-bottom: 8px;" />
-                    <ui:TextField name="RegPass" password="true" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                    <ui:TextField name="RegPass" password="true" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
                 </ui:VisualElement>
                 <ui:VisualElement style="width: 48%;">
                     <ui:Label text="CONFIRM" class="text-success mb-1" style="font-size: 14px; -unity-font-style: bold; margin-bottom: 8px;" />
-                    <ui:TextField name="RegConfirmPass" password="true" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgba(0,0,0,0.3); border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
+                    <ui:TextField name="RegConfirmPass" password="true" class="form-control" style="height: 50px; font-size: 18px; -unity-text-align: middle-left; background-color: rgb(255, 255, 255); color: black; border-radius: 10px; border-color: rgba(255,255,255,0.1);" />
                 </ui:VisualElement>
             </ui:VisualElement>
 

@@ -9,7 +9,7 @@
 .screen-container {
     width: 100%;
     height: 100%;
-    background-color: #121418; /* Màu nền rất tối */
+    background-color: #121418;
     display: flex;
     flex-direction: column;
 }
@@ -94,7 +94,7 @@
 .content-body {
     flex-grow: 1;
     padding: 20px;
-    overflow: hidden; /* Quan trọng để giữ layout */
+    overflow: hidden;
 }
 
 .tab-content {
@@ -136,18 +136,18 @@
 .col-grow { flex-grow: 1; }
 .col-fixed-right { width: 150px; -unity-text-align: middle-right; }
 
-/* Wrapper & ScrollView - GIỮ CẤU TRÚC KHÔNG SẬP */
+/* Wrapper & ScrollView */
 .list-wrapper {
     flex-grow: 1;
     overflow: hidden;
-    background-color: rgba(255,255,255,0.02); /* Nền bảng mờ rất nhẹ */
+    background-color: rgba(255,255,255,0.02);
     border-radius: 12px;
     border-width: 1px;
     border-color: rgba(255,255,255,0.05);
 }
 
 #ShopScrollView, #InventoryScrollView, #CraftScrollView {
-    flex-grow: 0; /* Co giãn theo nội dung */
+    flex-grow: 0;
     max-height: 100%;
 }
 #unity-content-container { flex-direction: column; }
@@ -155,7 +155,7 @@
 /* Table Rows */
 .table-row {
     width: 100%;
-    height: 70px; /* Item to hơn chút cho đẹp */
+    height: 70px;
     flex-direction: row;
     align-items: center;
     padding: 0 20px;
@@ -170,7 +170,7 @@
     background-color: rgba(0, 210, 255, 0.1);
     border-left-width: 4px;
     border-left-color: #00d2ff;
-    padding-left: 16px; /* Bù trừ border trái để không bị giật */
+    padding-left: 16px;
 }
 
 /* === UTILS === */
@@ -185,7 +185,7 @@
 .mb-1 { margin-bottom: 4px; }
 .mb-4 { margin-bottom: 24px; }
 
-/* Battle Zone */
+/* === BATTLE ZONE === */
 .battle-zone { justify-content: center; align-items: center; }
 .glass-panel {
     background-color: rgba(0,0,0,0.5);
@@ -205,6 +205,20 @@
 }
 .btn-attack:hover { background-color: #ff4d4d; scale: 1.05; }
 .btn-attack:active { scale: 0.95; }
+
+/* === INPUT FORMS (FIXED: BLACK TEXT ON WHITE) === */
+.form-control {
+    color: black; /* Màu chữ đen */
+}
+.form-control > .unity-text-field__input {
+    color: black; /* Đảm bảo text input là màu đen */
+    background-color: white; /* Đảm bảo nền là màu trắng */
+    -unity-background-image-tint-color: white;
+    cursor: text;
+}
+.form-control:focus > .unity-text-field__input {
+    border-color: #00d2ff; /* Viền xanh khi bấm vào */
+}
 
 /* Scrollbar */
 .unity-scroller { width: 6px; background-color: transparent; }
