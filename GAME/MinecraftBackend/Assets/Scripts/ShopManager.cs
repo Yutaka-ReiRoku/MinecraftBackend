@@ -92,13 +92,20 @@ public class ShopManager : MonoBehaviour
         _staminaBar = _root.Q<ProgressBar>("StaminaBar");
         _playerLevelLabel = _root.Q<Label>("LevelLabel");
 
-        // 4. SETUP SETTINGS BUTTON (Đã có sẵn trong UXML)
+        // --- ĐÂY LÀ PHẦN MỚI THÊM VÀO: KẾT NỐI NÚT SETTING ---
+        // Nút này được thêm vào UXML ở BƯỚC 2
         var btnSettings = _root.Q<Button>("BtnSettings");
         if (btnSettings != null)
         {
             btnSettings.clicked -= OnSettingsClicked;
             btnSettings.clicked += OnSettingsClicked;
         }
+        else
+        {
+            // Dự phòng: Nếu quên thêm vào UXML thì tự tạo nút tạm
+            CreateFallbackSettingsButton();
+        }
+        // ----------------------------------------------------
 
         // 5. Setup Tabs
         _btnTabShop = SetupTabButton("TabShop", "Shop");
@@ -160,6 +167,20 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    // Dự phòng: Tạo nút nếu bạn quên chèn vào UXML
+    private void CreateFallbackSettingsButton()
+    {
+        var btn = new Button { name = "BtnSettings", text = "⚙" };
+        btn.style.position = Position.Absolute;
+        btn.style.top = 10; btn.style.right = 10;
+        btn.style.width = 50; btn.style.height = 50;
+        btn.style.fontSize = 30;
+        btn.style.backgroundColor = new Color(0,0,0,0.5f);
+        btn.style.color = Color.white;
+        btn.clicked += OnSettingsClicked;
+        _root.Add(btn);
+    }
+
     // --- LOGIC CHÍNH ---
     private bool CanClick()
     {
@@ -171,10 +192,8 @@ public class ShopManager : MonoBehaviour
         return true;
     }
 
-    // --- SỬA LỖI CS1061: HÀM NÀY ĐÃ ĐƯỢC THÊM LẠI ---
     public void UseItemFromHotbar(string itemId)
     {
-        // Hàm này được HotbarManager gọi
         var item = _fullInventory.FirstOrDefault(i => i.ItemId == itemId);
         if (item != null)
         {
@@ -182,11 +201,11 @@ public class ShopManager : MonoBehaviour
             if (item.Type == "Consumable") StartCoroutine(UseItem(itemId));
             else StartCoroutine(EquipItem(itemId));
         }
-        else
-        {
-            ToastManager.Instance.Show("Item not found/loaded!", false);
-        }
+        else ToastManager.Instance.Show("Item not found!", false);
     }
+
+    // ... PHẦN CÒN LẠI GIỮ NGUYÊN LOGIC CŨ CỦA BẠN (Inventory, Shop, Craft...) ...
+    // Để code gọn, tôi include đầy đủ các hàm quan trọng bên dưới
 
     IEnumerator InitializeLayoutAndLoad()
     {
@@ -198,9 +217,7 @@ public class ShopManager : MonoBehaviour
             ghostRoot.style.position = Position.Absolute;
             _shopScroll.Add(ghostRoot);
             yield return new WaitForEndOfFrame();
-
-            if (ghostRoot.layout.height > 0) _itemHeight = ghostRoot.layout.height;
-            else _itemHeight = 100f;
+            if (ghostRoot.layout.height > 0) _itemHeight = ghostRoot.layout.height; else _itemHeight = 100f;
             _shopScroll.Remove(ghostRoot);
             _isHeightCalculated = true;
         }
@@ -208,110 +225,64 @@ public class ShopManager : MonoBehaviour
         if (_shopContainer != null)
         {
             _shopWrapper = _shopContainer.Q(className: "list-wrapper");
-            if (_shopWrapper != null)
-            {
-                CalculatePageSize(_shopWrapper.resolvedStyle.height);
-                _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange);
-            }
+            if (_shopWrapper != null) { CalculatePageSize(_shopWrapper.resolvedStyle.height); _shopWrapper.RegisterCallback<GeometryChangedEvent>(OnShopWrapperLayoutChange); }
         }
 
         StartCoroutine(LoadProfile());
         SwitchTab("Shop");
     }
 
-    private void OnShopWrapperLayoutChange(GeometryChangedEvent evt)
-    {
-        CalculatePageSize(evt.newRect.height);
-    }
+    private void OnShopWrapperLayoutChange(GeometryChangedEvent evt) { CalculatePageSize(evt.newRect.height); }
 
     void CalculatePageSize(float wrapperHeight)
     {
         if (!_isHeightCalculated) return;
         if (wrapperHeight < _itemHeight) return;
-
         int fitCount = Mathf.FloorToInt(wrapperHeight / _itemHeight);
         if (fitCount < 1) fitCount = 1;
-
-        if (fitCount != _pageSize)
-        {
-            _pageSize = fitCount;
-            if (_shopContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadShopItems(_currentPage));
-            if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage();
-        }
+        if (fitCount != _pageSize) { _pageSize = fitCount; if (_shopContainer.style.display == DisplayStyle.Flex) StartCoroutine(LoadShopItems(_currentPage)); if (_inventoryContainer.style.display == DisplayStyle.Flex) RenderInventoryCurrentPage(); }
     }
 
     void ChangeInventoryPage(int dir) {
         if (_filteredInventory.Count == 0) return;
         int maxPage = Mathf.CeilToInt((float)_filteredInventory.Count / _pageSize);
         if (maxPage < 1) maxPage = 1;
-        _currentInvPage += dir;
-        if (_currentInvPage < 1) _currentInvPage = 1;
-        if (_currentInvPage > maxPage) _currentInvPage = maxPage;
+        _currentInvPage += dir; if (_currentInvPage < 1) _currentInvPage = 1; if (_currentInvPage > maxPage) _currentInvPage = maxPage;
         RenderInventoryCurrentPage();
     }
 
     void RenderInventoryCurrentPage() {
         if (_invScroll == null) return;
         _invScroll.Clear();
-        if (_filteredInventory.Count == 0) {
-            _invScroll.Add(new Label("Empty.") { style = { color = Color.gray, alignSelf = Align.Center, marginTop = 20, fontSize = 20 } });
-            if (_invPageLabel != null) _invPageLabel.text = "1";
-            return;
-        }
+        if (_filteredInventory.Count == 0) { _invScroll.Add(new Label("Empty.") { style = { color = Color.gray, alignSelf = Align.Center, marginTop = 20, fontSize = 20 } }); if (_invPageLabel != null) _invPageLabel.text = "1"; return; }
         int maxPage = Mathf.CeilToInt((float)_filteredInventory.Count / _pageSize);
         if (_invPageLabel != null) _invPageLabel.text = $"{_currentInvPage}/{maxPage}";
         var pageItems = _filteredInventory.Skip((_currentInvPage - 1) * _pageSize).Take(_pageSize).ToList();
-        int index = 0;
-        foreach (var inv in pageItems) {
-            var ui = CreateInventoryItem(inv, index);
-            _invScroll.Add(ui);
-            index++;
-        }
+        int index = 0; foreach (var inv in pageItems) { var ui = CreateInventoryItem(inv, index); _invScroll.Add(ui); index++; }
     }
 
     VisualElement CreateInventoryItem(InventoryDto inv, int index) {
-        var ui = ItemTemplate.Instantiate();
-        var root = ui.Q<VisualElement>("ItemContainer");
+        var ui = ItemTemplate.Instantiate(); var root = ui.Q<VisualElement>("ItemContainer");
         if (index % 2 == 0) root.AddToClassList("row-even"); else root.AddToClassList("row-odd");
-        ui.Q<Label>("ItemName").text = inv.Name;
-        ui.Q<Label>("ItemRarity").text = $"{inv.Type} | {inv.Rarity}";
+        ui.Q<Label>("ItemName").text = inv.Name; ui.Q<Label>("ItemRarity").text = $"{inv.Type} | {inv.Rarity}";
         StartCoroutine(ui.Q<Image>("ItemImage").LoadImage(inv.ImageUrl));
         var priceRow = ui.Q<VisualElement>("PriceRow"); priceRow.Clear();
-        var qtyLabel = new Label($"x{inv.Quantity}") { style = { fontSize = 20, color = Color.white, marginRight = 10 } };
-        priceRow.Add(qtyLabel);
-        if (inv.IsEquipped) {
-            var equipLabel = new Label("EQUIPPED"); equipLabel.AddToClassList("badge");
-            equipLabel.style.backgroundColor = new Color(0, 0.7f, 0); equipLabel.style.fontSize = 14;
-            priceRow.Add(equipLabel);
-        }
+        var qtyLabel = new Label($"x{inv.Quantity}") { style = { fontSize = 20, color = Color.white, marginRight = 10 } }; priceRow.Add(qtyLabel);
+        if (inv.IsEquipped) { var equipLabel = new Label("EQUIPPED"); equipLabel.AddToClassList("badge"); equipLabel.style.backgroundColor = new Color(0, 0.7f, 0); equipLabel.style.fontSize = 14; priceRow.Add(equipLabel); }
         root.RegisterCallback<ClickEvent>(e => { if (e.button == 1) ShowContextMenu(inv, e.position); });
         return ui;
     }
 
-    void FilterInventory(string type) {
-        _currentFilterType = type; UpdateFilterVisual(type);
-        _filteredInventory = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList();
-        _currentInvPage = 1; RenderInventoryCurrentPage();
-    }
+    void FilterInventory(string type) { _currentFilterType = type; UpdateFilterVisual(type); _filteredInventory = (type == "All") ? _fullInventory : _fullInventory.Where(i => i.Type == type).ToList(); _currentInvPage = 1; RenderInventoryCurrentPage(); }
 
     IEnumerator LoadInventory() {
         if (_invScroll == null) yield break;
-        _invScroll.Clear();
-        _invScroll.Add(new Label("Loading...") { style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 20, fontSize = 20 } });
+        _invScroll.Clear(); _invScroll.Add(new Label("Loading...") { style = { color = Color.gray, alignSelf = Align.Center, paddingTop = 20, fontSize = 20 } });
         yield return NetworkManager.Instance.SendRequest<List<InventoryDto>>("game/inventory", "GET", null, (items) => { _fullInventory = items; FilterInventory(_currentFilterType); }, (err) => { if (_invScroll != null) { _invScroll.Clear(); _invScroll.Add(new Label("Failed.") { style = { color = Color.red } }); } });
     }
 
-    Button SetupTabButton(string btnName, string tabName) {
-        var btn = _root.Q<Button>(btnName);
-        if (btn != null) { btn.clicked -= () => SwitchTab(tabName); btn.clicked += () => { if (CanClick()) SwitchTab(tabName); }; }
-        return btn;
-    }
-    
-    Button SetupInvFilter(string btnName, string type) {
-        var btn = _root.Q<Button>(btnName);
-        if (btn != null) btn.clicked += () => { if (CanClick()) FilterInventory(type); };
-        return btn;
-    }
+    Button SetupTabButton(string btnName, string tabName) { var btn = _root.Q<Button>(btnName); if (btn != null) { btn.clicked -= () => SwitchTab(tabName); btn.clicked += () => { if (CanClick()) SwitchTab(tabName); }; } return btn; }
+    Button SetupInvFilter(string btnName, string type) { var btn = _root.Q<Button>(btnName); if (btn != null) btn.clicked += () => { if (CanClick()) FilterInventory(type); }; return btn; }
 
     void SwitchTab(string tabName) {
         if (_shopContainer != null) _shopContainer.style.display = DisplayStyle.None;
